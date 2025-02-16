@@ -1,0 +1,44 @@
+[
+    {
+        "question": "What is the capital of France?",
+        "type": "multiple_choice",
+        "choices": [
+            "London",
+            "Paris",
+            "Berlin",
+            "Madrid"
+        ],
+        "answer": "Paris",
+        "timeLimit": 30
+    },
+    {
+        "question": "What is 2 + 2?",
+        "type": "text",
+        "answer": "4",
+        "timeLimit": 15
+    },
+    {
+        "question": "Who wrote Romeo and Juliet?",
+        "type": "multiple_choice",
+        "choices": [
+            "Charles Dickens",
+            "William Shakespeare",
+            "Jane Austen",
+            "Mark Twain"
+        ],
+        "answer": "William Shakespeare",
+        "timeLimit": 20
+    },
+    {
+        "question": "Which planet is known as the Red Planet?",
+        "type": "multiple_choice",
+        "choices": [
+            "Venus",
+            "Mars",
+            "Jupiter",
+            "Saturn"
+        ],
+        "answer": "Mars",
+        "timeLimit": 25
+    }
+]
