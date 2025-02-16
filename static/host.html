@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>1% Club - Host View</title>
+</head>
+<body>
+    <h1>Host View</h1>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Answer</th>
+        </tr>
+        {{range $name, $player := .}}
+        <tr>
+            <td>{{$player.Name}}</td>
+            <td>{{$player.Score}}</td>
+            <td>{{$player.Answer}}</td>
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>

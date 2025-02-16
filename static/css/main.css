@@ -1,0 +1,95 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)), url('/static/images/1pcc_logo.svg');
+    background-repeat: repeat;  /* Changed from repeat-y to repeat for both horizontal and vertical tiling */
+    background-size: auto;     /* Add this to ensure the image isn't stretched */
+    /* Remove or comment out these if they exist:
+    background-size: cover;
+    background-position: center;
+    */
+    z-index: -1;
+}
+
+.container {
+    width: 90%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.top-text {
+    color: white;
+    text-align: center;
+    font-size: 1.2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.frame {
+    width: min(80vw, 80vh);
+    height: min(80vw, 80vh);
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+.frame img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.frame-text {
+    text-align: center;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.bottom-text {
+    color: white;
+    text-align: center;
+    font-size: 1.2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+
+    .top-text, .bottom-text {
+        font-size: 1em;
+    }
+
+    .frame-text {
+        font-size: 1.2em;
+    }
+}

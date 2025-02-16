@@ -1,0 +1,15 @@
+{
+    "configurations": [
+
+        {
+            "name": "Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${fileWorkspaceFolder}/t.py",
+            //"python": "C:/Users/richard/AppData/Local/Microsoft/WindowsApps/python.exe",
+            "python": "/usr/local/bin/python3",
+            "console": "integratedTerminal",
+            "args": [],
+        }
+    ]
+}
