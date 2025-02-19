@@ -1,23 +1,32 @@
+<!-- static/host.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>1% Club - Host View</title>
+    <title>Birstall Cricket Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- css -->
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    <!-- javascript -->
+    <script type="module" src="/static/js/main.js"></script>
 </head>
 <body>
-    <h1>Host View</h1>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Score</th>
-            <th>Answer</th>
-        </tr>
-        {{range $name, $player := .}}
-        <tr>
-            <td>{{$player.Name}}</td>
-            <td>{{$player.Score}}</td>
-            <td>{{$player.Answer}}</td>
-        </tr>
-        {{end}}
-    </table>
+    <div class="background"></div>
+    <div class="container">
+        <div class="top-text">
+            <img src="/static/images/header_plain.svg"/>
+        </div>
+
+        <div class="frame">
+            <div class="frame-text">
+                <h1>Game Host Console</h1>
+                <!-- start game button -->
+                <button id="start-game-button" class="start-game-button" onclick="startGameButton();">Start Game</button>
+            </div>
+        </div>
+
+        <div class="bottom-text">
+            Bottom text goes here
+        </div>
+    </div>
 </body>
 </html>

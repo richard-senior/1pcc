@@ -1,6 +1,17 @@
 [
     {
+        "question": "Click the world map where you think the streetview is.",
+        "questionNumber": 1,
+        "type": "geolocation",
+        "choices": [],
+        "answer": "0.1,0.1",
+        "timeLimit": 120,
+        "clickImage": "/static/images/worldmap.svg",
+        "streetview": "https://maps.app.goo.gl/g3SBX4YBWNF5r5Aw9"
+    },
+    {
         "question": "What is the capital of France?",
+        "questionNumber": 2,
         "type": "multiple_choice",
         "choices": [
             "London",
@@ -13,12 +24,14 @@
     },
     {
         "question": "What is 2 + 2?",
+        "questionNumber": 3,
         "type": "text",
         "answer": "4",
         "timeLimit": 15
     },
     {
         "question": "Who wrote Romeo and Juliet?",
+        "questionNumber": 4,
         "type": "multiple_choice",
         "choices": [
             "Charles Dickens",
@@ -31,6 +44,7 @@
     },
     {
         "question": "Which planet is known as the Red Planet?",
+        "questionNumber": 5,
         "type": "multiple_choice",
         "choices": [
             "Venus",

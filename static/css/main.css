@@ -1,18 +1,37 @@
+@font-face {
+    font-family: 'Club';
+    src: url('/static/fonts/club.eot') format('embedded-opentype'),
+         url('/static/fonts/club.woff2') format('woff2'),
+         url('/static/fonts/club.woff') format('woff'),
+         url('/static/fonts/club.ttf') format('truetype'),
+         url('/static/fonts/club.svg') format('svg');
+}
+/* static/css/main.css */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Club, sans-serif, Verdana, Geneva, Tahoma;
 }
 
+/* Ensure body takes full viewport */
 body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.container {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    font-family: Arial, sans-serif;
     position: relative;
-    overflow: hidden;
 }
 
 .background {
@@ -21,62 +40,259 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)), url('/static/images/1pcc_logo.svg');
-    background-repeat: repeat;  /* Changed from repeat-y to repeat for both horizontal and vertical tiling */
-    background-size: auto;     /* Add this to ensure the image isn't stretched */
-    /* Remove or comment out these if they exist:
-    background-size: cover;
-    background-position: center;
-    */
+    background: linear-gradient(#ba9128, #24354F);
+    /* background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)); */
+    background-repeat: repeat;
+    background-size: auto;
     z-index: -1;
 }
 
-.container {
-    width: 90%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
 .top-text {
-    color: white;
+    width: 100vw; /* Match frame width */
+    padding: 0px;
     text-align: center;
-    font-size: 1.2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.frame {
-    width: min(80vw, 80vh);
-    height: min(80vw, 80vh);
-    background-color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
+    font-size: 24px;
+    margin: 0px;
+    /* Optional subtle background */
+    /* background-color: rgba(0, 0, 0, 0.2); */
     border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+}
+
+/* Add specific rules for images within top-text */
+.top-text img {
+    width: 90vw;
+    display: block;
+    max-width: none; /* Allows image to exceed container width */
     position: relative;
-}
+    /*
+    left: 50%;
+    transform: translateX(-50%);
+    */
 
-.frame img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.frame-text {
-    text-align: center;
-    font-size: 1.5em;
-    color: #333;
 }
 
 .bottom-text {
-    color: white;
+    width: 80vw; /* Match frame width */
+    padding: 15px;
     text-align: center;
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 20px;
+    /* Optional subtle background */
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+button, input[type="button"], input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+/* #################################################################### */
+/* ############################## FRAME ############################### */
+/* #################################################################### */
+
+/* Modify existing frame class */
+.frame {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 70vh;  /* or whatever minimum height you want */
+    width: 90vw;
+
+    background-color: #D2B44D;
+    border-radius: 15px;
+    padding: 30px;
+
+    /* Positioning */
+    margin: 20px 0; /* Add vertical spacing */
+
+    /* Other styling */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+}
+
+.frame-text {
+    color: #ffffff;
+    text-align: center;
+}
+
+.frame-text h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.frame-text form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.frame-text input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+}
+
+.frame-text button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.frame-text button:hover {
+    background-color: #45a049;
+}
+
+.frame-text small {
+    color: #cccccc;
+    font-size: 12px;
+}
+
+/* #################################################################### */
+/* ############################## HOST ############################### */
+/* #################################################################### */
+
+.start-game-button {
+
+}
+
+/* #################################################################### */
+/* ############################## QUESTION ############################ */
+/* #################################################################### */
+
+/* The container used to displaying coordinate-clickable images */
+.click-container {
+
+}
+
+.question-container {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.timer-container {
+    margin-top: auto;  /* pushes the timer to the bottom */
+    border-radius: 10px;
+    border: 1px;
+    background-color: #24354F;
+}
+
+.timer-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.timer-progress {
+    width: 100%;
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.1s linear;
+}
+
+.timer-text {
+    text-align: center;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.question-text {
     font-size: 1.2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 20px 0;
+}
+
+.answer-form {
+    margin-top: 20px;
+}
+
+.answer-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.answer-form button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.answer-form button:hover {
+    background-color: #45a049;
+}
+
+.choice-label {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.choice-label:hover {
+    background-color: #f5f5f5;
+}
+
+.players-list {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.players-list h3 {
+    margin-bottom: 10px;
+}
+
+.players-list ul {
+    list-style: none;
+}
+
+.players-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+}
+
+.players-list li:last-child {
+    border-bottom: none;
 }
 
 /* Media query for smaller screens */
@@ -85,11 +301,115 @@ body {
         width: 95%;
     }
 
-    .top-text, .bottom-text {
+    .question-text {
         font-size: 1em;
     }
 
-    .frame-text {
-        font-size: 1.2em;
+    .timer-bar {
+        height: 15px;
     }
+
+    .choice-label {
+        padding: 8px;
+    }
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.status-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.timer-text {
+    font-size: 1.2em;
+    color: #fff;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+.counter-text {
+    font-size: 1.2em;
+    color: #fff;
+}
+
+.question-text {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #fff;
+    text-align: center;
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.choices-container label {
+    display: block;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    cursor: pointer;
+    color: #fff;
+    transition: background-color 0.3s;
+}
+
+.choices-container label:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.players-container {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+.players-container h3 {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.player {
+    padding: 5px 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    color: #fff;
+}
+
+.admin-section {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.game-button {
+    padding: 10px 20px;
+    margin: 0 5px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.game-button:hover {
+    background-color: #45a049;
 }
