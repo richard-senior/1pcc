@@ -1,28 +1,30 @@
-<!-- static/play.html -->
+<!-- static/frame.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>1PCC - Game</title>
-    <script type="text/javascript" src="/static/js/main.js"></script>
-    <link rel="stylesheet" href="/static/css/main.css">
+    <title>Birstall Cricket Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- css -->
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    <!-- javascript -->
+    <script type="module" src="/static/js/main.js"></script>
 </head>
 <body>
     <div class="background"></div>
     <div class="container">
         <div class="top-text">
-            The 1% BCC Club
+            <img src="/static/images/header_plain.svg"/>
         </div>
 
-        <div class="frame" id="game-container">
-            <!-- Option 1: For image content -->
-            <!-- <img src="/static/content-image.jpg" alt="Frame content"> -->
-
-            <!-- Option 2: For text content -->
-            <div class="frame-text" id="question-area">
-            </div>
-            <div id="players-list"></div>
+        <div class="frame">
+            <div class="frame-text"></div>
+            <div id="click-container" style="visibility: hidden;"></div>
+            <div id="timer" class="timer-container"></div>
         </div>
 
-    <script src="/static/js/main.js"></script>
+        <div class="bottom-text">
+            Bottom text goes here
+        </div>
+    </div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// internal/handlers/api.go
+// handlers/api.go
 package handlers
 
 import (
@@ -6,71 +6,67 @@ import (
 	"net/http"
 
 	"github.com/richard-senior/1pcc/internal/game"
-	"github.com/richard-senior/1pcc/internal/session"
+	"github.com/richard-senior/1pcc/internal/logger"
 )
 
-// GameStateResponse represents the JSON structure we'll send to clients
-type GameStateResponse struct {
-	Players         map[string]*game.Player `json:"players"`
-	CurrentQuestion *game.Question          `json:"currentQuestion,omitempty"`
-	QuestionNumber  int                     `json:"questionNumber"`
-	TotalQuestions  int                     `json:"totalQuestions"`
-	Error           string                  `json:"error,omitempty"`
-}
-
-// GameAPIHandler handles all game state API requests
-func GameAPIHandler(w http.ResponseWriter, r *http.Request) {
+func HandleAPI(w http.ResponseWriter, r *http.Request) {
 	// Set JSON content type
 	w.Header().Set("Content-Type", "application/json")
 
-	// Get game instance
-	gameInstance := game.GetGame()
-
-	// Get current question number and total
-	currentQ, totalQ := gameInstance.GetGameProgress()
-
-	// Create response
-	response := GameStateResponse{
-		Players:         gameInstance.GetAllPlayers(),
-		CurrentQuestion: gameInstance.GetCurrentQuestion(),
-		QuestionNumber:  currentQ,
-		TotalQuestions:  totalQ,
+	// Handle different API endpoints
+	switch r.URL.Path {
+	case "/api/game-state":
+		handleGameState(w, r)
+	case "/api/submit-answer":
+		handleSubmitAnswer(w, r)
+	case "/api/previous-question":
+		handlePreviousQuestion(w, r)
+	case "/api/next-question":
+		handleNextQuestion(w, r)
+	case "/api/start-question":
+		handleStartQuestion(w, r)
+	default:
+		http.NotFound(w, r)
 	}
-
-	// Send response
-	json.NewEncoder(w).Encode(response)
 }
 
-// SubmitAnswerRequest represents the expected JSON structure for answer submissions
-type SubmitAnswerRequest struct {
-	Answer string `json:"answer"`
+// handleGameState responds to API requests for the current game state.
+// The Game State is a singleton that holds the current state of the game
+// such as what question we are currently playing etc.
+// It retrieves the game state from the game singleton, applies any
+// decoration specific to the user makeing the request and then
+// returns it as JSON.
+// If the JSON encoding fails, it returns a 500 Internal Server Error
+func handleGameState(w http.ResponseWriter, r *http.Request) {
+	// get the game state from the game singleton
+	state := game.GetGame()
+	// Encode the state as JSON and send it back
+	err := json.NewEncoder(w).Encode(state)
+	if err != nil {
+		http.Error(w, "Failed to encode game state", http.StatusInternalServerError)
+		return
+	}
+	// TODO decorate gamestate with user information from session
+	// Handle gamestate question timer
 }
 
-// SubmitAnswerHandler handles answer submissions via API
-func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func handlePreviousQuestion(w http.ResponseWriter, r *http.Request) {
+	// game.StartGame() should apply the timestamp of the start of the game
+	logger.Info("Handling next question request")
+}
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+func handleNextQuestion(w http.ResponseWriter, r *http.Request) {
+	// game.StartGame() should apply the timestamp of the start of the game
+	logger.Info("Handling next question request")
+}
 
-	// Decode the request
-	var req SubmitAnswerRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Invalid request format",
-		})
-		return
-	}
+func handleStartQuestion(w http.ResponseWriter, r *http.Request) {
+	// game.StartGame() should apply the timestamp of the start of the game
+	logger.Info("starting question")
+	game.GetGame().StartQuestion()
+}
 
-	// Submit answer to game
-	gameInstance := game.GetGame()
-	username := session.GetUsername(r)
-	gameInstance.SetAnswer(username, req.Answer)
-
-	// Return success
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "success",
-	})
+func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
+	logger.Info("Handling submit answer request")
+	// For example, you might want to process the submitted answer and update the game state
 }

@@ -9,9 +9,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/richard-senior/1pcc/internal/config"
+	"github.com/richard-senior/1pcc/internal/game"
 	"github.com/richard-senior/1pcc/internal/handlers"
+	"github.com/richard-senior/1pcc/internal/logger"
 	"github.com/richard-senior/1pcc/internal/session"
 )
+
+// paths that don't need sign in
+var publicPaths = map[string]bool{
+	"/qr":   true,
+	"/join": true,
+}
 
 // GracefulShutdown handles the graceful shutdown of the server
 func GracefulShutdown(server *http.Server, quit <-chan os.Signal, done chan<- bool) {
@@ -48,25 +57,34 @@ func baseHandler(next http.Handler) http.Handler {
 		if strings.HasPrefix(r.URL.Path, "/static/") {
 			next.ServeHTTP(w, r)
 			return
+			// amazonq-ignore-next-line
 		}
 
+		// TODO handle player banning by IP
 		// Check to see if the user has a session cookie
 		if !session.IsUserLoggedIn(r) {
-			// if they do not, then forward the user to /join
-			if r.URL.Path != "/join" {
+			// if they do not, then check if it's a public path
+			if !publicPaths[r.URL.Path] && !strings.HasPrefix(r.URL.Path, "/assets/") {
 				http.Redirect(w, r, "/join", http.StatusSeeOther)
 				return
 			}
 		}
+
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
 }
 
 func main() {
+	// Create API handler
+	//apiHandler := handlers.NewAPIHandler(game.GetGame())
 
-	// we have no config to speak of, just the location of a file
-	serverPort := "8080"
+	// Load configuration
+	if err := config.Load(); err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	// Get server port from config
+	serverPort := config.GetPortString()
 
 	mux := http.NewServeMux()
 	server := &http.Server{
@@ -79,20 +97,44 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// allow users to join the game at any point
+	mux.HandleFunc("/", handlers.PlayHandler)
 	mux.HandleFunc("/join", handlers.JoinHandler)
 	mux.HandleFunc("/play", handlers.PlayHandler)
+	mux.HandleFunc("/host", handlers.HostHandler)
+	mux.HandleFunc("/qr", handlers.QRCodeHandler)
+	mux.HandleFunc("/api/", handlers.HandleAPI) // Note the trailing slash
+	//1mux.HandleFunc("/api/game-state", handlers.GameStateHandler)
+	//mux.HandleFunc("/api/submit-answer", apiHandler.SubmitAnswerHandler)
 
-	// Add API endpoints
-	mux.HandleFunc("/api/game-state", handlers.GameAPIHandler)
-	mux.HandleFunc("/api/submit-answer", handlers.SubmitAnswerHandler)
-
+	// add shutdown handler
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	go GracefulShutdown(server, quit, make(chan bool))
 
+	// load the game state and instantiate the singleton
+	game.GetGame()
+
 	// Listen and serve
-	log.Printf("Server is ready to handle requests at %s", serverPort)
+	logger.Info("1pcc Server is ready to handle requests at %s", serverPort)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v", serverPort, err)
 	}
+}
+
+// Create a helper function to check if the URL should bypass auth
+func isPublicPath(path string) bool {
+	publicPaths := []string{
+		"/health",
+		"/api/status",
+		"/public",
+		"/assets/",
+		// add other public paths here
+	}
+
+	for _, publicPath := range publicPaths {
+		if strings.HasPrefix(path, publicPath) {
+			return true
+		}
+	}
+	return false
 }
