@@ -8,6 +8,7 @@ class GameAPI {
         this.maxFailures = 1800;   // Maximum failures before stopping polls
         // Initialize the map
         this.clickMap = new ClickMap();
+        this.streetView = new StreetView();
         this.startPolling();
         GameAPI.instance = this;
     }
@@ -53,12 +54,18 @@ class GameAPI {
      * returns the current question if it is set, null otherwise
      */
     getCurrentQuestion(gameState) {
+        // first check if we have this member variable
         let s = this.state;
+        // try the dom
         if (!s) {s = window.gameState}
-        if (!s && !gameState) {s = gameState}
+        // were we passed it?
+        if (!s && gameState) {s = gameState}
+        // ok error!
         if (!s) {return null;}
-        return s.currentQuestion
+        if (!s.currentQuestion) {return null;}
+        return s.currentQuestion;
     }
+
 
     startPolling(interval = 2000) { // Poll every 2 seconds by default
         this.stopPolling(); // Clear any existing interval
@@ -138,12 +145,65 @@ class GameAPI {
 }
 
 // ###################################################################
-// UI functions
+// UI functions - update some universal page items
 // ###################################################################
 
 function updateAll(event) {
+    //updateQR()
+    updateQuestionTitle()
+    updateClickmap()
+    updateStreetView()
     updatePlayers(event);
     updateHost(event);
+}
+
+/* The current question title will appear in almost all views */
+function updateQuestionTitle() {
+    const qte = document.getElementById('question-title');
+    if (!qte) {return;}
+    let gs = GameAPI.getInstance().getCurrentQuestion();
+    if (!gs) {
+        console.log("no question loaded!");
+        return;
+    }
+    let ret = gs.questionNumber + ') ' + gs.question
+    qte.innerHTML = ret
+}
+
+function updateClickmap() {
+    let gs = GameAPI.getInstance();
+    let cq = gs.getCurrentQuestion();
+    const gld = document.getElementById('click-container');
+    if (!gld) {return;}
+
+    let questionType = cq?.type ?? 'unknown';
+    if (questionType === 'geolocation') {
+        gld.style.visibility = 'visible';
+        gld.style.display = 'block';
+        let url = cq.clickImage;
+        gs.clickMap.setImage(url);
+    } else {
+        gld.style.visibility = 'hidden';
+        gld.style.display = 'none';
+    }
+}
+
+function updateStreetView() {
+    let gs = GameAPI.getInstance();
+    let cq = gs.getCurrentQuestion();
+    const gld = document.getElementById('streetview-container');
+    if (!gld) {return;}
+
+    let questionType = cq?.type ?? 'unknown';
+    if (questionType === 'geolocation') {
+        gld.style.visibility = 'visible';
+        gld.style.display = 'block';
+        let url = cq.streetView;
+        gs.streetView.setLocation(url);
+    } else {
+        gld.style.visibility = 'hidden';
+        gld.style.display = 'none';
+    }
 }
 
 // *******************************
@@ -152,19 +212,26 @@ function updateAll(event) {
 
 function updateHost(event) {
     // if this isn't the host page then just return
-    const sgb = document.getElementById('start-game-button');
+    const sgb = document.getElementById('start-question-button');
     if (!sgb) {return;}
-    if (!window.gameState.game_started) {
+    let gs = GameAPI.getInstance()
+    if (!gs) {return;}
+    if (!gs.currentQuestion?.timeStarted) {
         sgb.style.color = '#ff0000';
     } else {
         sgb.style.color = '#00ffff';
     }
 }
 
-// start-game-button
-window.startGameButton = function() {
-    console.log("HANDLING START BUTTON CLICK")
+/* handlers for button push on host.html page */
+window.startQuestionButton = function() {
     fetch('/api/start-question').catch(error => console.log('Failed to start game, will retry...'));
+}
+window.nextQuestionButton = function() {
+    fetch('/api/next-question').catch(error => console.log('Failed to rotate to next question'));
+}
+window.previousQuestionButton = function() {
+    fetch('/api/previous-question').catch(error => console.log('Failed to rotate to previous question'));
 }
 
 // *******************************
@@ -181,12 +248,8 @@ function updatePlayers(event) {
     } else {
         console.log("question loaded");
     }
-    updateGeoGuesser(event.detail);
     updateTimer(event.detail);
 
-}
-
-function updateGeoGuesser(gameState) {
 }
 
 function updateTimer(gameState) {
@@ -241,12 +304,96 @@ function updateTimer(gameState) {
 // STREETVIEW
 // ###################################################################
 
+class StreetView {
+    constructor() {
+        this.baseUrl = "https://www.google.com/maps/embed?pb=";
+        this.container = null;
+        this.iframe = null;
+        this.url = null;
+    }
+
+    setLocation(streetViewUrl) {
+        if (!streetViewUrl) {
+            console.error('No street view URL provided');
+            return;
+        }
+        if (this.url && this.url == streetViewUrl) {
+            return;
+        }
+        console.log("setting location in streetview")
+
+        const embedUrl = this.baseUrl + streetViewUrl;
+        this.url = streetViewUrl;
+
+        this.container = document.getElementById('streetview-container');
+        if (!this.container) {
+            console.error('Street view container not found');
+            return;
+        }
+        // Set container to relative positioning
+        this.container.style.position = 'relative';
+
+        // Create and setup iframe with required permissions
+        this.iframe = document.createElement('iframe');
+        this.iframe.id = 'streetview-iframe'
+        this.iframe.class = 'streetview-iframe'
+        console.log(embedUrl)
+        this.iframe.src = embedUrl;
+        this.iframe.allow = "xr-spatial-tracking; accelerometer; gyroscope; magnetometer; autoplay; encrypted-media; picture-in-picture;";
+        this.iframe.sandbox = "allow-scripts allow-same-origin";
+        this.iframe.allowfullscreen="false"
+        this.iframe.loading="lazy"
+        this.iframe.referrerpolicy="no-referrer-when-downgrade"
+
+        // Create the semi-transparent blur overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '300px';
+        overlay.style.height = '80px';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'; // Semi-transparent black
+        overlay.style.backdropFilter = 'blur(5px)'; // Add blur effect
+        overlay.style.webkitBackdropFilter = 'blur(5px)'; // For Safari support
+        overlay.style.zIndex = '1000';
+        overlay.style.borderRadius = '4px'; // Optional: rounded corners
+
+        // Clear container and add both elements
+        this.container.innerHTML = '';
+        this.container.appendChild(this.iframe);
+        this.container.appendChild(overlay);
+
+    }
+
+    resize() {
+        if (!this.isInitialized || !this.container) return;
+
+        // Adjust iframe size to container
+        const rect = this.container.getBoundingClientRect();
+        this.iframe.style.width = `${rect.width}px`;
+        this.iframe.style.height = `${rect.height}px`;
+    }
+
+    hide() {
+        if (this.container) {
+            this.container.style.display = 'none';
+        }
+    }
+
+    show() {
+        if (this.container) {
+            this.container.style.display = 'block';
+            this.resize();
+        }
+    }
+}
 
 // ###################################################################
 // CLICKABLE IMAGE
 // ###################################################################
 
 class ClickMap {
+
     constructor() {
         this.scale = 1;
         this.viewBox = { x: 0, y: 0, width: 1000, height: 500 };
@@ -255,11 +402,11 @@ class ClickMap {
         this.viewBoxStart = { x: 0, y: 0 };
         this.imagePath = '/static/images/worldmap.svg';
         this.svg = null;
-        this.mapGroup = null;
+        this.imageWidth = null;
+        this.imageHeight = null;
     }
 
     setImage(imageUrl) {
-        // Find the container
         const container = document.getElementById('click-container');
         if (!container) {
             console.error('Could not find click-container div');
@@ -269,80 +416,161 @@ class ClickMap {
         // Clear any existing content
         container.innerHTML = '';
 
-        // Create new image element
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.style.width = '100%';
-        img.style.height = 'auto';
+        // Create SVG element with proper styling and event handling
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("width", "100%");
+        this.svg.setAttribute("height", "100%");
+        this.svg.setAttribute("viewBox", `0 0 ${this.viewBox.width} ${this.viewBox.height}`);
+        this.svg.style.display = 'block'; // Prevents extra space issues
 
-        // Optional: Add loading handler to ensure image is loaded before allowing clicks
-        img.onload = () => {
-            this.imageWidth = img.naturalWidth;
-            this.imageHeight = img.naturalHeight;
-        };
+        // Create an image element within the SVG
+        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        image.setAttribute("width", "100%");
+        image.setAttribute("height", "100%");
+        image.setAttribute("href", imageUrl);
+        image.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-        // Add the image to container
-        container.appendChild(img);
+        // Add image to SVG and SVG to container
+        this.svg.appendChild(image);
+        container.appendChild(this.svg);
 
-        // Reset any existing click data
-        this.clicks = [];
-        this.currentClick = null;
+        // Initialize events after adding to DOM
+        this.initializeEvents();
 
-        // Initialize events if not already done
-        if (!this.svg) {
-            this.initializeEvents();
-        }
-
-        // Unhide the container
+        // Make sure container is visible
         container.style.display = 'block';
+        container.style.visibility = 'visible';
     }
 
     initializeEvents() {
-        // Only initialize if we haven't already
-        if (this.svg) return;
-
         const container = document.getElementById('click-container');
         if (!container) return;
 
-        // Add click handler to the container instead of SVG
+        // Click handler
         container.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (!this.isDragging) {
-                const rect = container.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                console.log('Clicked at:', { x, y });
+                const coords = this.getClickCoordinates(e);
+                if (coords) {
+                    console.log('Clicked coordinates:', coords);
+                }
             }
         });
 
-        // Pan handlers
-        this.svg.addEventListener('mousedown', (e) => {
-            this.startDrag(e);
+        // Wheel handler for zoom
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const scaleFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            this.zoom(scaleFactor, mouseX, mouseY);
+        }, { passive: false });
+
+        // Mouse down handler for drag
+        container.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this.svg) return;
+
+            this.isDragging = true;
+            this.startPoint = {
+                x: e.clientX,
+                y: e.clientY
+            };
+
+            const box = this.svg.viewBox.baseVal;
+            this.viewBoxStart = {
+                x: box.x,
+                y: box.y
+            };
         });
 
-        document.addEventListener('mousemove', (e) => {
-            this.drag(e);
+        // Mouse move handler
+        container.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this.isDragging || !this.svg) return;
+
+            const dx = e.clientX - this.startPoint.x;
+            const dy = e.clientY - this.startPoint.y;
+
+            const box = this.svg.viewBox.baseVal;
+            const scale = box.width / this.svg.clientWidth;
+
+            box.x = this.viewBoxStart.x - (dx * scale);
+            box.y = this.viewBoxStart.y - (dy * scale);
         });
 
-        document.addEventListener('mouseup', () => {
-            this.endDrag();
-        });
+        // Mouse up handler
+        const stopDragging = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.isDragging = false;
+        };
+
+        container.addEventListener('mouseup', stopDragging);
+        container.addEventListener('mouseleave', stopDragging);
     }
 
     getClickCoordinates(event) {
-        const pt = this.svg.createSVGPoint();
-        pt.x = event.clientX;
-        pt.y = event.clientY;
+        if (!this.imageWidth || !this.imageHeight) {
+            console.error('Image dimensions not set');
+            return null;
+        }
 
-        // Transform mouse coordinates to SVG coordinates
-        const svgPoint = pt.matrixTransform(this.svg.getScreenCTM().inverse());
+        const container = document.getElementById('click-container');
+        if (!container) {
+            console.error('Container not found');
+            return null;
+        }
 
+        const rect = container.getBoundingClientRect();
+        const viewBox = this.svg.viewBox.baseVal;
+
+        // Get click position relative to container
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+
+        // Ensure click is within bounds
+        if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) {
+            console.warn('Click outside container bounds');
+            return null;
+        }
+
+        // Calculate the scaling factor between container and viewBox
+        const scaleX = viewBox.width / container.clientWidth;
+        const scaleY = viewBox.height / container.clientHeight;
+
+        // Convert click coordinates to viewBox space
+        const viewBoxX = (clickX * scaleX) + viewBox.x;
+        const viewBoxY = (clickY * scaleY) + viewBox.y;
+
+        // Convert to normalized coordinates (0-1)
+        const normalizedX = viewBoxX / this.viewBox.width;
+        const normalizedY = viewBoxY / this.viewBox.height;
+
+        // Ensure coordinates are within image bounds
+        if (normalizedX < 0 || normalizedX > 1 || normalizedY < 0 || normalizedY > 1) {
+            console.warn('Coordinates outside image bounds');
+            return null;
+        }
+
+        // Convert to image coordinates
         return {
-            x: svgPoint.x,
-            y: svgPoint.y
+            x: Math.round(normalizedX * this.imageWidth),
+            y: Math.round(normalizedY * this.imageHeight)
         };
     }
 
     zoom(scaleFactor, centerX, centerY) {
+        if (!this.svg) {
+            console.error('SVG element not initialized');
+            return;
+        }
+
         const newScale = this.scale * scaleFactor;
 
         // Limit zoom levels
@@ -364,32 +592,6 @@ class ClickMap {
 
         this.scale = newScale;
         this.svg.classList.toggle('zoomed', this.scale > 1);
-    }
-
-    startDrag(event) {
-        this.isDragging = true;
-        this.startPoint = {
-            x: event.clientX,
-            y: event.clientY
-        };
-        this.viewBoxStart = {
-            x: this.svg.viewBox.baseVal.x,
-            y: this.svg.viewBox.baseVal.y
-        };
-    }
-
-    drag(event) {
-        if (!this.isDragging) return;
-
-        const dx = (event.clientX - this.startPoint.x) * this.viewBox.width / this.svg.clientWidth;
-        const dy = (event.clientY - this.startPoint.y) * this.viewBox.height / this.svg.clientHeight;
-
-        this.svg.viewBox.baseVal.x = this.viewBoxStart.x - dx;
-        this.svg.viewBox.baseVal.y = this.viewBoxStart.y - dy;
-    }
-
-    endDrag() {
-        this.isDragging = false;
     }
 }
 

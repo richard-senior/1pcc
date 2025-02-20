@@ -61,8 +61,6 @@ func handleNextQuestion(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStartQuestion(w http.ResponseWriter, r *http.Request) {
-	// game.StartGame() should apply the timestamp of the start of the game
-	logger.Info("starting question")
 	game.GetGame().StartQuestion()
 }
 

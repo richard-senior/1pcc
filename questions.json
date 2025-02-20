@@ -1,13 +1,27 @@
 [
     {
-        "question": "Click the world map where you think the streetview is.",
+        "question": "Click the world map where you think the streetview is. You can zoom and move them.",
         "questionNumber": 1,
         "type": "geolocation",
         "choices": [],
-        "answer": "0.1,0.1",
-        "timeLimit": 120,
+        "correctAnswer": "35.640069, 139.875047",
+        "hostAnswer": "Edogawa, Tokyo",
+        "timeLimit": 30,
         "clickImage": "/static/images/worldmap.svg",
-        "streetview": "https://maps.app.goo.gl/g3SBX4YBWNF5r5Aw9"
+        "streetview": "!4v1740001304287!6m8!1m7!1sibHbRNzalRzBWBMDigiQEQ!2m2!1d35.64735242911003!2d139.8446293562197!3f123.86414917643255!4f2.143555669002822!5f0.7820865974627469",
+        "pointsAvailable": 10
+    },
+    {
+        "question": "Click the world map where you think the streetview is. You can zoom and move them.",
+        "questionNumber": 1,
+        "type": "geolocation",
+        "choices": [],
+        "correctAnswer": "62.2111918,-6.7033951",
+        "hostAnswer": "Lervik, Faroe Islands",
+        "timeLimit": 30,
+        "clickImage": "/static/images/worldmap.svg",
+        "streetview": "!4v1739998284781!6m8!1m7!1sDO4WxBOd74z8JedVeaYQQw!2m2!1d62.21119902945588!2d-6.703198590317673!3f301.7973005793527!4f-8.492473666230936!5f0.7820865974627469",
+        "pointsAvailable": 10
     },
     {
         "question": "What is the capital of France?",
@@ -19,15 +33,19 @@
             "Berlin",
             "Madrid"
         ],
-        "answer": "Paris",
-        "timeLimit": 30
+        "correctAnswer": "Paris",
+        "hostAnswer": "",
+        "timeLimit": 30,
+        "pointsAvailable": 3
     },
     {
         "question": "What is 2 + 2?",
         "questionNumber": 3,
         "type": "text",
-        "answer": "4",
-        "timeLimit": 15
+        "correctAnswer": "4",
+        "hostAnswer": "",
+        "timeLimit": 15,
+        "pointsAvailable": 3
     },
     {
         "question": "Who wrote Romeo and Juliet?",
@@ -39,8 +57,10 @@
             "Jane Austen",
             "Mark Twain"
         ],
-        "answer": "William Shakespeare",
-        "timeLimit": 20
+        "correctAnswer": "William Shakespeare",
+        "hostAnswer": "",
+        "timeLimit": 20,
+        "pointsAvailable": 3
     },
     {
         "question": "Which planet is known as the Red Planet?",
@@ -52,7 +72,9 @@
             "Jupiter",
             "Saturn"
         ],
-        "answer": "Mars",
-        "timeLimit": 25
+        "correctAnswer": "Mars",
+        "hostAnswer": "",
+        "timeLimit": 25,
+        "pointsAvailable": 3
     }
 ]

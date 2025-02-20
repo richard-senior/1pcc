@@ -3,11 +3,36 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/richard-senior/1pcc/internal/config"
 	"github.com/richard-senior/1pcc/internal/game"
 	"github.com/richard-senior/1pcc/internal/session"
 )
+
+// getIPAddress extracts the real IP address from the request
+func getIPAddress(r *http.Request) string {
+	// Check X-Forwarded-For header first (for proxies)
+	forwarded := r.Header.Get("X-Forwarded-For")
+	if forwarded != "" {
+		// Take the first IP if multiple are present
+		ips := strings.Split(forwarded, ",")
+		return strings.TrimSpace(ips[0])
+	}
+
+	// Check X-Real-IP header next
+	if realIP := r.Header.Get("X-Real-IP"); realIP != "" {
+		return realIP
+	}
+
+	// Fall back to RemoteAddr
+	// Strip port number if present
+	remoteAddr := r.RemoteAddr
+	if strings.Contains(remoteAddr, ":") {
+		remoteAddr, _, _ = strings.Cut(remoteAddr, ":")
+	}
+	return remoteAddr
+}
 
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -23,7 +48,9 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Add player to game
 		gameInstance := game.GetGame()
-		gameInstance.AddPlayer(username)
+		ip := getIPAddress(r)
+		gameInstance.AddPlayer(username, false, false, ip)
+		//username string, isAdmin bool, isObserver bool, ipAddress str
 		hun := config.GetHostUsername()
 		// IF this user is the host then assign admin rights
 		if hun == username {
