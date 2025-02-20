@@ -3,25 +3,35 @@
 <html>
 <head>
     <title>Birstall Cricket Club</title>
+    <link rel="icon" href="/static/images/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/images/apple-touch-icon.png">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- css -->
     <link rel="stylesheet" type="text/css" href="/static/css/main.css">
     <!-- javascript -->
-    <script type="module" src="/static/js/main.js"></script>
+    <script type="text/javascript" src="/static/js/main.js"></script>
 </head>
 <body>
+    <img src="/qr" class="top-qr" alt="QR Code">
     <div class="background"></div>
     <div class="container">
-        <div class="top-text">
-            <img src="/static/images/header_plain.svg"/>
-        </div>
+        <div class="top-text"></div>
+        <div class="frame" id="frame">
+            <div class="frame-text" id="frame-text"></div>
+            <div id="question-title" class="question-title"></div>
+            <!-- start game button -->
+            <button id="start-question-button" class="start-question-button" onclick="startQuestionButton();">Start Game</button>
+            <button id="next-question-button" class="next-question-button" onclick="nextQuestionButton();">Next Question</button>
+            <button id="previous-question-button" class="previous-question-button" onclick="previousQuestionButton();">Previous Question</button>
 
-        <div class="frame">
-            <div class="frame-text">
-                <h1>Game Host Console</h1>
-                <!-- start game button -->
-                <button id="start-game-button" class="start-game-button" onclick="startGameButton();">Start Game</button>
-            </div>
+            <!-- GeoLocation Questions-->
+            <div id="click-container" class="click-container" style="visibility: hidden;"></div>
+            <div id="streetview-container" class="streetview-container" style="visibility: hidden;"></div>
+
+            <!-- Timer / Progress bar-->
+            <div id="timer" class="timer-container"></div>
         </div>
 
         <div class="bottom-text">

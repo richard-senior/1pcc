@@ -18,8 +18,9 @@ import (
 
 // paths that don't need sign in
 var publicPaths = map[string]bool{
-	"/qr":   true,
-	"/join": true,
+	"/qr":     true,
+	"/join":   true,
+	"/static": true,
 }
 
 // GracefulShutdown handles the graceful shutdown of the server
@@ -64,7 +65,7 @@ func baseHandler(next http.Handler) http.Handler {
 		// Check to see if the user has a session cookie
 		if !session.IsUserLoggedIn(r) {
 			// if they do not, then check if it's a public path
-			if !publicPaths[r.URL.Path] && !strings.HasPrefix(r.URL.Path, "/assets/") {
+			if !publicPaths[r.URL.Path] {
 				http.Redirect(w, r, "/join", http.StatusSeeOther)
 				return
 			}
