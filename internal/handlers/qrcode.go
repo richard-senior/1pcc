@@ -89,7 +89,7 @@ func generateQRCode(ip string) (image.Image, error) {
 
 	//qr.BackgroundColor = color.Transparent
 	qr.BackgroundColor = hexToRGBA("#24354F")
-	qr.ForegroundColor = hexToRGBA("#BA9128")
+	qr.ForegroundColor = hexToRGBA("#FFFFFF")
 	return qr.Image(256), nil
 }
 

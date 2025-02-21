@@ -114,34 +114,6 @@ class GameAPI {
             console.error('Failed to remove player:', error);
         }
     }
-
-    async nextQuestion() {
-        try {
-            const response = await fetch('/api/next-question', {
-                method: 'POST'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            await this.getGameState();
-        } catch (error) {
-            console.error('Failed to advance question:', error);
-        }
-    }
-
-    async previousQuestion() {
-        try {
-            const response = await fetch('/api/previous-question', {
-                method: 'POST'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            await this.getGameState();
-        } catch (error) {
-            console.error('Failed to go to previous question:', error);
-        }
-    }
 }
 
 // ###################################################################
@@ -313,11 +285,14 @@ class StreetView {
     }
 
     setLocation(streetViewUrl) {
+        if (this.url && this.url == streetViewUrl) {
+            console.log("location already set, skipping")
+            return;
+        } else {
+            console.log("creating StreetView")
+        }
         if (!streetViewUrl) {
             console.error('No street view URL provided');
-            return;
-        }
-        if (this.url && this.url == streetViewUrl) {
             return;
         }
         console.log("setting location in streetview")
@@ -395,18 +370,43 @@ class StreetView {
 class ClickMap {
 
     constructor() {
+        this.answerx = null;
+        this.answery = null;
+        this.markerSize = 50;
         this.scale = 1;
         this.viewBox = { x: 0, y: 0, width: 1000, height: 500 };
+        // mouse
+        this.mx = null;
+        this.my = null;
+        this.prevmx = null;
+        this.prevmy = null;
+        this.dragx = 0.0;
+        this.dragy = 0.0;
         this.isDragging = false;
+        //this.hasMoved = false;
+        this.clickStartTime = 0;
+        this.moveThreshold = 5; // pixels of movement to consider it a drag
+        this.clickTimeThreshold = 200; // milliseconds to consider it a click
+        this.secondPointerDown = false;
+        this.currentMarker = null;
+        // dimensions etc
         this.startPoint = { x: 0, y: 0 };
         this.viewBoxStart = { x: 0, y: 0 };
-        this.imagePath = '/static/images/worldmap.svg';
+        this.imagePath = null;
         this.svg = null;
         this.imageWidth = null;
         this.imageHeight = null;
     }
 
     setImage(imageUrl) {
+        if (this.imagePath && this.imagePath === imageUrl) {
+            console.log("image already set, skipping")
+            return;
+        } else {
+            console.log("creating ClickMap")
+            this.imagePath = imageUrl;
+        }
+
         const container = document.getElementById('click-container');
         if (!container) {
             console.error('Could not find click-container div');
@@ -415,53 +415,215 @@ class ClickMap {
 
         // Clear any existing content
         container.innerHTML = '';
+        // Clear any existing marker
+        this.currentMarker = null;
 
-        // Create SVG element with proper styling and event handling
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.svg.setAttribute("width", "100%");
-        this.svg.setAttribute("height", "100%");
-        this.svg.setAttribute("viewBox", `0 0 ${this.viewBox.width} ${this.viewBox.height}`);
-        this.svg.style.display = 'block'; // Prevents extra space issues
+        fetch(imageUrl)
+            .then(response => response.text())
+            .then(svgContent => {
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+                const originalSvg = svgDoc.documentElement;
 
-        // Create an image element within the SVG
-        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        image.setAttribute("width", "100%");
-        image.setAttribute("height", "100%");
-        image.setAttribute("href", imageUrl);
-        image.setAttribute("preserveAspectRatio", "xMidYMid meet");
+                // Get dimensions from the original SVG
+                this.imageWidth = parseFloat(originalSvg.getAttribute('width') || originalSvg.viewBox.baseVal.width);
+                this.imageHeight = parseFloat(originalSvg.getAttribute('height') || originalSvg.viewBox.baseVal.height);
 
-        // Add image to SVG and SVG to container
-        this.svg.appendChild(image);
-        container.appendChild(this.svg);
+                // Copy the original SVG directly
+                this.svg = originalSvg;
 
-        // Initialize events after adding to DOM
-        this.initializeEvents();
+                // Set SVG to fill container completely
+                this.svg.style.width = "100%";
+                this.svg.style.height = "100%";
+                this.svg.style.display = "block"; // Removes any inline spacing
+                this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
 
-        // Make sure container is visible
-        container.style.display = 'block';
-        container.style.visibility = 'visible';
+                // Set container styles to ensure proper filling
+                container.style.overflow = 'hidden';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.style.width = '100%';
+                container.style.height = '100%';
+
+                if (!this.svg.hasAttribute('viewBox')) {
+                    this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
+                }
+
+                // Add SVG to container
+                container.appendChild(this.svg);
+
+                // Initialize events after adding to DOM
+                this.initializeEvents();
+
+                console.log("SVG loaded and added to container");
+            })
+            .catch(error => {
+                console.error('Error loading SVG:', error);
+            });
+    }
+
+
+    /* Add method to create/update marker
+       the image we are working with can be zoomed or dragged
+       we want to be able to click on the image and have a marker
+       displayed at the click location. the marker not scale with the
+       rest of the image when zooming in and out but should remain the
+       same size relative to the whole screen.
+       Factors at play:
+       * this.scale (the current scaling factor)
+       * this.dragx and this.dragy (The amount by which the image has been dragged)
+       * this.mx, this.my (The current mouse position)
+       *
+       * dragx is more positive when the image is dragged to the right
+       * dragy is more positive when the image is dragged down
+       * mx and my are the current mouse position
+       * scale is the current scaling factor
+       *
+       * we need to calculate the position of the marker relative to the image
+       * and then scale it up to the size of the image.
+    */
+    addMarker() {
+        console.log("click.. adding marker");
+        let screenX = this.mx;
+        let screenY = this.my;
+
+        // Remove existing marker if it exists
+        if (this.currentMarker) {
+            this.svg.removeChild(this.currentMarker);
+        }
+
+        // Get the SVG's current transformation state
+        const box = this.svg.viewBox.baseVal;
+
+        // Get SVG's bounding rectangle for coordinate conversion
+        const svgRect = this.svg.getBoundingClientRect();
+
+        // Calculate position using the full viewBox dimensions
+        const svgX = ((screenX - svgRect.left) / svgRect.width) * box.width + box.x;
+        const svgY = ((screenY - svgRect.top) / svgRect.height) * box.height + box.y;
+
+        console.log(`dragX: ${this.dragx}, dragY: ${this.dragy}, scale: ${this.scale}`);
+        console.log(`SVG X: ${svgX}, SVG Y: ${svgY}, X: ${screenX}, Y: ${screenY}`);
+
+        // Create a circle element
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", svgX);
+        circle.setAttribute("cy", svgY);
+        // make a note of where we placed the marker
+        this.answerx = svgX;
+        this.answery = svgY;
+        // Make radius inversely proportional to zoom level
+        const zoomAdjustedRadius = this.markerSize / this.scale;
+        circle.setAttribute("r", zoomAdjustedRadius);
+
+        circle.setAttribute("fill", "#24354f80");  // Blue with 50% opacity
+        // Store reference to current marker
+        this.currentMarker = circle;
+        this.svg.appendChild(circle);
     }
 
     initializeEvents() {
         const container = document.getElementById('click-container');
         if (!container) return;
 
-        // Click handler
-        container.addEventListener('click', (e) => {
+        // Set default cursor
+        container.style.cursor = 'default';
+
+        container.addEventListener('mousemove', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!this.isDragging) {
-                const coords = this.getClickCoordinates(e);
-                if (coords) {
-                    console.log('Clicked coordinates:', coords);
-                }
+            if (!this.svg) return;
+
+            // Update mouse position tracking
+            this.prevmx = this.mx;
+            this.prevmy = this.my;
+            this.mx = e.clientX;
+            this.my = e.clientY;
+            //const dx = e.clientX - this.startPoint.x;
+            //const dy = e.clientY - this.startPoint.y;
+            if (this.isDragging) {
+                // do dragging
+                const box = this.svg.viewBox.baseVal;
+                const scale = box.width / this.svg.clientWidth;
+
+                // Calculate the movement delta
+                const dx = (this.mx - this.prevmx) * scale;
+                const dy = (this.my - this.prevmy) * scale;
+
+                // Update viewBox by moving it opposite to the drag direction
+                box.x -= dx;
+                box.y -= dy;
+                this.dragx += dx
+                this.dragy += dy
             }
         });
 
-        // Wheel handler for zoom
+        container.addEventListener('mouseleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.clearInterval()
+            if (!this.svg) return;
+            this.isDragging = false
+            container.style.cursor = 'default';
+            console.log("mouse left area")
+        });
+
+        container.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.clearInterval()
+            if (!this.svg) return;
+            // mouse up go back to ordinary mouse pointer
+            container.style.cursor = 'default';
+            if (this.isDragging) {
+                console.log("exiting draggin")
+                // we've finished dragging
+                this.isDragging = false;
+            } else {
+                // nothing to do here?
+            }
+        });
+
+        // Mouse down handler
+        container.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this.svg) return;
+            // if we're already waiting for a timer to finish then cancel it?
+            window.clearInterval()
+            // note the mouse current location
+            let tx = e.clientX
+            let ty = e.clientY
+            // wait a short time and check if the mouse moves
+            window.setTimeout(() => {
+                const dx = Math.abs(tx - this.mx);
+                const dy = Math.abs(ty - this.my);
+                console.log("dx " + dx + ": dy " + dy)
+                // has the mouse moved?
+                // TODO change this for 'approximate' has the mouse moved
+                if (dx > 1 || dy > 1) {
+                    this.isDragging = true;
+                    container.style.cursor = 'grabbing';
+                    // this is a drag event
+                    // initiate drag
+                } else {
+                    this.isDragging = false;
+                    container.style.cursor = 'default';
+                    this.addMarker()
+                    // do nothing until mouseup
+                }
+            }, 300);
+        });
+
+        // In initializeEvents():
         container.addEventListener('wheel', (e) => {
             e.preventDefault();
             e.stopPropagation();
+
+            // Don't zoom if we're dragging
+            if (this.isDragging) return;
+
             const scaleFactor = e.deltaY < 0 ? 1.1 : 0.9;
             const rect = container.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -469,100 +631,17 @@ class ClickMap {
             this.zoom(scaleFactor, mouseX, mouseY);
         }, { passive: false });
 
-        // Mouse down handler for drag
-        container.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!this.svg) return;
-
-            this.isDragging = true;
-            this.startPoint = {
-                x: e.clientX,
-                y: e.clientY
-            };
-
-            const box = this.svg.viewBox.baseVal;
-            this.viewBoxStart = {
-                x: box.x,
-                y: box.y
-            };
+        // Track second pointer for pinch zoom detection
+        container.addEventListener('pointerdown', (e) => {
+            if (e.isPrimary === false) {
+                this.secondPointerDown = true;
+            }
         });
-
-        // Mouse move handler
-        container.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!this.isDragging || !this.svg) return;
-
-            const dx = e.clientX - this.startPoint.x;
-            const dy = e.clientY - this.startPoint.y;
-
-            const box = this.svg.viewBox.baseVal;
-            const scale = box.width / this.svg.clientWidth;
-
-            box.x = this.viewBoxStart.x - (dx * scale);
-            box.y = this.viewBoxStart.y - (dy * scale);
+        container.addEventListener('pointerup', (e) => {
+            if (e.isPrimary === false) {
+                this.secondPointerDown = false;
+            }
         });
-
-        // Mouse up handler
-        const stopDragging = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.isDragging = false;
-        };
-
-        container.addEventListener('mouseup', stopDragging);
-        container.addEventListener('mouseleave', stopDragging);
-    }
-
-    getClickCoordinates(event) {
-        if (!this.imageWidth || !this.imageHeight) {
-            console.error('Image dimensions not set');
-            return null;
-        }
-
-        const container = document.getElementById('click-container');
-        if (!container) {
-            console.error('Container not found');
-            return null;
-        }
-
-        const rect = container.getBoundingClientRect();
-        const viewBox = this.svg.viewBox.baseVal;
-
-        // Get click position relative to container
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
-
-        // Ensure click is within bounds
-        if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) {
-            console.warn('Click outside container bounds');
-            return null;
-        }
-
-        // Calculate the scaling factor between container and viewBox
-        const scaleX = viewBox.width / container.clientWidth;
-        const scaleY = viewBox.height / container.clientHeight;
-
-        // Convert click coordinates to viewBox space
-        const viewBoxX = (clickX * scaleX) + viewBox.x;
-        const viewBoxY = (clickY * scaleY) + viewBox.y;
-
-        // Convert to normalized coordinates (0-1)
-        const normalizedX = viewBoxX / this.viewBox.width;
-        const normalizedY = viewBoxY / this.viewBox.height;
-
-        // Ensure coordinates are within image bounds
-        if (normalizedX < 0 || normalizedX > 1 || normalizedY < 0 || normalizedY > 1) {
-            console.warn('Coordinates outside image bounds');
-            return null;
-        }
-
-        // Convert to image coordinates
-        return {
-            x: Math.round(normalizedX * this.imageWidth),
-            y: Math.round(normalizedY * this.imageHeight)
-        };
     }
 
     zoom(scaleFactor, centerX, centerY) {
@@ -573,34 +652,54 @@ class ClickMap {
 
         const newScale = this.scale * scaleFactor;
 
-        // Limit zoom levels
-        if (newScale < 0.5 || newScale > 5) return;
+        // Limit zoom levels but allow zooming out to original size
+        if (newScale < 1.0 || newScale > 15) return;
 
-        // Calculate new viewBox values
+        // Get the current viewBox
         const box = this.svg.viewBox.baseVal;
-        const centerPtX = centerX / this.svg.clientWidth * box.width + box.x;
-        const centerPtY = centerY / this.svg.clientHeight * box.height + box.y;
 
-        const newWidth = this.viewBox.width / scaleFactor;
-        const newHeight = this.viewBox.height / scaleFactor;
+        // Get SVG's bounding rectangle for coordinate conversion
+        const svgRect = this.svg.getBoundingClientRect();
 
-        // Adjust viewBox to zoom around mouse position
-        box.x = centerPtX - (centerX / this.svg.clientWidth) * newWidth;
-        box.y = centerPtY - (centerY / this.svg.clientHeight) * newHeight;
+        // Calculate the point around which we're zooming (relative to viewBox)
+        const centerPtX = (centerX / svgRect.width) * box.width + box.x;
+        const centerPtY = (centerY / svgRect.height) * box.height + box.y;
+
+        // Calculate new dimensions
+        const newWidth = this.imageWidth / newScale;
+        const newHeight = this.imageHeight / newScale;
+
+        // Calculate new position to keep the center point at the same relative position
+        box.x = centerPtX - (centerX / svgRect.width) * newWidth;
+        box.y = centerPtY - (centerY / svgRect.height) * newHeight;
         box.width = newWidth;
         box.height = newHeight;
 
+        // Update scale
         this.scale = newScale;
-        this.svg.classList.toggle('zoomed', this.scale > 1);
-    }
-}
 
+        // Adjust existing marker size if it exists
+        if (this.currentMarker) {
+            const zoomAdjustedRadius = this.markerSize / this.scale;
+            this.currentMarker.setAttribute("r", zoomAdjustedRadius);
+        }
+
+        // Update the viewBox object
+        this.viewBox = {
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height
+        };
+    }
+
+
+}
 // ###################################################################
 // GLOBAL
 // ###################################################################
 
 // Initialize appropriate UI when document is ready
-let gui;
 document.addEventListener('DOMContentLoaded', () => {
     // start the game API singleton if it hasn't already been started
     // This will also start pollling the server for game state updates

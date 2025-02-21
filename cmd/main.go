@@ -53,14 +53,10 @@ func baseHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		// Allow static content without session check
-		// this will be picked up by the file server mux handler below
-		if strings.HasPrefix(r.URL.Path, "/static/") {
+		if isPublicPath(r.URL.Path) {
 			next.ServeHTTP(w, r)
 			return
-			// amazonq-ignore-next-line
 		}
-
 		// TODO handle player banning by IP
 		// Check to see if the user has a session cookie
 		if !session.IsUserLoggedIn(r) {
@@ -70,7 +66,6 @@ func baseHandler(next http.Handler) http.Handler {
 				return
 			}
 		}
-
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
@@ -96,16 +91,14 @@ func main() {
 	// Add static file server - this needs to come before other routes
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
 	// allow users to join the game at any point
 	mux.HandleFunc("/", handlers.PlayHandler)
 	mux.HandleFunc("/join", handlers.JoinHandler)
 	mux.HandleFunc("/play", handlers.PlayHandler)
 	mux.HandleFunc("/host", handlers.HostHandler)
+	mux.HandleFunc("/observe", handlers.ObserveHandler)
 	mux.HandleFunc("/qr", handlers.QRCodeHandler)
 	mux.HandleFunc("/api/", handlers.HandleAPI) // Note the trailing slash
-	//1mux.HandleFunc("/api/game-state", handlers.GameStateHandler)
-	//mux.HandleFunc("/api/submit-answer", apiHandler.SubmitAnswerHandler)
 
 	// add shutdown handler
 	quit := make(chan os.Signal, 1)
@@ -125,11 +118,8 @@ func main() {
 // Create a helper function to check if the URL should bypass auth
 func isPublicPath(path string) bool {
 	publicPaths := []string{
-		"/health",
-		"/api/status",
-		"/public",
-		"/assets/",
-		// add other public paths here
+		"/qr",
+		"/static",
 	}
 
 	for _, publicPath := range publicPaths {

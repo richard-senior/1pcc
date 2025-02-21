@@ -49,15 +49,14 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 		// Add player to game
 		gameInstance := game.GetGame()
 		ip := getIPAddress(r)
-		gameInstance.AddPlayer(username, false, false, ip)
-		//username string, isAdmin bool, isObserver bool, ipAddress str
 		hun := config.GetHostUsername()
-		// IF this user is the host then assign admin rights
+		// IF this user is the host then assign admin and observer rights
 		if hun == username {
-			gameInstance.SetPlayerAdmin(username)
+			gameInstance.AddPlayer(username, true, true, ip)
 			// amazonq-ignore-next-line
 			http.Redirect(w, r, "/host", http.StatusSeeOther)
 		} else {
+			gameInstance.AddPlayer(username, false, false, ip)
 			// amazonq-ignore-next-line
 			http.Redirect(w, r, "/play", http.StatusSeeOther)
 		}
