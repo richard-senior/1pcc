@@ -27,29 +27,31 @@ type GameState struct {
 }
 
 type Player struct {
-	Username    string   `json:"username"`
-	Score       int      `json:"score"`
-	Answers     []Answer `json:"answers,omitempty"`
-	IsAdmin     bool     `json:"isAdmin,omitempty"`
-	IsSpectator bool     `json:"isSpectator,omitempty"`
-	IpAddress   string   `json:"ipaddress,omitempty"`
+	Username    string `json:"username"`
+	Score       int    `json:"score"`
+	IsAdmin     bool   `json:"isAdmin,omitempty"`
+	IsSpectator bool   `json:"isSpectator,omitempty"`
+	IpAddress   string `json:"ipaddress,omitempty"`
 }
 
 type Question struct {
-	Question        string    `json:"question"`
-	QuestionNumber  int       `json:"questionNumber"`
-	ImageUrl        string    `json:"imageUrl,omitempty"`
-	Type            string    `json:"type"` // "multiple_choice" or "text"
-	Choices         []string  `json:"choices,omitempty"`
-	CorrectAnswer   string    `json:"correctAnswer"`
-	HostAnswer      string    `json:"hostAnswer"` // Only included for admin
-	PointsAvailable int       `json:"pointsAvailable"`
-	TimeLimit       int       `json:"timeLimit"`
-	TimeStarted     time.Time `json:"timeStarted,omitempty"`
-	TimeLeft        int       `json:"timeLeft,omitempty"`
-	IsTimedOut      bool      `json:"isTimedOut,omitempty"`
-	ClickImage      string    `json:"clickImage,omitempty"`
-	StreetView      string    `json:"streetView,omitempty"`
+	Answers            []Answer  `json:"answers,omitempty"`
+	Question           string    `json:"question"`              // the actual question text to show the users
+	QuestionNumber     int       `json:"questionNumber"`        // the question number, this should be worked out dynamically
+	ImageUrl           string    `json:"imageUrl,omitempty"`    // if there's an image this should be the local path or remote url
+	Link               string    `json:"link,omitempty"`        // this is for showing info about the correct answer
+	Type               string    `json:"type"`                  // "multiple_choice" or "text"
+	Choices            []string  `json:"choices,omitempty"`     // if this is multichoice, then these are the choices
+	CorrectAnswer      string    `json:"correctAnswer"`         // indicates the correct answer, can be anything from coordinates to a name etc.
+	PenalisationFactor float32   `json:"penalisationFactor"`    // for geoguessing, how harsh to be. The higher the number the harsher
+	HostAnswer         string    `json:"hostAnswer"`            // Only included for admin
+	PointsAvailable    int       `json:"pointsAvailable"`       // how many points are available for this question
+	TimeLimit          int       `json:"timeLimit"`             // how long do the users have to answer?
+	TimeStarted        time.Time `json:"timeStarted,omitempty"` // when did this question start
+	TimeLeft           int       `json:"timeLeft,omitempty"`    // how long has the user left to answer this question
+	IsTimedOut         bool      `json:"isTimedOut,omitempty"`  // has the question been run and finished?
+	ClickImage         string    `json:"clickImage,omitempty"`  // if this is a click question then the local path to the image we're clicking on
+	StreetView         string    `json:"streetView,omitempty"`  // if this is a geoguesser then the specific info required for streetview
 }
 
 type Answer struct {
@@ -134,8 +136,9 @@ func decorateGameState(gs *GameState) {
 				logger.Info(fmt.Sprintf("Time remaining: %d seconds", remainingInt))
 			}
 		}
+		// ok.. calculate the scores for all players, questions and answers
+		// and produce a leaderboard
 	}
-	// TODO more calculation here
 }
 
 func onQuestionTimeout(gs *GameState) {
@@ -172,6 +175,14 @@ func (gs *GameState) SetPlayerAdmin(username string) {
 	defer mu.Unlock()
 	if player, exists := gs.Players[username]; exists {
 		player.IsAdmin = true
+	}
+}
+
+func (gs *GameState) SetPlayerSpectator(username string) {
+	mu.Lock()
+	defer mu.Unlock()
+	if player, exists := gs.Players[username]; exists {
+		player.IsSpectator = true
 	}
 }
 

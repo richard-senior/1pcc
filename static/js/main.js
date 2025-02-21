@@ -3,12 +3,15 @@ class GameAPI {
     constructor() {
         if (GameAPI.instance) {return GameAPI.instance;}
         this.state = null;
+        this.currentUser = null;
         this.pollInterval = null;
         this.failureCount = 0;  // Add failure counter
         this.maxFailures = 1800;   // Maximum failures before stopping polls
-        // Initialize the map
+        // Initialize the game type classes
         this.clickMap = new ClickMap();
         this.streetView = new StreetView();
+        this.multiChoice = new MultiChoice();
+        // start polling
         this.startPolling();
         GameAPI.instance = this;
     }
@@ -36,6 +39,7 @@ class GameAPI {
             this.failureCount = 0;
             const newState = await response.json();
             this.state = newState;
+            this.currentUser = newState.currentUser;
             window.gameState = newState;
             window.dispatchEvent(new CustomEvent('gameStateUpdated', {
                 detail: newState
@@ -48,6 +52,19 @@ class GameAPI {
             }
             return this.state;
         }
+    }
+
+    getCurrentUser(gameState) {
+        // first check if we have this member variable
+        let s = this.state;
+        // try the dom
+        if (!s) {s = window.gameState}
+        // were we passed it?
+        if (!s && gameState) {s = gameState}
+        // ok error!
+        if (!s) {return null;}
+        if (!s.currentUser) {return null;}
+        return s.currentUser;
     }
 
     /**
@@ -66,7 +83,6 @@ class GameAPI {
         return s.currentQuestion;
     }
 
-
     startPolling(interval = 2000) { // Poll every 2 seconds by default
         this.stopPolling(); // Clear any existing interval
         this.pollInterval = setInterval(() => this.getGameState(), interval);
@@ -79,7 +95,51 @@ class GameAPI {
         }
     }
 
-    async submitAnswer(answer) {
+    /**
+     * @returns an answer object matching that defined in game.go
+     */
+    createAnswerObject() {
+        let cq = this.getCurrentQuestion();
+        // TODO populate username and question number
+        let answer = {
+            "questionNumber": cq.questionNumber,
+            "username": this.getCurrentUser()?.username ?? null,
+            "answer": null,
+            "points": null,
+        };
+        return answer;
+    }
+
+    async submitAnswer() {
+        let cq = this.getCurrentQuestion()
+        // If we're not counting down then you can't submit
+        /*
+        if (!cq || !cq.timeLeft || cq.timeLeft <= 0) {
+            return
+        }
+        */
+        // work out what and where the answer is based on
+        // what the current question is
+        let questionType = cq?.type ?? 'unknown';
+        let answer;  // <-- Add this line to declare the variable
+
+        if (questionType === 'geolocation') {
+            // get the answer from the click map
+            answer = this.clickMap.getAnswer();
+        } else if (questionType === 'multichoice') {
+            // get the answer from the multichoice object
+            answer = this.multiChoice.getAnswer();
+        } else {
+            // get the answer from the text input
+            answer = document.getElementById('answer-input').value;
+        }
+
+        if (!answer) {
+            console.log("no answer provided.. no points");
+            // add zero points for this user for this question
+            return;
+        }
+
         try {
             const response = await fetch('/api/submit-answer', {
                 method: 'POST',
@@ -205,6 +265,12 @@ window.nextQuestionButton = function() {
 window.previousQuestionButton = function() {
     fetch('/api/previous-question').catch(error => console.log('Failed to rotate to previous question'));
 }
+window.submitAnswer = function() {
+    // Must lock player out of question now!
+    let g = GameAPI.getInstance()
+    // get the answer from the dom
+    g.submitAnswer()
+}
 
 // *******************************
 // ************ PLAYERS **********
@@ -217,8 +283,6 @@ function updatePlayers(event) {
     let cq = GameAPI.getInstance().getCurrentQuestion(gs);
     if (!cq) {
         console.warn("no question loaded!");
-    } else {
-        console.log("question loaded");
     }
     updateTimer(event.detail);
 
@@ -271,7 +335,6 @@ function updateTimer(gameState) {
     timerDiv.style.visibility = 'visible';
 }
 
-
 // ###################################################################
 // STREETVIEW
 // ###################################################################
@@ -286,17 +349,12 @@ class StreetView {
 
     setLocation(streetViewUrl) {
         if (this.url && this.url == streetViewUrl) {
-            console.log("location already set, skipping")
             return;
-        } else {
-            console.log("creating StreetView")
         }
         if (!streetViewUrl) {
             console.error('No street view URL provided');
             return;
         }
-        console.log("setting location in streetview")
-
         const embedUrl = this.baseUrl + streetViewUrl;
         this.url = streetViewUrl;
 
@@ -312,7 +370,6 @@ class StreetView {
         this.iframe = document.createElement('iframe');
         this.iframe.id = 'streetview-iframe'
         this.iframe.class = 'streetview-iframe'
-        console.log(embedUrl)
         this.iframe.src = embedUrl;
         this.iframe.allow = "xr-spatial-tracking; accelerometer; gyroscope; magnetometer; autoplay; encrypted-media; picture-in-picture;";
         this.iframe.sandbox = "allow-scripts allow-same-origin";
@@ -400,10 +457,8 @@ class ClickMap {
 
     setImage(imageUrl) {
         if (this.imagePath && this.imagePath === imageUrl) {
-            console.log("image already set, skipping")
             return;
         } else {
-            console.log("creating ClickMap")
             this.imagePath = imageUrl;
         }
 
@@ -455,14 +510,76 @@ class ClickMap {
 
                 // Initialize events after adding to DOM
                 this.initializeEvents();
-
-                console.log("SVG loaded and added to container");
             })
             .catch(error => {
                 console.error('Error loading SVG:', error);
             });
     }
 
+    getAnswer() {
+        let gs = GameAPI.getInstance();
+        let a = gs.createAnswerObject();
+        let cq = gs.getCurrentQuestion();
+        let ap = cq.pointsAvailable;
+
+        if (this.answerx === null || this.answery === null) {
+            return null;
+        }
+
+        a.answer = `${this.answerx},${this.answery}`;
+
+        // Parse the correct answer coordinates
+        const [correctX, correctY] = cq.correctAnswer
+            .replace(/\s+/g, '')
+            .split(',')
+            .map(num => parseFloat(num));
+
+        // Calculate actual distance using Pythagorean theorem
+        const dx = this.answerx - correctX;
+        const dy = this.answery - correctY;
+        const dt = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate maximum possible error from correct point to each corner
+        const distanceToCorners = [
+            // Top-left corner
+            Math.sqrt(
+                (correctX - 0) * (correctX - 0) +
+                (correctY - 0) * (correctY - 0)
+            ),
+            // Top-right corner
+            Math.sqrt(
+                (correctX - this.imageWidth) * (correctX - this.imageWidth) +
+                (correctY - 0) * (correctY - 0)
+            ),
+            // Bottom-left corner
+            Math.sqrt(
+                (correctX - 0) * (correctX - 0) +
+                (correctY - this.imageHeight) * (correctY - this.imageHeight)
+            ),
+            // Bottom-right corner
+            Math.sqrt(
+                (correctX - this.imageWidth) * (correctX - this.imageWidth) +
+                (correctY - this.imageHeight) * (correctY - this.imageHeight)
+            )
+        ];
+
+        // Maximum error is the distance to the furthest corner
+        const maxError = Math.max(...distanceToCorners);
+
+        // Calculate points based on some non-linear factor of error distance
+        // in this case, exponential decay
+        let pf = 5.0;
+        if (cq.penalisationFactor) {pf = cq.penalisationFactor;}
+        const accuracy = Math.exp(-10.0 * dt / maxError);
+        a.points = Math.round(ap * accuracy);
+
+        // Ensure points don't go negative
+        if (a.points < 0) a.points = 0;
+
+        console.log(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
+
+        return a;
+    }
 
     /* Add method to create/update marker
        the image we are working with can be zoomed or dragged
@@ -484,7 +601,6 @@ class ClickMap {
        * and then scale it up to the size of the image.
     */
     addMarker() {
-        console.log("click.. adding marker");
         let screenX = this.mx;
         let screenY = this.my;
 
@@ -503,9 +619,6 @@ class ClickMap {
         const svgX = ((screenX - svgRect.left) / svgRect.width) * box.width + box.x;
         const svgY = ((screenY - svgRect.top) / svgRect.height) * box.height + box.y;
 
-        console.log(`dragX: ${this.dragx}, dragY: ${this.dragy}, scale: ${this.scale}`);
-        console.log(`SVG X: ${svgX}, SVG Y: ${svgY}, X: ${screenX}, Y: ${screenY}`);
-
         // Create a circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("cx", svgX);
@@ -513,6 +626,9 @@ class ClickMap {
         // make a note of where we placed the marker
         this.answerx = svgX;
         this.answery = svgY;
+
+        console.log(`marker X: ${this.answerx}, marker Y: ${this.answery}`);
+
         // Make radius inversely proportional to zoom level
         const zoomAdjustedRadius = this.markerSize / this.scale;
         circle.setAttribute("r", zoomAdjustedRadius);
@@ -521,6 +637,33 @@ class ClickMap {
         // Store reference to current marker
         this.currentMarker = circle;
         this.svg.appendChild(circle);
+    }
+
+    /**
+     * Show all user answers on the map
+     * TODO this!
+     * @returns nothing
+     */
+    showUserAnswers() {
+        let gs = GameAPI.getInstance();
+        let cq = gs.getCurrentQuestion();
+        let answers = cq.userAnswers;
+        if (!answers) return;
+
+        // Remove existing markers
+        const existingMarkers = this.svg.querySelectorAll('circle');
+        existingMarkers.forEach(marker => this.svg.removeChild(marker));
+
+        // Add markers for each answer
+        answers.forEach(answer => {
+            const [x, y] = answer.answer.split(',').map(parseFloat);
+            const circle = document.createElementNS("XXXXXXXXXXXXXXXXXXXXXXXXXX", "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", this.markerSize / this.scale);
+            circle.setAttribute("fill", "#24354f80");  // Blue with 50% opacity
+            this.svg.appendChild(circle);
+        });
     }
 
     initializeEvents() {
@@ -613,7 +756,7 @@ class ClickMap {
                     this.addMarker()
                     // do nothing until mouseup
                 }
-            }, 300);
+            }, 350);
         });
 
         // In initializeEvents():
@@ -692,9 +835,17 @@ class ClickMap {
             height: box.height
         };
     }
-
-
 }
+
+// ###################################################################
+// MULTICHOICE
+// ###################################################################
+
+class MultiChoice {
+    constructor() {
+    }
+}
+
 // ###################################################################
 // GLOBAL
 // ###################################################################
