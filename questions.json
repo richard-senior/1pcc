@@ -1,32 +1,63 @@
 [
     {
-        "question": "Click the world map where you think the streetview is. You can zoom and move them.",
+        "question": "GeoGuessing: Just a smidge harder..",
         "questionNumber": 1,
         "type": "geolocation",
         "choices": [],
-        "correctAnswer": "35.640069, 139.875047",
+        "link": "https://maps.app.goo.gl/ga4cwmii8kDdnPn78",
+        "correctAnswer": "4502.620963283039, 753.4690573367145",
         "hostAnswer": "Edogawa, Tokyo",
-        "timeLimit": 30,
+        "penalisationFactor": 3.0,
+        "timeLimit": 180,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740001304287!6m8!1m7!1sibHbRNzalRzBWBMDigiQEQ!2m2!1d35.64735242911003!2d139.8446293562197!3f123.86414917643255!4f2.143555669002822!5f0.7820865974627469",
         "pointsAvailable": 10
     },
     {
-        "question": "Click the world map where you think the streetview is. You can zoom and move them.",
-        "questionNumber": 1,
+        "question": "GeoGuessing: Click the world map where you think the streetview is. You can zoom and move everything.",
+        "questionNumber": 2,
         "type": "geolocation",
         "choices": [],
-        "correctAnswer": "62.2111918,-6.7033951",
+        "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
+        "correctAnswer": "2454.354565039059,432.38896023854124",
+        "penalisationFactor": 15.0,
+        "hostAnswer": "BCC",
+        "timeLimit": 60,
+        "clickImage": "/static/images/worldmap.svg",
+        "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
+        "pointsAvailable": 3
+    },
+    {
+        "question": "GeoGuessing: Quite taxing..",
+        "questionNumber": 3,
+        "type": "geolocation",
+        "choices": [],
+        "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
+        "correctAnswer": "2403.579900814714, 296.8883885349561",
+        "penalisationFactor": 3,
         "hostAnswer": "Lervik, Faroe Islands",
-        "timeLimit": 30,
+        "timeLimit": 180,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1739998284781!6m8!1m7!1sDO4WxBOd74z8JedVeaYQQw!2m2!1d62.21119902945588!2d-6.703198590317673!3f301.7973005793527!4f-8.492473666230936!5f0.7820865974627469",
         "pointsAvailable": 10
     },
     {
+        "question": "Click on Thimphu",
+        "questionNumber": 4,
+        "type": "khazakstan",
+        "choices": [],
+        "link": "https://maps.app.goo.gl/mrYqT9qHkjHMMft86",
+        "correctAnswer": "4502.620963283039, 753.4690573367145",
+        "penalisationFactor": 3.0,
+        "hostAnswer": "Thimphu, Bhutan",
+        "timeLimit": 60,
+        "clickImage": "/static/images/worldmap.svg",
+        "pointsAvailable": 10
+    },
+    {
         "question": "What is the capital of France?",
-        "questionNumber": 2,
-        "type": "multiple_choice",
+        "questionNumber": 5,
+        "type": "multichoice",
         "choices": [
             "London",
             "Paris",
@@ -40,7 +71,7 @@
     },
     {
         "question": "What is 2 + 2?",
-        "questionNumber": 3,
+        "questionNumber": 6,
         "type": "text",
         "correctAnswer": "4",
         "hostAnswer": "",
@@ -49,8 +80,8 @@
     },
     {
         "question": "Who wrote Romeo and Juliet?",
-        "questionNumber": 4,
-        "type": "multiple_choice",
+        "questionNumber": 7,
+        "type": "multichoice",
         "choices": [
             "Charles Dickens",
             "William Shakespeare",
@@ -64,8 +95,8 @@
     },
     {
         "question": "Which planet is known as the Red Planet?",
-        "questionNumber": 5,
-        "type": "multiple_choice",
+        "questionNumber": 8,
+        "type": "multichoice",
         "choices": [
             "Venus",
             "Mars",
