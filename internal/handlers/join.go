@@ -35,17 +35,14 @@ func getIPAddress(r *http.Request) string {
 }
 
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
-
 	if r.Method == "POST" {
 		username := r.FormValue("username")
 		if username == "" {
 			http.Error(w, "Username is required", http.StatusBadRequest)
 			return
 		}
-
 		// Create session and set cookie
 		session.SetSessionUser(w, username)
-
 		// Add player to game
 		gameInstance := game.GetGame()
 		ip := getIPAddress(r)
@@ -54,7 +51,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 		if hun == username {
 			gameInstance.AddPlayer(username, true, true, ip)
 			// amazonq-ignore-next-line
-			http.Redirect(w, r, "/host", http.StatusSeeOther)
+			http.Redirect(w, r, "/observe", http.StatusSeeOther)
 		} else {
 			gameInstance.AddPlayer(username, false, false, ip)
 			// amazonq-ignore-next-line

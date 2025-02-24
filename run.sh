@@ -1,5 +1,6 @@
 #!/bin/bash
 #export GOCACHE=off.
+tree >> ./dir_structure.txt
 echo "building 1pcc.."
 rm ./1pcc
 echo "Tr3mble5-----" | sudo -S rm /usr/local/bin/1pcc

@@ -1,7 +1,6 @@
 [
     {
         "question": "GeoGuessing: Just a smidge harder..",
-        "questionNumber": 1,
         "type": "geolocation",
         "choices": [],
         "link": "https://maps.app.goo.gl/ga4cwmii8kDdnPn78",
@@ -15,7 +14,6 @@
     },
     {
         "question": "GeoGuessing: Click the world map where you think the streetview is. You can zoom and move everything.",
-        "questionNumber": 2,
         "type": "geolocation",
         "choices": [],
         "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
@@ -29,7 +27,6 @@
     },
     {
         "question": "GeoGuessing: Quite taxing..",
-        "questionNumber": 3,
         "type": "geolocation",
         "choices": [],
         "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
@@ -43,7 +40,6 @@
     },
     {
         "question": "Click on Thimphu",
-        "questionNumber": 4,
         "type": "khazakstan",
         "choices": [],
         "link": "https://maps.app.goo.gl/mrYqT9qHkjHMMft86",
@@ -56,7 +52,6 @@
     },
     {
         "question": "What is the capital of France?",
-        "questionNumber": 5,
         "type": "multichoice",
         "choices": [
             "London",
@@ -71,7 +66,6 @@
     },
     {
         "question": "What is 2 + 2?",
-        "questionNumber": 6,
         "type": "text",
         "correctAnswer": "4",
         "hostAnswer": "",
@@ -80,7 +74,6 @@
     },
     {
         "question": "Who wrote Romeo and Juliet?",
-        "questionNumber": 7,
         "type": "multichoice",
         "choices": [
             "Charles Dickens",
@@ -95,7 +88,6 @@
     },
     {
         "question": "Which planet is known as the Red Planet?",
-        "questionNumber": 8,
         "type": "multichoice",
         "choices": [
             "Venus",

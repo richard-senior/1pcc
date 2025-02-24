@@ -6,7 +6,18 @@
          url('/static/fonts/club.ttf') format('truetype'),
          url('/static/fonts/club.svg') format('svg');
 }
-/* static/css/main.css */
+@font-face {
+    font-family: 'Seg';
+    src: url('/static/fonts/seg.woff2') format('woff2'),
+         url('/static/fonts/seg.woff') format('woff'),
+         url('/static/fonts/seg.ttf') format('truetype')
+}
+
+:root {
+    --bccblue: #24354F;
+    --bccgold: #BA9128;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -25,6 +36,46 @@ body {
     overflow-x: hidden;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+tr {
+    background-color: var(--bccblue);
+    color: #ffffff;
+    text-align: left;
+}
+th, td {
+    padding: 12px 15px;
+}
+tr:nth-of-type(even) {
+    background-color: var(--bccgold);
+}
+tr:last-of-type {
+    border-bottom: 2px solid var(--bccblue);
+}
+button {
+    visibility: hidden;
+}
+input[type=button], input[type=submit], input[type=reset] {
+    background-color: var(--bccblue);
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  input[type=button]:hover, input[type=submit]:hover, input[type=reset]:hover {
+    background-color: var(--bccgold);
+  }
+/* #################################################################### */
+/* ############################## CONTAINER ########################### */
+/* #################################################################### */
+
 .container {
     min-height: 100vh;
     display: flex;
@@ -40,7 +91,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(#ba9128, #24354F);
+    background: linear-gradient(var(--bccgold), var(--bccblue));
     /* background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)); */
     background-repeat: repeat;
     background-size: auto;
@@ -72,7 +123,7 @@ body {
     position: fixed;  /* Changed from absolute to fixed */
     top: 10px;
     right: 5vw;
-    height: 12vw;     /* Adjusted size - modify as needed */
+    height: 18vw;     /* Adjusted size - modify as needed */
     aspect-ratio: 1;
     object-fit: contain;
     background: transparent;
@@ -105,15 +156,26 @@ body {
     border-radius: 10px;
 }
 
-button, input[type="button"], input[type="submit"] {
-    padding: 10px 20px;
-    background-color: #4CAF50;
+.table-title-bar {
+    background-color: var(--bccblue);  /* assuming you have CSS variables defined */
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
+    padding: 8px 12px;
+    font-weight: bold;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 0;
 }
+
+.score-table {
+    margin-top: 0;
+    border: 1px solid var(--bccblue);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+}
+
+/* #################################################################### */
+/* ############################## BUTTONS ############################# */
+/* #################################################################### */
+
 
 /* #################################################################### */
 /* ############################## FRAME ############################### */
@@ -127,7 +189,7 @@ button, input[type="button"], input[type="submit"] {
     min-height: 70vh;  /* or whatever minimum height you want */
     width: 90vw;
 
-    background-color: #D2B44D;
+    background-color: var(--bccgold);
     border-radius: 15px;
     padding: 30px;
 
@@ -167,24 +229,18 @@ button, input[type="button"], input[type="submit"] {
     font-size: 16px;
 }
 
-.frame-text button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.frame-text button:hover {
-    background-color: #45a049;
-}
-
 .frame-text small {
     color: #cccccc;
     font-size: 12px;
+}
+
+
+/* #################################################################### */
+/* ############################## Observer ############################ */
+/* #################################################################### */
+
+#leaderboard {
+    color: #FFFFFF;
 }
 
 /* #################################################################### */
@@ -195,7 +251,7 @@ button, input[type="button"], input[type="submit"] {
     width: 100%;
     height: 40vh;
     position: relative;
-    background-color: #D2B44D;
+    background-color: var(--bccblue);
     margin: 10px, 0;
     border: 1px inset white;
     /* border-style: inset;
@@ -267,63 +323,9 @@ button, input[type="button"], input[type="submit"] {
     background-color: rgba(255, 255, 255, 0.9);
 }
 
-.timer-container {
-    margin-top: auto;  /* pushes the timer to the bottom */
-    border-radius: 10px;
-    border: 1px;
-    background-color: #24354F;
-}
-
-.timer-bar {
-    width: 100%;
-    height: 20px;
-    background-color: #eee;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.timer-progress {
-    width: 100%;
-    height: 100%;
-    background-color: #4CAF50;
-    transition: width 0.1s linear;
-}
-
-.timer-text {
-    text-align: center;
-    margin-top: 5px;
-    font-weight: bold;
-}
-
 .question-text {
     font-size: 1.2em;
     margin: 20px 0;
-}
-
-.answer-form {
-    margin-top: 20px;
-}
-
-.answer-form input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.answer-form button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-}
-
-.answer-form button:hover {
-    background-color: #45a049;
 }
 
 .choice-label {
@@ -376,10 +378,6 @@ button, input[type="button"], input[type="submit"] {
         font-size: 1em;
     }
 
-    .timer-bar {
-        height: 15px;
-    }
-
     .choice-label {
         padding: 8px;
     }
@@ -397,14 +395,6 @@ button, input[type="button"], input[type="submit"] {
     font-size: 1.2em;
     font-weight: bold;
     color: #fff;
-}
-
-.timer-text {
-    font-size: 1.2em;
-    color: #fff;
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
 }
 
 .counter-text {
@@ -468,19 +458,4 @@ button, input[type="button"], input[type="submit"] {
 .admin-section {
     margin-top: 20px;
     text-align: center;
-}
-
-.game-button {
-    padding: 10px 20px;
-    margin: 0 5px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.game-button:hover {
-    background-color: #45a049;
 }
