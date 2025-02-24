@@ -9,6 +9,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 
 	"github.com/richard-senior/1pcc/internal/game"
 	"github.com/richard-senior/1pcc/internal/logger"
@@ -36,6 +37,8 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api/game-state":
 		handleGameState(w, r)
+	case "/api/get-leaderboard":
+		handleGetLeaderboard(w, r)
 	case "/api/submit-answer":
 		handleSubmitAnswer(w, r)
 	case "/api/previous-question":
@@ -44,6 +47,10 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 		handleNextQuestion(w, r)
 	case "/api/start-question":
 		handleStartQuestion(w, r)
+	case "/api/pause-question":
+		handlePauseQuestion(w, r)
+	case "/api/stop-question":
+		handleStopQuestion(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -82,14 +89,25 @@ func handleGameState(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleGetLeaderboard(w http.ResponseWriter, r *http.Request) {
+	// get the game state from the game singleton
+	lb := game.GetGame().GetLeaderboard()
+	// Encode the state as JSON and send it back
+	err := json.NewEncoder(w).Encode(lb)
+	if err != nil {
+		http.Error(w, "Failed to encode players array", http.StatusInternalServerError)
+		return
+	}
+}
+
 func handlePreviousQuestion(w http.ResponseWriter, r *http.Request) {
-	// game.StartGame() should apply the timestamp of the start of the game
-	logger.Info("Handling next question request")
+	gs := game.GetGame()
+	gs.PreviousQuestion()
 }
 
 func handleNextQuestion(w http.ResponseWriter, r *http.Request) {
-	// game.StartGame() should apply the timestamp of the start of the game
-	logger.Info("Handling next question request")
+	gs := game.GetGame()
+	gs.NextQuestion()
 }
 
 /*
@@ -108,6 +126,12 @@ Output:
 */
 func handleStartQuestion(w http.ResponseWriter, r *http.Request) {
 	game.GetGame().StartQuestion()
+}
+func handlePauseQuestion(w http.ResponseWriter, r *http.Request) {
+	game.GetGame().PauseQuestion()
+}
+func handleStopQuestion(w http.ResponseWriter, r *http.Request) {
+	game.GetGame().StopQuestion()
 }
 
 /*
@@ -132,7 +156,17 @@ func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode answer", http.StatusInternalServerError)
 		return
 	}
+	// dont add another answer if one already exists
+	for _, a := range cq.Answers {
+		if a.Username == answer.Username {
+			return
+		}
+	}
 	// add the answer to the question.Answers array
 	cq.Answers = append(cq.Answers, answer)
-	// For example, you might want to process the submitted answer and update the game state
+	// order the answers by score
+
+	sort.Slice(cq.Answers, func(i, j int) bool {
+		return cq.Answers[i].Points > cq.Answers[j].Points
+	})
 }

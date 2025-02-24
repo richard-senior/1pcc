@@ -1,4 +1,5 @@
 {
     "SERVER_PORT": 8080,
-    "HOST_USERNAME": "richard"
+    "HOST_USERNAME": "richard",
+    "MAP_SCALE": 6.6
 }

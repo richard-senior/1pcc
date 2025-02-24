@@ -1,15 +1,14 @@
 {
     "configurations": [
-
         {
-            "name": "Debug",
-            "type": "debugpy",
+            "name": "Launch 1PCC",
+            "type": "go",
             "request": "launch",
-            "program": "${fileWorkspaceFolder}/t.py",
-            //"python": "C:/Users/richard/AppData/Local/Microsoft/WindowsApps/python.exe",
-            "python": "/usr/local/bin/python3",
-            "console": "integratedTerminal",
-            "args": [],
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/main.go",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "args": []
         }
     ]
 }

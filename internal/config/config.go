@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	ServerPort   int    `json:"SERVER_PORT"`
-	HostUsername string `json:"HOST_USERNAME"`
+	ServerPort   int     `json:"SERVER_PORT"`
+	HostUsername string  `json:"HOST_USERNAME"`
+	MapScale     float32 `json:"MAP_SCALE"`
 }
 
 var configuration *Config
@@ -48,4 +49,8 @@ func GetHostUsername() string {
 // Helper method to get port as string
 func GetPortString() string {
 	return fmt.Sprintf("%d", Get().ServerPort)
+}
+
+func GetMapScale() float32 {
+	return Get().MapScale
 }
