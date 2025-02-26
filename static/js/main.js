@@ -8,6 +8,7 @@ class GameAPI {
         this.failureCount = 0;  // Add failure counter
         this.maxFailures = 1800;   // Maximum failures before stopping polls
         // Initialize the game type classes
+        this.questionView = new QuestionView();
         this.clickMap = new ClickMap();
         this.streetView = new StreetView();
         this.multiChoice = new MultiChoice();
@@ -21,15 +22,24 @@ class GameAPI {
         this.pauseQuestionButton = new PauseQuestionButton()
         // Initialise the timer
         this.timer = new Timer();
+        // observer
+        this.leaderboard = new Leaderboard()
+        this.currentAnswers = new CurrentAnswers()
         // add 'PageElement' objects to an array we can update on poll
         // TODO find any object implementing PageElement and add to array automatically
-        this.pageElements = [this.timer,
+        this.pageElements = [
+            this.streetView,
+            this.clickMap,
+            this.questionView,
+            this.timer,
             this.answerButton,
             this.startQuestionButton,
             this.pauseQuestionButton,
             this.stopQuestionButton,
             this.nextQuestionButton,
-            this.previousQuestionButton
+            this.previousQuestionButton,
+            this.leaderboard,
+            this.currentAnswers,
         ];
         // start polling
         this.startPolling();
@@ -61,14 +71,14 @@ class GameAPI {
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
+            // update any 'PageElement' objects we have instantiated
+            for (let pe of this.pageElements) {
+                pe.update(newState);
+            }
             // fire an event in case anythiing is listening
             window.dispatchEvent(new CustomEvent('gameStateUpdated', {
                 detail: newState
             }));
-            // update any 'PageElement' objects we have instantiated
-            for (let pe of this.pageElements) {
-                pe.doUpdate();
-            }
             return newState;
         } catch (error) {
             this.failureCount++;
@@ -86,13 +96,22 @@ class GameAPI {
         return false
     }
 
-    getCurrentUser(gameState) {
+    getPlayers() {
         // first check if we have this member variable
         let s = this.state;
         // try the dom
         if (!s) {s = window.gameState}
-        // were we passed it?
-        if (!s && gameState) {s = gameState}
+        // ok error!
+        if (!s) {return null;}
+        if (!s.players) {return null;}
+        return s.players;
+    }
+
+    getCurrentUser() {
+        // first check if we have this member variable
+        let s = this.state;
+        // try the dom
+        if (!s) {s = window.gameState}
         // ok error!
         if (!s) {return null;}
         if (!s.currentUser) {return null;}
@@ -235,90 +254,35 @@ class GameAPI {
             console.error('Failed to remove player:', error);
         }
     }
+    getFileContent(filePath) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', filePath, false);
+        try {
+            xhr.send();
+            if (xhr.status !== 200) {
+                console.error('Failed to load SVG:', xhr.statusText);
+                return null;
+            }
+            return  xhr.responseText;
+        } catch (error) {
+            console.error('Error loading SVG:', error);
+            return null;
+        }
+    }
 }
 
 // ###################################################################
 // UI functions - update some universal page items
 // ###################################################################
 
-function updateAll(event) {
-    let gs = GameAPI.getInstance()
-    updateQuestionTitle()
-    updateClickmap()
-    updateStreetView()
-    updateHost(event);
-    updateObserver(event)
-}
-
-/* The current question title will appear in almost all views */
-function updateQuestionTitle() {
-    const qte = document.getElementById('question-title');
-    if (!qte) {return;}
-    let gs = GameAPI.getInstance().getCurrentQuestion();
-    if (!gs) {
-        console.log("no question loaded!");
-        return;
-    }
-    let ret = gs.questionNumber + ') ' + gs.question
-    qte.innerHTML = ret
-}
-
-function updateClickmap() {
-    let gs = GameAPI.getInstance();
-    let cq = gs.getCurrentQuestion();
-    const gld = document.getElementById('click-container');
-    if (!gld) {return;}
-
-    let questionType = cq?.type ?? 'unknown';
-    if (questionType === 'geolocation') {
-        gld.style.visibility = 'visible';
-        gld.style.display = 'block';
-        let url = cq.clickImage;
-        gs.clickMap.setImage(url);
-    } else {
-        gld.style.visibility = 'hidden';
-        gld.style.display = 'none';
-    }
-}
-
-function updateStreetView() {
-    let gs = GameAPI.getInstance();
-    let cq = gs.getCurrentQuestion();
-    const gld = document.getElementById('streetview-container');
-    if (!gld) {return;}
-
-    let questionType = cq?.type ?? 'unknown';
-    if (questionType === 'geolocation') {
-        gld.style.visibility = 'visible';
-        gld.style.display = 'block';
-        let url = cq.streetView;
-        gs.streetView.setLocation(url);
-    } else {
-        gld.style.visibility = 'hidden';
-        gld.style.display = 'none';
-    }
-}
-
 // *******************************
 // ************ OBSERVER *********
 // *******************************
 
-function updateObserver(event) {
-    let gs = GameAPI.getInstance()
-    // first update the leaderboard
-    let oo = gs.leaderboard
-    oo.update();
-}
 
 // *******************************
 // ************ HOST *************
 // *******************************
-
-function updateHost(event) {
-    // if this isn't the host page then just return
-
-}
-
 
 // *******************************
 // ************ PAGE ELEMENT *****
@@ -326,125 +290,179 @@ function updateHost(event) {
 
 class PageElement {
     constructor(name) {
+        this.element = null;
+        this.styles = null;
         this.name = name;
         this.styleId = name + '-style';
     }
-
-    doGetElement() {
-        let pe = document.getElementById(this.name);
-        if (pe) {return pe;}
-        return this.getElement();
-    }
-
+    /**
+     * Finds the dom element managed by this object in the current
+     * dom model, or creates and inserts it.
+     * Once found or created, caches it locally to prevent constant
+     * dom searches
+     * @returns the dom element that this object manages
+     */
     getElement() {
-        // should be overriden
-        // if this PageElement should create its own
-        // dom elements, then do so here and return it
-        // if this PageElement is managing a dom element that
-        // should already be defined in the html then return null
-        return null;
+        if (this.element) {return this.element;}
+        let pe = document.getElementById(this.name);
+        if (pe) {
+            this.element = pe;
+            return pe;
+        }
+        pe = this.createElement();
+        if (pe) {
+            this.element = pe;
+            return pe;
+        }
     }
+    /**
+     * Abstract method that should be overriden by the extending class
+     * called when the dom element managed by this object doesn't already
+     * exist in the page. Creates and inserts the dom element in the correct
+     * page of the dom model
+     * @returns void
+     */
+    createElement() { return null;}
+    /**
+     * Convenience method for getting the GameAPI instance
+     * @returns the GameAPI instance
+     */
+    getGameState() {return GameAPI.getInstance()}
+    /**
+     * Convenience method for getting the current Question object
+     * from the game state
+     * @returns the current question object
+     */
+    getCurrentQuestion() {return this.getGameState().getCurrentQuestion();}
+    /**
+     * Concenience method for getting the current players map
+     * @returns the current players map
+     */
+    getPlayers() {return this.getGameState().getPlayers()}
 
-    getGameState() {
-        return GameAPI.getInstance()
-    }
-
-    getCurrentQuestion() {
-        return this.getGameState().getCurrentQuestion();
-    }
-
+    /**
+     * returns true if the dom element that this object manages should be
+     * updated. First checks
+     * 1) dom element exists (returns false if not)
+     * 2) current question exists (returns false if not)
+     * 3) this object should even be shown on the page
+     * finally calls shouldUpdate which can be overriden by the extending class
+     * @returns bool true if this object should update the dom element it manages
+     */
     doShouldUpdate() {
-        if (!this.doShouldShow()) {return false;}
-        if (!this.doGetElement()) {return false;}
-        if (!this.getCurrentQuestion()) {return false;}
-        return this.shouldUpdate();
+        if (!this.getElement()) {
+            return false;
+        }
+        if (!this.getCurrentQuestion()) {
+            return false;
+        }
+        if (!this.doShouldShow()) {
+            return false;
+        }
+        if (!this.shouldUpdate()) {
+            return false;
+        }
+        return true
+    }
+    /**
+     *
+     * Method intended to be overriden by the extending class
+     * Allows the extending class to add logic determining whether
+     * the dom element managed by this object should be updated
+     * @returns bool default true
+     */
+    shouldUpdate() {return true;}
+    /**
+     * Buffers the update of the dom element managed by this object
+     * Calls getContent to get the new content of the dom element
+     * then calls applyUpdate to actually update the main dom element
+     * @param {*} gameState the current GameAPI
+     * @returns void
+     */
+    update(gameState) {
+        let cn = this.constructor.name
+        if (!this.doShouldUpdate()) {
+            return;
+        }
+        this.getStyles();
+        console.log("updating " + cn)
+        let o = this.getContent(gameState)
+        this.applyUpdate(o);
+    }
+    /**
+     * Uses animation frame to replace the content of the managed
+     * element without flickering etc.
+     * @param {*} o page element or elements
+     * @returns null
+     */
+    applyUpdate(content) {
+        const element = this.getElement();
+        if (!element) return;
+
+        requestAnimationFrame(() => {
+            if (Array.isArray(content) || content instanceof NodeList) {
+                element.replaceChildren(...content);
+            } else if (content instanceof Node) {
+                element.replaceChildren(content);
+            } else if (content) {
+                console.error('Invalid content type:', content);
+            }
+        });
     }
 
-    shouldUpdate() {
-        // implement this
-        return true;
-    }
 
-    doUpdate() {
-        if (!this.doShouldUpdate()) {return;}
-        this.doCreateStyles()
-        this.update();
-    }
-
-    update() {
-        // this should be overriden
-    }
-
-    doCreateStyles() {
-        // Remove any existing style element with this ID
+    /**
+     * Should be overriden by the extending class to return
+     * new dom elements which should replace the existing dom elements
+     * inside the main dom element managed by this object
+     * Can be ignored if applyUpdate is overriden and performs page manipulation
+     * directly
+     * @param {*} gameState the current GameAPI
+     */
+    getContent(gameState) {}
+    /**
+     * Calls createStyles to create any css styles required
+     * buy the dom object managed by this object.
+     * Once createStyles has run, the response is cached locally
+     * so that the dom doesn't get repeatedly searched.
+     * If you wish to do something dynamic with styles you can
+     * set this.styles=null and createStyles will be re-called
+     * @returns
+     */
+    getStyles() {
+        if (this.styles) {return;}
         const existingStyle = document.getElementById(this.styleId);
-        if (existingStyle) {return;}
-        this.createStyles();
+        if (existingStyle) {
+            this.styles = existingStyle;
+            return
+        }
+        let foo = this.createStyles();
+        if (!foo) {
+            this.styles = 'nostyles';
+            return null;
+        } else {
+            this.styles = foo;
+        }
     }
+    /**
+     * should be overriden to Create a dom style element
+     * which implements the css required by this dom element
+     * if any is required. If not, return null
+     * @returns document.createElement('style')
+     */
+    createStyles() {return null;}
 
-    createStyles() {
-        // this should be overriden
-        // EXAMPLE implementation below
-        const styleElement = document.createElement('style');
-        styleElement.id = this.styleId;
-
-        // Define your CSS rules
-        const cssRules = `
-            .timer {
-                position: fixed;
-                top: 10px;          /* Match top-qr positioning */
-                left: 5vw;          /* Mirror the right positioning of top-qr */
-                width: 18vw;        /* Match top-qr width */
-                aspect-ratio: 1;    /* Make it square like top-qr */
-                padding: 10px;
-                border-radius: 4px;
-                font-size: 1.2em;
-                z-index: 1000;      /* Keep it above other elements */
-                text-align: center;
-                font-family: 'Share Tech Mono', monospace;  /* Good for LED look */
-                background-color: #000;
-                color: #ff0000;     /* Classic red LED color */
-                border: 1px solid #333;
-                letter-spacing: 2px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                box-shadow:
-                    inset 0 0 8px rgba(255, 0, 0, 0.2),
-                    0 0 4px rgba(255, 0, 0, 0.2);
-                background: linear-gradient(
-                    to bottom,
-                    #000000,
-                    #1a1a1a
-                );
-            }
-
-            /* Add subtle reflection effect */
-            .timer::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 50%;
-                background: linear-gradient(
-                    rgba(255, 255, 255, 0.1),
-                    rgba(255, 255, 255, 0)
-                );
-                border-radius: 2px;
-                pointer-events: none;
-            }
-        `;
-
-        // Add the CSS rules to the style element
-        styleElement.textContent = cssRules;
-
-        // Add the style element to the document head
-        document.head.appendChild(styleElement);
-    }
-
+    /**
+     * hides or shows the dom element managed by this object
+     * based on some logic.
+     * 1) The element is present in the dom
+     * 2) the current question is not none
+     * 3) this.shouldShow returns true or false
+     *
+     * @returns bool
+     */
     doShouldShow() {
-        if (!this.doGetElement()) {return false;}
+        if (!this.getElement()) {return false;}
         if (!this.getCurrentQuestion()) {return false;}
         let ss = this.shouldShow();
         if (ss) {
@@ -455,22 +473,42 @@ class PageElement {
             return false;
         }
     }
-
-    shouldShow() {
-        // this should be overriden
-        return true;
-    }
+    /**
+     * Should be overriden to determine if this dom element should
+     * be hidden or shown based on some logic. Default true
+     * @returns bool true if the dom element should be visible
+     */
+    shouldShow() {return true;}
 
     show() {
-        if (!this.doGetElement()) {return;}
-        this.doGetElement().style.visibility = 'visible';
-        this.doGetElement().style.display = 'block';
+        let el = this.getElement()
+        if (!el) {return;}
+        el.style.visibility = 'visible';
+        el.style.display = 'block';
     }
 
     hide() {
-        if (!this.doGetElement()) {return;}
-        this.doGetElement().style.visibility = 'hidden';
-        this.doGetElement().style.display = 'none';
+        let el = this.getElement()
+        if (!el) {return;}
+        el.style.visibility = 'hidden';
+        el.style.display = 'none';
+    }
+}
+
+// ###################################################################
+// QUESTION
+// ###################################################################
+
+class QuestionView extends PageElement {
+    constructor() {
+        super('question-title')
+    }
+    getContent(gs) {
+        let cq =this.getCurrentQuestion();
+        if (!cq) {return;}
+        let s = cq.questionNumber + ') ' + cq.question
+        let ret = document.createTextNode(s);
+        return ret;
     }
 }
 
@@ -478,33 +516,40 @@ class PageElement {
 // STREETVIEW
 // ###################################################################
 
-class StreetView {
+class StreetView extends PageElement {
     constructor() {
+        super('streetview-container');
         this.baseUrl = "https://www.google.com/maps/embed?pb=";
         this.container = null;
         this.iframe = null;
         this.url = null;
     }
 
-    setLocation(streetViewUrl) {
-        if (this.url && this.url == streetViewUrl) {
-            return;
-        }
-        if (!streetViewUrl) {
-            console.error('No street view URL provided');
-            return;
-        }
-        const embedUrl = this.baseUrl + streetViewUrl;
-        this.url = streetViewUrl;
+    update(gs) {
+        super.update(gs)
+    }
 
-        this.container = document.getElementById('streetview-container');
-        if (!this.container) {
-            console.error('Street view container not found');
-            return;
+    shouldUpdate() {
+        let cq = this.getCurrentQuestion()
+        if (!cq || !cq.streetView) {return false;}
+        let questionType = cq?.type ?? 'unknown';
+        if (questionType !== 'geolocation') {return false;}
+        if (!this.url) {
+            return true;
         }
+        if (cq.streetView !== this.url) {
+            return true;
+        }
+        return false;
+    }
+
+    getContent(gs) {
+        let cq = this.getCurrentQuestion();
+        this.url = cq.streetView;
+        const embedUrl = this.baseUrl + this.url;
+        this.container = this.getElement();
         // Set container to relative positioning
         this.container.style.position = 'relative';
-
         // Create and setup iframe with required permissions
         this.iframe = document.createElement('iframe');
         this.iframe.id = 'streetview-iframe'
@@ -515,7 +560,6 @@ class StreetView {
         this.iframe.allowfullscreen="false"
         this.iframe.loading="lazy"
         this.iframe.referrerpolicy="no-referrer-when-downgrade"
-
         // Create the semi-transparent blur overlay
         const overlay = document.createElement('div');
         overlay.style.position = 'absolute';
@@ -533,29 +577,6 @@ class StreetView {
         this.container.innerHTML = '';
         this.container.appendChild(this.iframe);
         this.container.appendChild(overlay);
-
-    }
-
-    resize() {
-        if (!this.isInitialized || !this.container) return;
-
-        // Adjust iframe size to container
-        const rect = this.container.getBoundingClientRect();
-        this.iframe.style.width = `${rect.width}px`;
-        this.iframe.style.height = `${rect.height}px`;
-    }
-
-    hide() {
-        if (this.container) {
-            this.container.style.display = 'none';
-        }
-    }
-
-    show() {
-        if (this.container) {
-            this.container.style.display = 'block';
-            this.resize();
-        }
     }
 }
 
@@ -563,9 +584,10 @@ class StreetView {
 // CLICKABLE IMAGE
 // ###################################################################
 
-class ClickMap {
+class ClickMap extends PageElement {
 
     constructor() {
+        super('click-container')
         this.answerx = null;
         this.answery = null;
         this.markerSize = 50;
@@ -594,65 +616,67 @@ class ClickMap {
         this.imageHeight = null;
     }
 
-    setImage(imageUrl) {
-        if (this.imagePath && this.imagePath === imageUrl) {
-            return;
-        } else {
-            this.imagePath = imageUrl;
+    shouldShow() {
+        let cq = this.getCurrentQuestion()
+        let questionType = cq?.type ?? 'unknown';
+        return questionType === 'geolocation' || questionType === 'khazakstan'
+    }
+
+    createStyles() {
+        let container = this.getElement()
+        container.style.overflow = 'hidden';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        return super.createStyles();
+    }
+
+    shouldUpdate() {
+        if (!this.svg) {
+            return true;
         }
-
-        const container = document.getElementById('click-container');
-        if (!container) {
-            console.error('Could not find click-container div');
-            return;
+        if (!this.imagePath) {
+            return true;
         }
+        let cq = this.getCurrentQuestion()
+        if (!cq.clickImage) {return false;}
+        let questionType = cq?.type ?? 'unknown';
+        if (questionType !== 'geolocation' && questionType !== 'clickImage') {return false;}
+        if (cq.clickImage !== this.imagePath) {
+            return true;
+        }
+        return false;
+    }
 
-        // Clear any existing content
-        container.innerHTML = '';
-        // Clear any existing marker
-        this.currentMarker = null;
-
-        fetch(imageUrl)
-            .then(response => response.text())
-            .then(svgContent => {
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-                const originalSvg = svgDoc.documentElement;
-
-                // Get dimensions from the original SVG
-                this.imageWidth = parseFloat(originalSvg.getAttribute('width') || originalSvg.viewBox.baseVal.width);
-                this.imageHeight = parseFloat(originalSvg.getAttribute('height') || originalSvg.viewBox.baseVal.height);
-
-                // Copy the original SVG directly
-                this.svg = originalSvg;
-
-                // Set SVG to fill container completely
-                this.svg.style.width = "100%";
-                this.svg.style.height = "100%";
-                this.svg.style.display = "block"; // Removes any inline spacing
-                this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
-
-                // Set container styles to ensure proper filling
-                container.style.overflow = 'hidden';
-                container.style.display = 'flex';
-                container.style.alignItems = 'center';
-                container.style.justifyContent = 'center';
-                container.style.width = '100%';
-                container.style.height = '100%';
-
-                if (!this.svg.hasAttribute('viewBox')) {
-                    this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
-                }
-
-                // Add SVG to container
-                container.appendChild(this.svg);
-
-                // Initialize events after adding to DOM
-                this.initializeEvents();
-            })
-            .catch(error => {
-                console.error('Error loading SVG:', error);
-            });
+    getContent() {
+        let cq = this.getCurrentQuestion()
+        this.imagePath = cq.clickImage;
+        let rawSvg = this.getGameState().getFileContent(this.imagePath);
+        if (!rawSvg) {
+            console.error('Error loading SVG:', error);
+            return null;
+        }
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(rawSvg, 'image/svg+xml');
+        const originalSvg = svgDoc.documentElement;
+        // Get dimensions from the original SVG
+        this.imageWidth = parseFloat(originalSvg.getAttribute('width') || originalSvg.viewBox.baseVal.width);
+        this.imageHeight = parseFloat(originalSvg.getAttribute('height') || originalSvg.viewBox.baseVal.height);
+        // Copy the original SVG directly
+        this.svg = originalSvg;
+        // Set SVG to fill container completely
+        this.svg.style.width = "100%";
+        this.svg.style.height = "100%";
+        this.svg.style.display = "block"; // Removes any inline spacing
+        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
+        if (!this.svg.hasAttribute('viewBox')) {
+            this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
+        }
+        // Initialize events after adding to DOM
+        this.initializeEvents();
+        return this.svg
     }
 
     getAnswer() {
@@ -781,40 +805,9 @@ class ClickMap {
         this.svg.appendChild(circle);
     }
 
-    /**
-     * Show all user answers on the map
-     * TODO this!
-     * @returns nothing
-     */
-    showUserAnswers() {
-        let gs = GameAPI.getInstance();
-        let cq = gs.getCurrentQuestion();
-        let answers = cq.userAnswers;
-        if (!answers) return;
-
-        // Remove existing markers
-        const existingMarkers = this.svg.querySelectorAll('circle');
-        existingMarkers.forEach(marker => this.svg.removeChild(marker));
-
-        // Add markers for each answer
-        answers.forEach(answer => {
-            const [x, y] = answer.answer.split(',').map(parseFloat);
-            const circle = document.createElementNS("XXXXXXXXXXXXXXXXXXXXXXXXXX", "circle");
-            circle.setAttribute("cx", x);
-            circle.setAttribute("cy", y);
-            circle.setAttribute("r", this.markerSize / this.scale);
-            circle.setAttribute("fill", "#24354f80");  // Blue with 50% opacity
-            this.svg.appendChild(circle);
-        });
-    }
-
     initializeEvents() {
-        const container = document.getElementById('click-container');
-        if (!container) return;
-
-        // Set default cursor
+        const container = this.getElement()
         container.style.cursor = 'default';
-
         container.addEventListener('mousemove', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -982,153 +975,259 @@ class ClickMap {
 // ###################################################################
 // LEADERBOARD
 // ###################################################################
+class CurrentAnswers extends PageElement {
 
-class Leaderboard {
-    constructor() {
+    constructor(divName) {
+        super('current-answers-div')
     }
 
-    update() {
-        this.updateCurrentQuestion();
-        this.updateLeaderBoard();
+    createStyles() {
+        const styleElement = document.createElement('style');
+        styleElement.id = this.styleId;
+        const cssRules = `
+            .table-title-bar {
+                background-color: var(--bccblue);
+                color: white;
+                padding: 10px;
+                font-weight: bold;
+                border-radius: 4px 4px 0 0;
+                margin-bottom: 0;
+            }
+            .score-table {
+                margin-top: 0;
+                border: 1px solid var(--bccblue);
+                border-top: none;
+                border-radius: 0 0 4px 4px;
+            }
+        `;
+        styleElement.textContent = cssRules;
+        document.head.appendChild(styleElement);
     }
 
-    updateCurrentQuestion() {
-        let leaderboard = document.getElementById('current-answers-div');
-        if (!leaderboard) return;
+    getContent() {
+        // Create temporary container
+        const tempContainer = document.createElement('div');
 
-        // Create a temporary container
-        let newContent = document.createElement('div');
-
-        // Create and add the title bar
-        let titleBar = document.createElement('div');
-        titleBar.className = 'table-title-bar';
-        titleBar.textContent = "Current Question Scores";
-        newContent.appendChild(titleBar);
-
-        // get answers etc
-        let gs = GameAPI.getInstance();
-        let cq = gs.getCurrentQuestion();
-        if (!cq) return;
-        let answers = gs.getCurrentAnswers();
-        if (!answers || answers.length < 1) return;
-
-        // Create new table
-        let table = document.createElement('table');
-        table.id = 'current-answers';
-        table.className = 'score-table';
-
-        // Create header row
-        let header = document.createElement('tr');
-        let playerHeader = document.createElement('th');
-        let scoreHeader = document.createElement('th');
-        let notesHeader = document.createElement('th');
-
-        playerHeader.textContent = 'Player';
-        scoreHeader.textContent = 'Score';
-        notesHeader.textContent = 'Notes';
-
-        header.appendChild(playerHeader);
-        header.appendChild(scoreHeader);
-        header.appendChild(notesHeader);
-        table.appendChild(header);
-
-        // Add data rows
-        for (let i = 0; i < answers.length; i++) {
-            let answer = answers[i];
-            let tr = document.createElement('tr');
-
-            let playerCell = document.createElement('td');
-            let scoreCell = document.createElement('td');
-            let notesCell = document.createElement('td');
-
-            playerCell.textContent = answer.username;
-            scoreCell.textContent = answer.points;
-            notesCell.textContent = answer.comment || ''; // Use empty string if comment is null/undefined
-
-            tr.appendChild(playerCell);
-            tr.appendChild(scoreCell);
-            tr.appendChild(notesCell);
-            table.appendChild(tr);
+        // Get game state and validate
+        const gs = this.getGameState();
+        if (!gs || !gs.getCurrentQuestion()) {
+            return;
         }
 
-        // Add table to our temporary container
-        newContent.appendChild(table);
+        // Build current answers table
+        const currentAnswersTable = document.createElement('div');
+        currentAnswersTable.id = 'current-answers-div';
 
-        // Only now replace the old content
-        requestAnimationFrame(() => {
-            leaderboard.replaceChildren(...newContent.children);
-        });
-    }
+        let answersHtml = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Answer</th>
+                        <th>Points</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
 
-    updateLeaderBoard() {
-        let leaderboard = document.getElementById('leaderboard-div');
-        if (!leaderboard) return;
+        const players = gs.getPlayers();
+        for (const [username, player] of Object.entries(players)) {
+            if (player.isSpectator || player.isAdmin) continue;
 
-        // Create temporary container
-        let newContent = document.createElement('div');
+            const hasAnswered = gs.hasAnswered(username);
+            const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
+            const playerAnswer = gs.getCurrentQuestion().answers.find(a => a.username === username);
+
+            answersHtml += `
+                <tr ${rowStyle}>
+                    <td>${username}</td>
+                    <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
+                    <td>${playerAnswer ? playerAnswer.points : '0'}</td>
+                    <td>${playerAnswer ? playerAnswer.comment : ''}</td>
+                </tr>
+            `;
+        }
+        answersHtml += `
+                </tbody>
+            </table>
+        `;
+        currentAnswersTable.innerHTML = answersHtml;
+        tempContainer.appendChild(currentAnswersTable);
+
+        // Build leaderboard section
+        const leaderboardSection = document.createElement('div');
 
         // Create and add the title bar
-        let titleBar = document.createElement('div');
+        const titleBar = document.createElement('div');
         titleBar.className = 'table-title-bar';
         titleBar.textContent = "Overall Leaderboard";
-        newContent.appendChild(titleBar);
+        leaderboardSection.appendChild(titleBar);
 
         // Create table
-        let table = document.createElement('table');
+        const table = document.createElement('table');
         table.id = 'leaderboard';
         table.className = 'score-table';
 
         // Create header row
-        let header = document.createElement('tr');
-        let playerHeader = document.createElement('th');
-        let scoreHeader = document.createElement('th');
-        let percentHeader = document.createElement('th');
-
-        playerHeader.textContent = 'Player';
-        scoreHeader.textContent = 'Score';
-        percentHeader.textContent = '%';
-
-        header.appendChild(playerHeader);
-        header.appendChild(scoreHeader);
-        header.appendChild(percentHeader);
+        const header = document.createElement('tr');
+        ['Player', 'Score', '%'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            header.appendChild(th);
+        });
         table.appendChild(header);
+        leaderboardSection.appendChild(table);
+        tempContainer.appendChild(leaderboardSection);
 
         // Fetch leaderboard data
         fetch('/api/get-leaderboard')
             .then(response => response.json())
             .then(players => {
                 players.forEach(player => {
-                    let row = document.createElement('tr');
+                    const row = document.createElement('tr');
 
-                    let nameCell = document.createElement('td');
-                    let scoreCell = document.createElement('td');
-                    let percentCell = document.createElement('td');
+                    const cells = [
+                        player.username || 'Unknown',
+                        player.score || 0,
+                        player.percent === undefined || player.percent === null ? '?' : player.percent
+                    ];
 
-                    nameCell.textContent = player.username || 'Unknown';
-                    scoreCell.textContent = player.score || 0;
-                    let percentage = player.percentage;
-                    if (player.percent === undefined || player.percent === null) {
-                        percentCell.textContent = '?';
-                    } else {
-                        percentCell.textContent = player.percent
-                    }
-                    row.appendChild(nameCell);
-                    row.appendChild(scoreCell);
-                    row.appendChild(percentCell);
+                    cells.forEach(text => {
+                        const td = document.createElement('td');
+                        td.textContent = text;
+                        row.appendChild(td);
+                    });
+
                     table.appendChild(row);
                 });
 
-                // Add table to temporary container
-                newContent.appendChild(table);
+                // Get the target element
+                const targetElement = this.getElement();
+                if (!targetElement) return;
+                return tempContainer.children;
+            })
+            .catch(error => {
+                console.error('Failed to fetch leaderboard:', error);
+            });
+    }
+}
 
-                // Replace old content in one operation
+
+class Leaderboard extends PageElement {
+    constructor() {
+        super('leaderboard-div')
+    }
+
+    update() {
+        // Create temporary container
+        const tempContainer = document.createElement('div');
+
+        // Get game state and validate
+        const gs = this.getGameState();
+        if (!gs || !gs.getCurrentQuestion()) {
+            return;
+        }
+
+        // Build current answers table
+        const currentAnswersTable = document.createElement('div');
+        currentAnswersTable.id = 'current-answers-div';
+
+        let answersHtml = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Answer</th>
+                        <th>Points</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        const players = gs.getPlayers();
+        for (const [username, player] of Object.entries(players)) {
+            if (player.isSpectator || player.isAdmin) continue;
+
+            const hasAnswered = gs.hasAnswered(username);
+            const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
+            const playerAnswer = gs.getCurrentQuestion().answers.find(a => a.username === username);
+
+            answersHtml += `
+                <tr ${rowStyle}>
+                    <td>${username}</td>
+                    <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
+                    <td>${playerAnswer ? playerAnswer.points : '0'}</td>
+                    <td>${playerAnswer ? playerAnswer.comment : ''}</td>
+                </tr>
+            `;
+        }
+        answersHtml += `
+                </tbody>
+            </table>
+        `;
+        currentAnswersTable.innerHTML = answersHtml;
+        tempContainer.appendChild(currentAnswersTable);
+
+        // Build leaderboard section
+        const leaderboardSection = document.createElement('div');
+
+        // Create and add the title bar
+        const titleBar = document.createElement('div');
+        titleBar.className = 'table-title-bar';
+        titleBar.textContent = "Overall Leaderboard";
+        leaderboardSection.appendChild(titleBar);
+
+        // Create table
+        const table = document.createElement('table');
+        table.id = 'leaderboard';
+        table.className = 'score-table';
+
+        // Create header row
+        const header = document.createElement('tr');
+        ['Player', 'Score', '%'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            header.appendChild(th);
+        });
+        table.appendChild(header);
+        leaderboardSection.appendChild(table);
+        tempContainer.appendChild(leaderboardSection);
+
+        // Fetch leaderboard data
+        fetch('/api/get-leaderboard')
+            .then(response => response.json())
+            .then(players => {
+                players.forEach(player => {
+                    const row = document.createElement('tr');
+
+                    const cells = [
+                        player.username || 'Unknown',
+                        player.score || 0,
+                        player.percent === undefined || player.percent === null ? '?' : player.percent
+                    ];
+
+                    cells.forEach(text => {
+                        const td = document.createElement('td');
+                        td.textContent = text;
+                        row.appendChild(td);
+                    });
+
+                    table.appendChild(row);
+                });
+
+                // Get the target element
+                const targetElement = this.getElement();
+                if (!targetElement) return;
+
+                // Use requestAnimationFrame for smooth swap
                 requestAnimationFrame(() => {
-                    leaderboard.replaceChildren(...newContent.children);
+                    targetElement.replaceChildren(...tempContainer.children);
                 });
             })
             .catch(error => {
                 console.error('Failed to fetch leaderboard:', error);
-                console.error('Error details:', error.message);
             });
     }
 }
@@ -1205,34 +1304,14 @@ class Timer extends PageElement {
         document.head.appendChild(styleElement);
     }
 
-    update() {
-        let td = this.doGetElement();
-        if (!td) return;
-
-        // Add the timer class to the element if it doesn't have it
-        if (!td.classList.contains('timer')) {
-            td.classList.add('timer');
-        }
-
-        let gs = this.getGameState();
-        if (!gs) return;
-
-        let cq = gs.getCurrentQuestion();
-        if (!cq || !gs.isQuestionActive()) {
-            td.style.visibility = 'hidden';
-            td.style.display = 'none';
-            return;
-        }
-
-        // Show the timer
-        td.style.visibility = 'visible';
-        td.style.display = 'flex';
-
-        // Update the timer text
+    getContent(gs) {
+        let ret = null;
+        let cq = this.getCurrentQuestion();
         const timeLeft = cq.timeLeft;
         if (timeLeft !== undefined && timeLeft !== null) {
-            td.textContent = timeLeft;
+            ret = document.createTextNode(timeLeft);
         }
+        return ret;
     }
 }
 
@@ -1247,7 +1326,7 @@ class AnimatedButton extends PageElement {
     constructor(elementId, cooldownTime = 5) {
         super(elementId);
         this.COOLDOWN_TIME = cooldownTime;
-        this.originalText = this.doGetElement()?.textContent || '';
+        this.originalText = this.getElement()?.textContent || '';
 
         this.bindMethods();
         this.setupButton();
@@ -1330,7 +1409,7 @@ class AnimatedButton extends PageElement {
     }
 
     setupButton() {
-        const button = this.doGetElement();
+        const button = this.getElement();
         if (!button) {
             // console.error(`Button element with id ${this.name} not found`);
             return;
@@ -1340,7 +1419,7 @@ class AnimatedButton extends PageElement {
     }
 
     handleClick(e) {
-        const button = this.doGetElement();
+        const button = this.getElement();
         if (!button || !this.isEnabled() || button.classList.contains('button-cooldown')) {
             return;
         }
@@ -1369,19 +1448,14 @@ class AnimatedButton extends PageElement {
         this.buttonAction();
     }
 
-    update() {
-        const button = this.doGetElement();
-        if (!button) return;
-
-        const isEnabled = this.isEnabled();
-        this.setEnabled(isEnabled);
-
-        // Update tooltip even when enabled
+    getContent() {
+    }
+    applyUpdate(o) {
         button.title = isEnabled ? '' : this.getDisabledTooltip();
     }
 
     setEnabled(enabled) {
-        const button = this.doGetElement();
+        const button = this.getElement();
         if (!button) return;
 
         if (enabled) {
@@ -1516,9 +1590,11 @@ class AnswerButton extends AnimatedButton {
 // MULTICHOICE
 // ###################################################################
 
-class MultiChoice {
+class MultiChoice extends PageElement {
     constructor() {
+        super('multi-choice-container')
     }
+
 }
 
 // ###################################################################
@@ -1530,6 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // start the game API singleton if it hasn't already been started
     // This will also start pollling the server for game state updates
     const gameApi = GameAPI.getInstance();
+
     // TODO replace this when everything implements PageElement
-    window.addEventListener('gameStateUpdated', updateAll);
+    //window.addEventListener('gameStateUpdated', updateAll);
 });

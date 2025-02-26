@@ -49,9 +49,12 @@ type Question struct {
 	TimeLimit          int       `json:"timeLimit"`                // how long do the users have to answer?
 	TimeStarted        time.Time `json:"timeStarted,omitempty"`    // when did this question start
 	TimeLeft           int       `json:"timeLeft,omitempty"`       // how long has the user left to answer this question
-	IsTimedOut         bool      `json:"isTimedOut,omitempty"`     // has the question been run and finished?
-	ClickImage         string    `json:"clickImage,omitempty"`     // if this is a click question then the local path to the image we're clicking on
-	StreetView         string    `json:"streetView,omitempty"`     // if this is a geoguesser then the specific info required for streetview
+	//IsPaused           bool      `json:"isPaused,omitempty"`       // New field to track pause state
+	//PausedAt           time.Time `json:"pausedAt,omitempty"`       // When the question was paused
+	//TimeElapsed        float64   `json:"timeElapsed,omitempty"`    // Total time elapsed before pausing
+	IsTimedOut bool   `json:"isTimedOut,omitempty"` // has the question been run and finished?
+	ClickImage string `json:"clickImage,omitempty"` // if this is a click question then the local path to the image we're clicking on
+	StreetView string `json:"streetView,omitempty"` // if this is a geoguesser then the specific info required for streetview
 }
 
 type Answer struct {
@@ -107,52 +110,53 @@ func GetGame() *GameState {
 }
 
 func decorateGameState(gs *GameState) {
-
-	todo have all players answered? If they have stop the game
-	find out why stop game isn't stopping it
-	implement un-pause question
-	implement map clicker games
-	implement image clicker games
-	show all players on current answer table even if they haven't answered
-	on observe page show answer explainations and links on question ended
-	implement multi-choice
-
+	/*
+		find out why stop game isn't stopping it
+		implement pause question
+		implement un-pause question
+		implement map clicker games
+		implement image clicker games
+		on observe page show answer explainations and links on question ended
+		implement multi-choice
+	*/
 	mu.Lock()
 	defer mu.Unlock()
 	// Calculate the time remaining on the current question
 	// first get the question in a thread safe non-recusion inducing fashion
 	cq := gs.CurrentQuestion
-	if cq != nil {
-		// Check if TimeStarted is non-zero (time.Time's zero value)
-		if !cq.TimeStarted.IsZero() {
-			// Calculate elapsed time since question started
-			elapsed := time.Since(cq.TimeStarted).Seconds()
-			// Calculate remaining time in seconds
-			// TimeLimit is in seconds, subtract elapsed time
-			remainingTime := float64(cq.TimeLimit) - elapsed
-			remainingInt := int(remainingTime)
-			// If time is up, set to 0 and mark as timed out
-			if remainingInt <= 0 {
-				cq.TimeLeft = 0
-				cq.IsTimedOut = true
-				if prevCount != nil && *prevCount > 0 {
-					remainingInt = 0
-					prevCount = &remainingInt
-					cq.TimeStarted = time.Time{}
-					// trigger question timed out event
-					onQuestionTimeout(gs)
-				}
-			} else {
-				cq.IsTimedOut = false
-				cq.TimeLeft = remainingInt
+	if cq == nil || len(gs.Players) == 0 {
+		return
+	}
+	if !cq.TimeStarted.IsZero() {
+		// Calculate elapsed time since question started
+		elapsed := time.Since(cq.TimeStarted).Seconds()
+		// Calculate remaining time in seconds
+		// TimeLimit is in seconds, subtract elapsed time
+		remainingTime := float64(cq.TimeLimit) - elapsed
+		remainingInt := int(remainingTime)
+		// If time is up, set to 0 and mark as timed out
+		if remainingInt <= 0 {
+			cq.TimeLeft = 0
+			cq.IsTimedOut = true
+			if prevCount != nil && *prevCount > 0 {
+				remainingInt = 0
 				prevCount = &remainingInt
-				// logger.Info(fmt.Sprintf("Time remaining: %d seconds", remainingInt))
+				cq.TimeStarted = time.Time{}
+				// trigger question timed out event
+				onQuestionEnded(gs)
 			}
 		}
+		// update the state
+		cq.TimeLeft = remainingInt
+		cq.IsTimedOut = false
+	} else if gs.HaveAllPlayersAnswered() {
+		cq.IsTimedOut = true
+		cq.TimeStarted = time.Time{}
+		onQuestionEnded(gs)
 	}
 }
 
-func onQuestionTimeout(gs *GameState) {
+func onQuestionEnded(gs *GameState) {
 	/* CAUTION this event is triggered from inside GetGame */
 	logger.Info("Question timed out.. doQuestionTimeout")
 	// calculate player scores
@@ -209,6 +213,31 @@ func GetMe(r *http.Request) *Player {
 	return nil
 }
 
+func (gs *GameState) HaveAllPlayersAnswered() bool {
+	if gs.CurrentQuestion == nil {
+		return false
+	}
+	// Create a map to track who has answered
+	answered := make(map[string]bool)
+	for _, answer := range gs.CurrentQuestion.Answers {
+		answered[answer.Username] = true
+	}
+	numRealPlayers := 0
+	// Check each player
+	for _, player := range gs.Players {
+		// Skip spectators and admins as they don't need to answer
+		if player.IsSpectator || player.IsAdmin {
+			continue
+		}
+		numRealPlayers++
+		// If we find a player who hasn't answered, return false
+		if !answered[player.Username] {
+			return false
+		}
+	}
+	return numRealPlayers > 0
+}
+
 func (gs *GameState) getCurrentMaxPoints() int {
 	cq := gs.CurrentQuestion
 	if cq == nil {
@@ -239,7 +268,7 @@ func (gs *GameState) GetLeaderboard() []*Player {
 	}
 
 	pa := gs.getCurrentMaxPoints()
-	logger.Info("current points available are " + fmt.Sprintf("%d", pa))
+	//logger.Info("current points available are " + fmt.Sprintf("%d", pa))
 
 	// Update player scores and calculate percentages in the GameState
 	for username, totalScore := range playerScores {
@@ -335,9 +364,6 @@ func (gs *GameState) StartQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
-	if cq == nil {
-		gs.NextQuestion()
-	}
 	if cq != nil {
 		cq.TimeStarted = time.Now()
 	}
@@ -347,9 +373,15 @@ func (gs *GameState) PauseQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
-	if cq == nil {
-		gs.NextQuestion()
+	if cq != nil {
+		cq.TimeStarted = time.Time{}
 	}
+}
+
+func (gs *GameState) UnPauseQuestion() {
+	mu.Lock()
+	defer mu.Unlock()
+	cq := gs.GetCurrentQuestion()
 	if cq != nil {
 		cq.TimeStarted = time.Time{}
 	}
@@ -359,12 +391,9 @@ func (gs *GameState) StopQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
-	if cq == nil {
-		gs.NextQuestion()
-	}
 	if cq != nil {
 		cq.TimeStarted = time.Time{}
-		onQuestionTimeout(gs)
+		onQuestionEnded(gs)
 	}
 }
 
@@ -391,6 +420,7 @@ func NewGameState() *GameState {
 	if len(questions) > 0 {
 		logger.Info("Loaded first question into gamestate")
 		gs.CurrentQuestion = &questions[0]
+		gs.CurrentQuestion.IsTimedOut = false
 	}
 
 	return gs
