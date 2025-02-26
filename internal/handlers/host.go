@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/richard-senior/1pcc/internal/game"
-	"github.com/richard-senior/1pcc/internal/logger"
 )
 
 func HostHandler(w http.ResponseWriter, r *http.Request) {
@@ -13,10 +12,10 @@ func HostHandler(w http.ResponseWriter, r *http.Request) {
 	player := game.GetMe(r)
 	// IF this user is the host then assign admin rights
 	if player.IsAdmin {
-		logger.Info("player is admin")
+		//logger.Info("player is admin")
 		http.ServeFile(w, r, "static/host.html")
 	} else {
-		logger.Info("player is not admin")
+		//logger.Info("player is not admin")
 		http.Redirect(w, r, "/play", http.StatusSeeOther)
 		// amazonq-ignore-next-line
 	}

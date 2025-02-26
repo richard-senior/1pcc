@@ -2628,3 +2628,1455 @@
     └── play.html
 
 14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
+.
+├── 1pcc
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build.sh
+├── cmd
+│   └── main.go
+├── config.json
+├── dir_structure.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── config.go
+│   ├── game
+│   │   └── game.go
+│   ├── handlers
+│   │   ├── api.go
+│   │   ├── host.go
+│   │   ├── join.go
+│   │   ├── observe.go
+│   │   ├── play.go
+│   │   └── qrcode.go
+│   ├── logger
+│   │   └── logger.go
+│   ├── session
+│   │   └── session.go
+│   └── utils
+├── questions.json
+├── run.sh
+└── static
+    ├── css
+    │   └── main.css
+    ├── fonts
+    │   ├── club.eot
+    │   ├── club.otf
+    │   ├── club.svg
+    │   ├── club.ttf
+    │   ├── club.woff
+    │   ├── club.woff2
+    │   ├── seg.ttf
+    │   ├── seg.woff
+    │   └── seg.woff2
+    ├── home.html
+    ├── host.html
+    ├── images
+    │   ├── 1pcc_logo.png
+    │   ├── 1pcc_logo.svg
+    │   ├── apple-touch-icon.png
+    │   ├── club_logo.svg
+    │   ├── favicon.ico
+    │   ├── favicon.svg
+    │   ├── flier.svg
+    │   ├── header.png
+    │   ├── header.svg
+    │   ├── header_plain.svg
+    │   ├── mangle.jpg
+    │   └── worldmap.svg
+    ├── join.html
+    ├── js
+    │   └── main.js
+    ├── observe.html
+    └── play.html
+
+14 directories, 50 files
