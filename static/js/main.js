@@ -289,11 +289,15 @@ class GameAPI {
 // *******************************
 
 class PageElement {
-    constructor(name) {
+    constructor(name, questionTypes) {
         this.element = null;
         this.styles = null;
         this.name = name;
         this.styleId = name + '-style';
+        this.questionTypes = []
+        if (questionTypes && Array.isArray(questionTypes)) {
+            this.questionTypes = questionTypes;
+        }
     }
     /**
      * Finds the dom element managed by this object in the current
@@ -463,7 +467,17 @@ class PageElement {
      */
     doShouldShow() {
         if (!this.getElement()) {return false;}
-        if (!this.getCurrentQuestion()) {return false;}
+        let cq = this.getCurrentQuestion()
+        let t = cq.type
+        if (!cq) {return false;}
+        let qt = this.questionTypes
+        // Check if this PageElement supports the current game type
+        if (qt && Array.isArray(qt) && !qt.includes("*")) {
+            if (!qt.includes(cq.type)) {
+                return false;
+            }
+        }
+        // let the extending class have the final say
         let ss = this.shouldShow();
         if (ss) {
             this.show();
@@ -501,7 +515,7 @@ class PageElement {
 
 class QuestionView extends PageElement {
     constructor() {
-        super('question-title')
+        super('question-title', ['*'])
     }
     getContent(gs) {
         let cq =this.getCurrentQuestion();
@@ -518,7 +532,7 @@ class QuestionView extends PageElement {
 
 class StreetView extends PageElement {
     constructor() {
-        super('streetview-container');
+        super('streetview-container', ['geolocation']);
         this.baseUrl = "https://www.google.com/maps/embed?pb=";
         this.container = null;
         this.iframe = null;
@@ -530,16 +544,13 @@ class StreetView extends PageElement {
     }
 
     shouldUpdate() {
+        // if we haven't been instantiated properly yet
+        if (!this.url) {return true;}
+        // if we have relevant data for this kind of question
         let cq = this.getCurrentQuestion()
         if (!cq || !cq.streetView) {return false;}
-        let questionType = cq?.type ?? 'unknown';
-        if (questionType !== 'geolocation') {return false;}
-        if (!this.url) {
-            return true;
-        }
-        if (cq.streetView !== this.url) {
-            return true;
-        }
+        // if we've started a different question
+        if (cq.streetView !== this.url) {return true;}
         return false;
     }
 
@@ -587,7 +598,7 @@ class StreetView extends PageElement {
 class ClickMap extends PageElement {
 
     constructor() {
-        super('click-container')
+        super('click-container', ['geolocation','khazakstan'])
         this.answerx = null;
         this.answery = null;
         this.markerSize = 50;
@@ -616,12 +627,6 @@ class ClickMap extends PageElement {
         this.imageHeight = null;
     }
 
-    shouldShow() {
-        let cq = this.getCurrentQuestion()
-        let questionType = cq?.type ?? 'unknown';
-        return questionType === 'geolocation' || questionType === 'khazakstan'
-    }
-
     createStyles() {
         let container = this.getElement()
         container.style.overflow = 'hidden';
@@ -634,16 +639,13 @@ class ClickMap extends PageElement {
     }
 
     shouldUpdate() {
-        if (!this.svg) {
-            return true;
-        }
-        if (!this.imagePath) {
-            return true;
-        }
+        // if we've not been properly instantiated yet
+        if (!this.svg) {return true;}
+        if (!this.imagePath) {return true;}
+        // if we have the relevant quesiton data
         let cq = this.getCurrentQuestion()
         if (!cq.clickImage) {return false;}
-        let questionType = cq?.type ?? 'unknown';
-        if (questionType !== 'geolocation' && questionType !== 'clickImage') {return false;}
+        // if this is a new question
         if (cq.clickImage !== this.imagePath) {
             return true;
         }
@@ -978,7 +980,7 @@ class ClickMap extends PageElement {
 class CurrentAnswers extends PageElement {
 
     constructor(divName) {
-        super('current-answers-div')
+        super('current-answers-div',['*'])
     }
 
     createStyles() {
@@ -1116,7 +1118,7 @@ class CurrentAnswers extends PageElement {
 
 class Leaderboard extends PageElement {
     constructor() {
-        super('leaderboard-div')
+        super('leaderboard-div',['*'])
     }
 
     update() {
@@ -1238,7 +1240,7 @@ class Leaderboard extends PageElement {
 
 class Timer extends PageElement {
     constructor() {
-        super('timer');
+        super('timer',['*']);
     }
 
     shouldShow() {
@@ -1301,7 +1303,8 @@ class Timer extends PageElement {
         `;
 
         styleElement.textContent = cssRules;
-        document.head.appendChild(styleElement);
+        return styleElement;
+        //document.head.appendChild(styleElement);
     }
 
     getContent(gs) {
@@ -1324,7 +1327,7 @@ class Timer extends PageElement {
 class AnimatedButton extends PageElement {
 
     constructor(elementId, cooldownTime = 5) {
-        super(elementId);
+        super(elementId, ['*']);
         this.COOLDOWN_TIME = cooldownTime;
         this.originalText = this.getElement()?.textContent || '';
 
@@ -1448,8 +1451,9 @@ class AnimatedButton extends PageElement {
         this.buttonAction();
     }
 
-    getContent() {
+    getContent(gs) {
     }
+
     applyUpdate(o) {
         button.title = isEnabled ? '' : this.getDisabledTooltip();
     }
@@ -1592,9 +1596,27 @@ class AnswerButton extends AnimatedButton {
 
 class MultiChoice extends PageElement {
     constructor() {
-        super('multi-choice-container')
+        super('multi-choice-container',['multichoice'])
+    }
+    createStyles() {
+        const styleElement = document.createElement('style');
+        styleElement.id = this.styleId;
+        const cssRules = `
+        `;
+        styleElement.textContent = cssRules;
+        return styleElement;
+        //document.head.appendChild(styleElement);
     }
 
+    getContent(gs) {
+        let ret = null;
+        let cq = this.getCurrentQuestion();
+        const timeLeft = cq.timeLeft;
+        if (timeLeft !== undefined && timeLeft !== null) {
+            ret = document.createTextNode(timeLeft);
+        }
+        return ret;
+    }
 }
 
 // ###################################################################
