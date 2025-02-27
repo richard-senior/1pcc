@@ -27,6 +27,7 @@ class GameAPI {
         this.currentAnswers = new CurrentAnswers()
         // add 'PageElement' objects to an array we can update on poll
         // TODO find any object implementing PageElement and add to array automatically
+        // TODO populate this based on path
         this.pageElements = [
             this.streetView,
             this.clickMap,
@@ -73,7 +74,7 @@ class GameAPI {
             window.gameState = newState;
             // update any 'PageElement' objects we have instantiated
             for (let pe of this.pageElements) {
-                pe.update(newState);
+                pe.update(this);
             }
             // fire an event in case anythiing is listening
             window.dispatchEvent(new CustomEvent('gameStateUpdated', {
@@ -143,6 +144,14 @@ class GameAPI {
         let answers = cq.answers;
         if (!answers) {return;}
         return answers;
+    }
+
+    hasAnyoneAnswered() {
+        let cq = this.getCurrentQuestion();
+        if (!cq) {return false;}
+        let answers = cq.answers;
+        if (!answers) {return false;}
+        return answers.length > 0;
     }
 
     hasAnswered() {
@@ -389,7 +398,7 @@ class PageElement {
             return;
         }
         this.getStyles();
-        console.log("updating " + cn)
+        //console.log("updating " + cn)
         let o = this.getContent(gameState)
         this.applyUpdate(o);
     }
@@ -400,6 +409,7 @@ class PageElement {
      * @returns null
      */
     applyUpdate(content) {
+        if (!content) {return;}
         const element = this.getElement();
         if (!element) return;
 
@@ -431,28 +441,37 @@ class PageElement {
      * so that the dom doesn't get repeatedly searched.
      * If you wish to do something dynamic with styles you can
      * set this.styles=null and createStyles will be re-called
-     * @returns
+     * Can be overriden by extending classes to do some other sort
+     * of CSS manipulation (differently named css classes
+     * @returns null
      */
     getStyles() {
         if (this.styles) {return;}
         const existingStyle = document.getElementById(this.styleId);
         if (existingStyle) {
             this.styles = existingStyle;
-            return
+            return;
         }
-        let foo = this.createStyles();
-        if (!foo) {
+        const se = document.createElement('style');
+        let css = this.createStyles();
+        if (!css) {
+            console.log("no styles")
             this.styles = 'nostyles';
-            return null;
-        } else {
-            this.styles = foo;
+            return;
         }
+        se.innerHTML = css;
+        this.styles = se;
+        document.head.appendChild(se);
     }
     /**
-     * should be overriden to Create a dom style element
-     * which implements the css required by this dom element
-     * if any is required. If not, return null
-     * @returns document.createElement('style')
+     * should be overriden to return the CSS markup required by this dom element
+     * If no particular styles are required just don't implement the method or
+     * return null from your implementation
+     * If you're using CSS in the main.css stylesheet then don't impleent this method
+     * instead implement getStyles as:
+     * - getStyles() {}
+     * This will save a little time
+     * @returns A string containing CSS markup
      */
     createStyles() {return null;}
 
@@ -517,8 +536,10 @@ class QuestionView extends PageElement {
     constructor() {
         super('question-title', ['*'])
     }
+    /** just speed things up a little */
+    getStyles() {}
     getContent(gs) {
-        let cq =this.getCurrentQuestion();
+        let cq = this.getCurrentQuestion();
         if (!cq) {return;}
         let s = cq.questionNumber + ') ' + cq.question
         let ret = document.createTextNode(s);
@@ -542,6 +563,9 @@ class StreetView extends PageElement {
     update(gs) {
         super.update(gs)
     }
+
+    /** just speed things up a little */
+    getStyles() {}
 
     shouldUpdate() {
         // if we haven't been instantiated properly yet
@@ -628,14 +652,26 @@ class ClickMap extends PageElement {
     }
 
     createStyles() {
-        let container = this.getElement()
-        container.style.overflow = 'hidden';
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.justifyContent = 'center';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        return super.createStyles();
+        let css = `
+            .click-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                background-color: var(--bccblue);
+                margin: 10px, 0;
+                border: 1px inset white;
+                overflow: hidden;
+            }
+
+            .click-container svg {
+                display: block;
+                pointer-events: all;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+        `;
+        return css;
     }
 
     shouldUpdate() {
@@ -652,7 +688,7 @@ class ClickMap extends PageElement {
         return false;
     }
 
-    getContent() {
+    getContent(gs) {
         let cq = this.getCurrentQuestion()
         this.imagePath = cq.clickImage;
         let rawSvg = this.getGameState().getFileContent(this.imagePath);
@@ -846,7 +882,6 @@ class ClickMap extends PageElement {
             if (!this.svg) return;
             this.isDragging = false
             container.style.cursor = 'default';
-            console.log("mouse left area")
         });
 
         container.addEventListener('mouseup', (e) => {
@@ -857,7 +892,6 @@ class ClickMap extends PageElement {
             // mouse up go back to ordinary mouse pointer
             container.style.cursor = 'default';
             if (this.isDragging) {
-                console.log("exiting draggin")
                 // we've finished dragging
                 this.isDragging = false;
             } else {
@@ -977,45 +1011,23 @@ class ClickMap extends PageElement {
 // ###################################################################
 // LEADERBOARD
 // ###################################################################
+
 class CurrentAnswers extends PageElement {
 
     constructor(divName) {
         super('current-answers-div',['*'])
     }
 
-    createStyles() {
-        const styleElement = document.createElement('style');
-        styleElement.id = this.styleId;
-        const cssRules = `
-            .table-title-bar {
-                background-color: var(--bccblue);
-                color: white;
-                padding: 10px;
-                font-weight: bold;
-                border-radius: 4px 4px 0 0;
-                margin-bottom: 0;
-            }
-            .score-table {
-                margin-top: 0;
-                border: 1px solid var(--bccblue);
-                border-top: none;
-                border-radius: 0 0 4px 4px;
-            }
-        `;
-        styleElement.textContent = cssRules;
-        document.head.appendChild(styleElement);
+    shouldShow() {
+        let gs = this.getGameState();
+        return gs.hasAnyoneAnswered()
     }
 
-    getContent() {
+    getStyles() {}
+
+    getContent(gs) {
         // Create temporary container
         const tempContainer = document.createElement('div');
-
-        // Get game state and validate
-        const gs = this.getGameState();
-        if (!gs || !gs.getCurrentQuestion()) {
-            return;
-        }
-
         // Build current answers table
         const currentAnswersTable = document.createElement('div');
         currentAnswersTable.id = 'current-answers-div';
@@ -1033,8 +1045,8 @@ class CurrentAnswers extends PageElement {
                 <tbody>
         `;
 
-        const players = gs.getPlayers();
-        for (const [username, player] of Object.entries(players)) {
+        let pl = gs.getPlayers();
+        for (const [username, player] of Object.entries(pl)) {
             if (player.isSpectator || player.isAdmin) continue;
 
             const hasAnswered = gs.hasAnswered(username);
@@ -1063,7 +1075,7 @@ class CurrentAnswers extends PageElement {
         // Create and add the title bar
         const titleBar = document.createElement('div');
         titleBar.className = 'table-title-bar';
-        titleBar.textContent = "Overall Leaderboard";
+        titleBar.textContent = "Current Answers";
         leaderboardSection.appendChild(titleBar);
 
         // Create table
@@ -1081,37 +1093,7 @@ class CurrentAnswers extends PageElement {
         table.appendChild(header);
         leaderboardSection.appendChild(table);
         tempContainer.appendChild(leaderboardSection);
-
-        // Fetch leaderboard data
-        fetch('/api/get-leaderboard')
-            .then(response => response.json())
-            .then(players => {
-                players.forEach(player => {
-                    const row = document.createElement('tr');
-
-                    const cells = [
-                        player.username || 'Unknown',
-                        player.score || 0,
-                        player.percent === undefined || player.percent === null ? '?' : player.percent
-                    ];
-
-                    cells.forEach(text => {
-                        const td = document.createElement('td');
-                        td.textContent = text;
-                        row.appendChild(td);
-                    });
-
-                    table.appendChild(row);
-                });
-
-                // Get the target element
-                const targetElement = this.getElement();
-                if (!targetElement) return;
-                return tempContainer.children;
-            })
-            .catch(error => {
-                console.error('Failed to fetch leaderboard:', error);
-            });
+        return tempContainer
     }
 }
 
@@ -1121,16 +1103,11 @@ class Leaderboard extends PageElement {
         super('leaderboard-div',['*'])
     }
 
-    update() {
+    getStyles() {}
+
+    update(gs) {
         // Create temporary container
         const tempContainer = document.createElement('div');
-
-        // Get game state and validate
-        const gs = this.getGameState();
-        if (!gs || !gs.getCurrentQuestion()) {
-            return;
-        }
-
         // Build current answers table
         const currentAnswersTable = document.createElement('div');
         currentAnswersTable.id = 'current-answers-div';
@@ -1252,19 +1229,19 @@ class Timer extends PageElement {
     }
 
     createStyles() {
-        const styleElement = document.createElement('style');
-        styleElement.id = this.styleId;
-
-        const cssRules = `
-            .timer {
-                position: fixed;
+        const css = `
+            #timer {
+                position: fixed;    /* glue to window */
+                display: flex;
                 top: 10px;          /* Match top-qr positioning */
                 left: 5vw;          /* Mirror the right positioning of top-qr */
-                width: 18vw;        /* Match top-qr width */
-                aspect-ratio: 1;    /* Make it square like top-qr */
-                padding: 10px;
+                width: 10vw;        /* Match top-qr width */
+                aspect-ratio: 1;    /* square */
+                justify-content: center;   /* valign centre */
+                align-items: center;
                 border-radius: 4px;
-                font-size: 5vw;
+                padding-top: 3.6vw;
+                font-size: 2vw;
                 z-index: 1000;      /* Keep it above other elements */
                 text-align: center;
                 font-family: 'Seg', 'Share Tech Mono', monospace;
@@ -1272,9 +1249,6 @@ class Timer extends PageElement {
                 color: #ff0000;     /* Classic red LED color */
                 border: 1px solid #333;
                 letter-spacing: 2px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 box-shadow:
                     inset 0 0 8px rgba(255, 0, 0, 0.2),
                     0 0 4px rgba(255, 0, 0, 0.2);
@@ -1285,8 +1259,7 @@ class Timer extends PageElement {
                 );
             }
 
-            /* Add subtle reflection effect */
-            .timer::before {
+            #timer::before {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -1294,17 +1267,14 @@ class Timer extends PageElement {
                 right: 0;
                 height: 50%;
                 background: linear-gradient(
-                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.17),
                     rgba(255, 255, 255, 0)
                 );
                 border-radius: 2px;
                 pointer-events: none;
             }
         `;
-
-        styleElement.textContent = cssRules;
-        return styleElement;
-        //document.head.appendChild(styleElement);
+        return css;
     }
 
     getContent(gs) {
@@ -1318,7 +1288,6 @@ class Timer extends PageElement {
     }
 }
 
-
 // ###################################################################
 // BUTTONS
 // ###################################################################
@@ -1330,162 +1299,88 @@ class AnimatedButton extends PageElement {
         super(elementId, ['*']);
         this.COOLDOWN_TIME = cooldownTime;
         this.originalText = this.getElement()?.textContent || '';
-
-        this.bindMethods();
-        this.setupButton();
+        this.initialised = false;
+        this.disabled = false;
     }
-
-    bindMethods() {
-        this.handleClick = this.handleClick.bind(this);
-        this.isEnabled = this.isEnabled.bind(this);
-        this.buttonAction = this.buttonAction.bind(this);
-    }
-
-    createStyles() {
-        const styleElement = document.createElement('style');
-        styleElement.id = this.styleId;
-
-        const cssRules = `
-            .btn {
-                display: inline-block;
-                position: relative;
-                color: white;
-                font-size: 18px;
-                padding: 1em;
-                cursor: pointer;
-                background: #4f95da;
-                border: 1px solid #91c9ff;
-                border-radius: 5px;
-                outline: none;
-                transition: all 0.3s ease-in-out;
-            }
-
-            .btn:hover:not(.button-disabled):not(.button-cooldown) {
-                background: #91c9ff;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            }
-
-            .btn:active:not(.button-disabled):not(.button-cooldown) {
-                transform: translateY(0);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-
-            .button-flash {
-                animation: flash 0.5s ease-in-out;
-            }
-
-            .button-disabled, .button-cooldown {
-                opacity: 0.65;
-                cursor: not-allowed !important;
-                background-color: #808080 !important;
-                color: #ccc !important;
-                border-color: #999 !important;
-                transform: none !important;
-                box-shadow: none !important;
-                pointer-events: all !important; /* Ensure hover still works */
-            }
-
-            .button-disabled:hover, .button-cooldown:hover {
-                opacity: 0.65;
-                cursor: not-allowed !important;
-            }
-
-            @keyframes flash {
-                0% {
-                    transform: scale(1);
-                    background-color: #4f95da;
-                }
-                50% {
-                    transform: scale(1.1);
-                    background-color: #91c9ff;
-                }
-                100% {
-                    transform: scale(1);
-                    background-color: #4f95da;
-                }
-            }
-        `;
-
-        styleElement.textContent = cssRules;
-        document.head.appendChild(styleElement);
-    }
-
-    setupButton() {
-        const button = this.getElement();
-        if (!button) {
-            // console.error(`Button element with id ${this.name} not found`);
-            return;
-        }
-        button.classList.add('btn');
-        button.addEventListener('click', this.handleClick);
-    }
+    // speeds things up a bit
+    // styles are declared in the buttons section of main.css
+    // because there may be many buttons all with the same css
+    getStyles() {}
 
     handleClick(e) {
         const button = this.getElement();
-        if (!button || !this.isEnabled() || button.classList.contains('button-cooldown')) {
+        // Don't allow clicking if the button is disabled
+        if (this.disabled || button.classList.contains('button-cooldown')) {
+            button.title = this.originalText;
             return;
         }
 
-        // Visual feedback - flash animation
-        button.classList.add('button-flash');
-        setTimeout(() => button.classList.remove('button-flash'), 500);
+        // first, do whatever is required of the button click
+        this.buttonAction();
 
-        // Start cooldown
-        button.classList.add('button-cooldown');
-        button.disabled = true;
+        // now signal to the user, flash and enter cooldown mode
+        button.classList.add('button-flash');
+        setTimeout(() => {
+            button.classList.remove('button-flash')
+            button.classList.add('button-cooldown');
+            this.setEnabled(false);
+        }, 100);
 
         let timeLeft = this.COOLDOWN_TIME;
         const countdownInterval = setInterval(() => {
             timeLeft--;
             button.textContent = `Wait ${timeLeft}s`;
-
             if (timeLeft <= 0) {
-                clearInterval(countdownInterval);
-                button.textContent = this.originalText;
                 button.classList.remove('button-cooldown');
-                button.disabled = false;
+                button.textContent = this.originalText;
+                clearInterval(countdownInterval);
+                this.setEnabled(this.isEnabled());
             }
         }, 1000);
-
-        this.buttonAction();
-    }
-
-    getContent(gs) {
-    }
-
-    applyUpdate(o) {
-        button.title = isEnabled ? '' : this.getDisabledTooltip();
     }
 
     setEnabled(enabled) {
-        const button = this.getElement();
-        if (!button) return;
-
+        let button = this.getElement();``
         if (enabled) {
             button.classList.remove('button-disabled');
-            button.classList.remove('button-cooldown');
-            button.disabled = false;
             button.title = ''; // Remove any tooltip
             button.textContent = this.originalText;
+            this.disabled = false
         } else {
             button.classList.add('button-disabled');
-            button.disabled = true;
-            // Add a tooltip explaining why it's disabled
-            button.title = this.getDisabledTooltip();
+            button.title = "no clicky";
+            this.disabled = true
         }
     }
 
-    getDisabledTooltip() {
-        // Can be overridden by specific button classes
-        return 'This action is not available right now';
+    getContent(gs) {
+        if (!this.initialised) {
+            const button = this.getElement();
+            // Add the btn class
+            button.classList.add('btn');
+            // Remove any existing click listeners to prevent duplicates
+            button.removeEventListener('click', this.handleClick);
+            // Bind the handler to preserve 'this' context and add the listener
+            this.handleClick = this.handleClick.bind(this);
+            button.addEventListener('click', this.handleClick);
+            this.initialised = true;
+        }
+        if (this.isEnabled()) {
+            this.setEnabled(true);
+        }
+        return null;
     }
-
-    isEnabled() {
-        return true;
-    }
-
-    buttonAction() {
+    /**
+     * Override this to dynamically decide if the button is clickable
+     * @returns bool if the button or should be enabled
+     */
+    isEnabled() {return true;}
+    /**
+     * Override this
+     * Event that runs when the button is clicked
+     * @param {*} e the click event
+     */
+    buttonAction(e) {
         console.warn('buttonAction not implemented');
     }
 
@@ -1494,7 +1389,7 @@ class AnimatedButton extends PageElement {
 // Example implementation for Next Question Button
 class NextQuestionButton extends AnimatedButton {
     constructor() {
-        super('next-question-button', 2); // 2 second cooldown
+        super('next-question-button', 2);
     }
 
     buttonAction() {
@@ -1526,7 +1421,6 @@ class StartQuestionButton extends AnimatedButton {
             .catch(error => console.log('Failed to start game, will retry...'));
     }
 
-    // Add isEnabled method
     isEnabled() {
         let gs = this.getGameState()
         if (gs.isQuestionActive()) {return false;}
@@ -1577,13 +1471,13 @@ class AnswerButton extends AnimatedButton {
     }
 
     buttonAction() {
-        let gs = GameAPI.getInstance();
+        console.log("Answer Button clicked..");
+        let gs = this.getGameState()
         gs.submitAnswer();
     }
 
     isEnabled() {
         let gs = this.getGameState()
-        let cq = this.getCurrentQuestion()
         if (!gs.isQuestionActive()) {return false;}
         if (gs.hasAnswered()) {return false;}
         return true;
@@ -1599,13 +1493,9 @@ class MultiChoice extends PageElement {
         super('multi-choice-container',['multichoice'])
     }
     createStyles() {
-        const styleElement = document.createElement('style');
-        styleElement.id = this.styleId;
-        const cssRules = `
+        const css = `
         `;
-        styleElement.textContent = cssRules;
-        return styleElement;
-        //document.head.appendChild(styleElement);
+        return css
     }
 
     getContent(gs) {
