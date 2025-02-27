@@ -38,10 +38,10 @@ body {
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    margin-top: 0;
+    border: 1px solid var(--bccblue);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
 }
 tr {
     background-color: var(--bccblue);
@@ -75,6 +75,15 @@ input[type=button], input[type=submit], input[type=reset] {
 /* #################################################################### */
 /* ############################## CONTAINER ########################### */
 /* #################################################################### */
+
+.table-title-bar {
+    background-color: var(--bccblue);
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 0;
+}
 
 .container {
     min-height: 100vh;
@@ -160,6 +169,65 @@ input[type=button], input[type=submit], input[type=reset] {
 /* ############################## BUTTONS ############################# */
 /* #################################################################### */
 
+.btn {
+    display: inline-block;
+    position: relative;
+    color: white;
+    font-size: 18px;
+    padding: 1em;
+    cursor: pointer;
+    background: #4f95da;
+    border: 1px solid #91c9ff;
+    border-radius: 5px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn:hover:not(.button-disabled):not(.button-cooldown) {
+    background: #91c9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn:active:not(.button-disabled):not(.button-cooldown) {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.button-flash {
+    animation: flash 0.5s ease-in-out;
+}
+
+.button-disabled, .button-cooldown {
+    opacity: 0.65;
+    cursor: not-allowed !important;
+    background-color: #808080 !important;
+    color: #ccc !important;
+    border-color: #999 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    pointer-events: all !important; /* Ensure hover still works */
+}
+
+.button-disabled:hover, .button-cooldown:hover {
+    opacity: 0.65;
+    cursor: not-allowed !important;
+}
+
+@keyframes flash {
+    0% {
+        transform: scale(1);
+        background-color: #4f95da;
+    }
+    50% {
+        transform: scale(1.1);
+        background-color: #91c9ff;
+    }
+    100% {
+        transform: scale(1);
+        background-color: #4f95da;
+    }
+}
 
 /* #################################################################### */
 /* ############################## FRAME ############################### */
@@ -218,38 +286,9 @@ input[type=button], input[type=submit], input[type=reset] {
     font-size: 12px;
 }
 
-
-/* #################################################################### */
-/* ############################## Observer ############################ */
-/* #################################################################### */
-
 /* #################################################################### */
 /* ############################## GeoGuesser ########################## */
 /* #################################################################### */
-
-#click-container {
-    width: 100%;
-    height: 40vh;
-    position: relative;
-    background-color: var(--bccblue);
-    margin: 10px, 0;
-    border: 1px inset white;
-    /* border-style: inset;
-    border: 5px solid rgba(0, 255, 0, 0);
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.2); */
-    overflow: hidden;
-}
-
-#click-container svg {
-    /*
-    width: 100%;
-    height: 100%;
-    */
-    display: block;
-    pointer-events: all;
-    user-select: none;
-    -webkit-user-select: none;
-}
 
 #streetview-container {
     width: 100%;
