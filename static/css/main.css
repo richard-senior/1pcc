@@ -72,10 +72,12 @@ input[type=button], input[type=submit], input[type=reset] {
   input[type=button]:hover, input[type=submit]:hover, input[type=reset]:hover {
     background-color: var(--bccgold);
   }
+
 /* #################################################################### */
-/* ############################## CONTAINER ########################### */
+/* ######################### PAGE ELEMENTS ############################ */
 /* #################################################################### */
 
+/* The bar above the leaderboard tables */
 .table-title-bar {
     background-color: var(--bccblue);
     color: white;
@@ -85,90 +87,7 @@ input[type=button], input[type=submit], input[type=reset] {
     margin-bottom: 0;
 }
 
-.container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-}
-
-.background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(var(--bccgold), var(--bccblue));
-    /* background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)); */
-    background-repeat: repeat;
-    background-size: auto;
-    z-index: -1;
-}
-
-.top-text {
-    min-width: 100vw;
-    min-height: 20vh;
-    background: url(/static/images/header.png) bottom center no-repeat;
-    background-size: 90% auto;
-    padding: 0px;
-    text-align: center;
-    color: #ffffff;
-    font-size: 24px;
-    margin: 0px;
-    margin-top: 0.5vh;
-    /* Optional subtle background */
-    /* background-color: rgba(0, 0, 0, 0.2); */
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.top-qr {
-    position: fixed;  /* Changed from absolute to fixed */
-    top: 10px;
-    right: 5vw;
-    height: 18vw;     /* Adjusted size - modify as needed */
-    aspect-ratio: 1;
-    object-fit: contain;
-    background: transparent;
-    padding: 0px;
-    z-index: 9999;   /* Very high z-index to ensure it's always on top */
-}
-
-/* Add specific rules for images within top-text */
-.top-text img {
-    width: 90vw;
-    display: block;
-    max-width: none; /* Allows image to exceed container width */
-    position: relative;
-    /*
-    left: 50%;
-    transform: translateX(-50%);
-    */
-
-}
-
-.bottom-text {
-    width: 80vw; /* Match frame width */
-    padding: 15px;
-    text-align: center;
-    color: #ffffff;
-    font-size: 14px;
-    margin-bottom: 20px;
-    /* Optional subtle background */
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-}
-
-/* #################################################################### */
-/* ############################## BUTTONS ############################# */
-/* #################################################################### */
-
+/* Buttons and button animation */
 .btn {
     display: inline-block;
     position: relative;
@@ -229,63 +148,98 @@ input[type=button], input[type=submit], input[type=reset] {
     }
 }
 
+.btn-shake {
+    animation: button-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+@keyframes btn-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
 /* #################################################################### */
-/* ############################## FRAME ############################### */
+/* ############################## CONTAINER ########################### */
 /* #################################################################### */
 
-/* Modify existing frame class */
-.frame {
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(var(--bccgold), var(--bccblue));
+    /* background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(100, 100, 100, 0.8)); */
+    background-repeat: repeat;
+    background-size: auto;
+    z-index: -1;
+}
+
+.top-qr {
+    position: fixed;  /* Changed from absolute to fixed */
+    top: 10px;
+    right: 5vw;
+    height: 18vw;     /* Adjusted size - modify as needed */
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: transparent;
+    padding: 0px;
+    z-index: 9999;   /* Very high z-index to ensure it's always on top */
+}
+
+.container {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 70vh;  /* or whatever minimum height you want */
-    width: 90vw;
+    /* justify-content: space-between; */
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
 
+.top-text {
+    width: 100%;
+    min-height: 14vh;
+    background: url(/static/images/header.png) bottom center no-repeat;
+    background-size: 100% auto;
+    padding: 0px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 24px;
+    margin: 0px;
+    margin-top: 0.5vh;
+    border-radius: 10px;
+    overflow: hidden;
+}
+/* Add specific rules for images within top-text */
+.top-text img {
+    width: 90vw;
+    display: block;
+    max-width: none; /* Allows image to exceed container width */
+    position: relative;
+    /*
+    left: 50%;
+    transform: translateX(-50%);
+    */
+}
+/* Modify existing frame class */
+.frame {
+    gap: 2px;             /* Consistent spacing between elements */
+    width: 90vw;
     background-color: var(--bccgold);
     border-radius: 15px;
     padding: 30px;
-
-    /* Positioning */
-    margin: 20px 0; /* Add vertical spacing */
-
-    /* Other styling */
+    margin: 20px 0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(5px);
     overflow-y: auto;
 }
-
-.frame-text {
-    color: #ffffff;
-    text-align: center;
+.frame > * {
+    width: 100%;          /* Take full width of parent */
+    margin: 0;            /* Remove any default margins */
+    flex-shrink: 0;       /* Prevent shrinking */
 }
-
-.frame-text h1 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #ffffff;
-}
-
-.frame-text form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    align-items: center;
-}
-
-.frame-text input[type="text"] {
-    width: 80%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.9);
-    font-size: 16px;
-}
-
-.frame-text small {
-    color: #cccccc;
-    font-size: 12px;
-}
-
 /* #################################################################### */
 /* ############################## GeoGuesser ########################## */
 /* #################################################################### */
