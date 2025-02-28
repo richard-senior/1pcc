@@ -10,8 +10,8 @@ class GameAPI {
         // Initialize the game type classes
         this.questionView = new QuestionView();
         this.clickMap = new ClickMap();
-        this.streetView = new StreetView();
         this.multiChoice = new MultiChoice();
+        this.streetView = new StreetView();
         this.leaderboard = new Leaderboard();
         // Initialize buttons
         this.answerButton = new AnswerButton();
@@ -41,6 +41,7 @@ class GameAPI {
             this.previousQuestionButton,
             this.leaderboard,
             this.currentAnswers,
+            this.multiChoice
         ];
         // start polling
         this.startPolling();
@@ -131,6 +132,16 @@ class GameAPI {
         if (!s) {return null;}
         if (!s.currentQuestion) {return null;}
         return s.currentQuestion;
+    }
+
+    compareArrays(f, s) {
+        if (!f && !s) {return true;}
+        if (!f || !s) {return false;}
+        if (f.length !== s.length) {return false;}
+        for (let i = 0; i < f.length; i++) {
+            if (!s.includes(f[i])) {return false;}
+        }
+        return true;
     }
 
     /**
@@ -303,9 +314,13 @@ class PageElement {
         this.styles = null;
         this.name = name;
         this.styleId = name + '-style';
-        this.questionTypes = []
-        if (questionTypes && Array.isArray(questionTypes)) {
-            this.questionTypes = questionTypes;
+        this.questionTypes = null;
+        if (questionTypes) {
+            if (Array.isArray(questionTypes)) {
+                this.questionTypes = questionTypes;
+            } else if (typeof questionTypes === 'string') {
+                this.questionTypes = [questionTypes];
+            }
         }
     }
     /**
@@ -409,10 +424,14 @@ class PageElement {
      * @returns null
      */
     applyUpdate(content) {
+        let cn = this.constructor.name;
         if (!content) {return;}
         const element = this.getElement();
         if (!element) return;
 
+        if (cn === "MultiChoice") {
+            console.log("updating multichoice")
+        }
         requestAnimationFrame(() => {
             if (Array.isArray(content) || content instanceof NodeList) {
                 element.replaceChildren(...content);
@@ -453,7 +472,11 @@ class PageElement {
             return;
         }
         const se = document.createElement('style');
+        // name the style so that we don't re-apply it
+        se.id = this.styleId;
+
         let css = this.createStyles();
+
         if (!css) {
             console.log("no styles")
             this.styles = 'nostyles';
@@ -486,9 +509,9 @@ class PageElement {
      */
     doShouldShow() {
         if (!this.getElement()) {return false;}
-        let cq = this.getCurrentQuestion()
+        let cq = this.getCurrentQuestion();
+        if (!cq || !cq.type) {return;}
         let t = cq.type
-        if (!cq) {return false;}
         let qt = this.questionTypes
         // Check if this PageElement supports the current game type
         if (qt && Array.isArray(qt) && !qt.includes("*")) {
@@ -516,10 +539,10 @@ class PageElement {
     show() {
         let el = this.getElement()
         if (!el) {return;}
+        //el.style.position = 'relative'
         el.style.visibility = 'visible';
         el.style.display = 'block';
     }
-
     hide() {
         let el = this.getElement()
         if (!el) {return;}
@@ -622,7 +645,7 @@ class StreetView extends PageElement {
 class ClickMap extends PageElement {
 
     constructor() {
-        super('click-container', ['geolocation','khazakstan'])
+        super('click-container', `['geolocation','khazakstan']`)
         this.answerx = null;
         this.answery = null;
         this.markerSize = 50;
@@ -1020,18 +1043,14 @@ class CurrentAnswers extends PageElement {
 
     shouldShow() {
         let gs = this.getGameState();
-        return gs.hasAnyoneAnswered()
+        let a = gs.hasAnyoneAnswered()
+        return a
     }
 
     getStyles() {}
 
     getContent(gs) {
-        // Create temporary container
-        const tempContainer = document.createElement('div');
-        // Build current answers table
-        const currentAnswersTable = document.createElement('div');
-        currentAnswersTable.id = 'current-answers-div';
-
+        let t = document.createElement('table');
         let answersHtml = `
             <table class="table">
                 <thead>
@@ -1066,37 +1085,10 @@ class CurrentAnswers extends PageElement {
                 </tbody>
             </table>
         `;
-        currentAnswersTable.innerHTML = answersHtml;
-        tempContainer.appendChild(currentAnswersTable);
-
-        // Build leaderboard section
-        const leaderboardSection = document.createElement('div');
-
-        // Create and add the title bar
-        const titleBar = document.createElement('div');
-        titleBar.className = 'table-title-bar';
-        titleBar.textContent = "Current Answers";
-        leaderboardSection.appendChild(titleBar);
-
-        // Create table
-        const table = document.createElement('table');
-        table.id = 'leaderboard';
-        table.className = 'score-table';
-
-        // Create header row
-        const header = document.createElement('tr');
-        ['Player', 'Score', '%'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            header.appendChild(th);
-        });
-        table.appendChild(header);
-        leaderboardSection.appendChild(table);
-        tempContainer.appendChild(leaderboardSection);
-        return tempContainer
+        t.innerHTML = answersHtml;
+        return t
     }
 }
-
 
 class Leaderboard extends PageElement {
     constructor() {
@@ -1105,21 +1097,14 @@ class Leaderboard extends PageElement {
 
     getStyles() {}
 
-    update(gs) {
-        // Create temporary container
-        const tempContainer = document.createElement('div');
-        // Build current answers table
-        const currentAnswersTable = document.createElement('div');
-        currentAnswersTable.id = 'current-answers-div';
-
-        let answersHtml = `
+    getContent(gs) {
+        const t = document.createElement('table')
+        let h = `
             <table class="table">
                 <thead>
                     <tr>
                         <th>Player</th>
-                        <th>Answer</th>
-                        <th>Points</th>
-                        <th>Notes</th>
+                        <th>Percent</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1128,86 +1113,19 @@ class Leaderboard extends PageElement {
         const players = gs.getPlayers();
         for (const [username, player] of Object.entries(players)) {
             if (player.isSpectator || player.isAdmin) continue;
-
-            const hasAnswered = gs.hasAnswered(username);
-            const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
-            const playerAnswer = gs.getCurrentQuestion().answers.find(a => a.username === username);
-
-            answersHtml += `
-                <tr ${rowStyle}>
+            h += `
+                <tr>
                     <td>${username}</td>
-                    <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
-                    <td>${playerAnswer ? playerAnswer.points : '0'}</td>
-                    <td>${playerAnswer ? playerAnswer.comment : ''}</td>
+                    <td>${player.percent}</td>
                 </tr>
             `;
         }
-        answersHtml += `
+        h += `
                 </tbody>
             </table>
         `;
-        currentAnswersTable.innerHTML = answersHtml;
-        tempContainer.appendChild(currentAnswersTable);
-
-        // Build leaderboard section
-        const leaderboardSection = document.createElement('div');
-
-        // Create and add the title bar
-        const titleBar = document.createElement('div');
-        titleBar.className = 'table-title-bar';
-        titleBar.textContent = "Overall Leaderboard";
-        leaderboardSection.appendChild(titleBar);
-
-        // Create table
-        const table = document.createElement('table');
-        table.id = 'leaderboard';
-        table.className = 'score-table';
-
-        // Create header row
-        const header = document.createElement('tr');
-        ['Player', 'Score', '%'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            header.appendChild(th);
-        });
-        table.appendChild(header);
-        leaderboardSection.appendChild(table);
-        tempContainer.appendChild(leaderboardSection);
-
-        // Fetch leaderboard data
-        fetch('/api/get-leaderboard')
-            .then(response => response.json())
-            .then(players => {
-                players.forEach(player => {
-                    const row = document.createElement('tr');
-
-                    const cells = [
-                        player.username || 'Unknown',
-                        player.score || 0,
-                        player.percent === undefined || player.percent === null ? '?' : player.percent
-                    ];
-
-                    cells.forEach(text => {
-                        const td = document.createElement('td');
-                        td.textContent = text;
-                        row.appendChild(td);
-                    });
-
-                    table.appendChild(row);
-                });
-
-                // Get the target element
-                const targetElement = this.getElement();
-                if (!targetElement) return;
-
-                // Use requestAnimationFrame for smooth swap
-                requestAnimationFrame(() => {
-                    targetElement.replaceChildren(...tempContainer.children);
-                });
-            })
-            .catch(error => {
-                console.error('Failed to fetch leaderboard:', error);
-            });
+        t.innerHTML = h;
+        return t
     }
 }
 
@@ -1316,7 +1234,11 @@ class AnimatedButton extends PageElement {
         }
 
         // first, do whatever is required of the button click
-        this.buttonAction();
+        let success = this.buttonAction();
+        if (!success) {
+            this.shake();
+            return;
+        }
 
         // now signal to the user, flash and enter cooldown mode
         button.classList.add('button-flash');
@@ -1337,6 +1259,24 @@ class AnimatedButton extends PageElement {
                 this.setEnabled(this.isEnabled());
             }
         }, 1000);
+    }
+
+    shake() {
+        const button = this.getElement();
+        // Prevent multiple shakes
+        if (button.classList.contains('button-shake')) return;
+        // Add shake class
+        let cl = button.classList
+        button.classList.remove('button-flash')
+        button.classList.remove('button-disabled')
+        button.classList.remove('button-cooldown')
+        button.textContent = `Answer?`;
+        button.classList.add('button-shake');
+        // Remove shake class after animation completes
+        setTimeout(() => {
+            button.textContent = this.originalText;
+            button.classList = cl
+        }, 500);
     }
 
     setEnabled(enabled) {
@@ -1365,8 +1305,11 @@ class AnimatedButton extends PageElement {
             button.addEventListener('click', this.handleClick);
             this.initialised = true;
         }
-        if (this.isEnabled()) {
+        let ia = this.isEnabled()
+        if (ia && this.disabled) {
             this.setEnabled(true);
+        } else if (!ia && !this.disabled) {
+            this.setEnabled(false);
         }
         return null;
     }
@@ -1375,15 +1318,17 @@ class AnimatedButton extends PageElement {
      * @returns bool if the button or should be enabled
      */
     isEnabled() {return true;}
+
     /**
-     * Override this
-     * Event that runs when the button is clicked
-     * @param {*} e the click event
+     * overriden by extending class to perform whatever
+     * action is required when the user clicks this  button
+     * @param {*} e the mouse click event
+     * @returns true if the button action was successful, false otherwise
      */
     buttonAction(e) {
         console.warn('buttonAction not implemented');
+        return true;
     }
-
 }
 
 // Example implementation for Next Question Button
@@ -1394,7 +1339,14 @@ class NextQuestionButton extends AnimatedButton {
 
     buttonAction() {
         fetch('/api/next-question')
-            .catch(error => console.log('Failed to rotate to next question'));
+            .then(response => {
+                if (!response.ok) {
+                    return false;
+                }
+                return true
+            })
+            .catch(error => {return false;});
+
     }
 }
 
@@ -1406,7 +1358,13 @@ class PreviousQuestionButton extends AnimatedButton {
 
     buttonAction() {
         fetch('/api/previous-question')
-            .catch(error => console.log('Failed to rotate to previous question'));
+        .then(response => {
+            if (!response.ok) {
+                return false;
+            }
+            return true
+        })
+        .catch(error => {return false;});
     }
 }
 
@@ -1418,7 +1376,13 @@ class StartQuestionButton extends AnimatedButton {
 
     buttonAction() {
         fetch('/api/start-question')
-            .catch(error => console.log('Failed to start game, will retry...'));
+        .then(response => {
+            if (!response.ok) {
+                return false;
+            }
+            return true
+        })
+        .catch(error => {return false;});
     }
 
     isEnabled() {
@@ -1436,7 +1400,13 @@ class PauseQuestionButton extends AnimatedButton {
 
     buttonAction() {
         fetch('/api/pause-question')
-            .catch(error => console.log('Failed to pause game, will retry...'));
+        .then(response => {
+            if (!response.ok) {
+                return false;
+            }
+            return true
+        })
+        .catch(error => {return false;});
     }
 
     isEnabled() {
@@ -1455,7 +1425,13 @@ class StopQuestionButton extends AnimatedButton {
 
     buttonAction() {
         fetch('/api/stop-question')
-            .catch(error => console.log('Failed to stop game, will retry...'));
+        .then(response => {
+            if (!response.ok) {
+                return false;
+            }
+            return true
+        })
+        .catch(error => {return false;});
     }
 
     isEnabled() {
@@ -1471,15 +1447,21 @@ class AnswerButton extends AnimatedButton {
     }
 
     buttonAction() {
-        console.log("Answer Button clicked..");
         let gs = this.getGameState()
+        // has the user actually submitted an answer?
+        if (!gs.hasAnswered()) {
+            return false;
+        }
         gs.submitAnswer();
+        return true;
     }
 
     isEnabled() {
         let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return false;}
-        if (gs.hasAnswered()) {return false;}
+        let active = gs.isQuestionActive()
+        if (!active) {return false;}
+        let answered = gs.hasAnswered()
+        if (answered) {return false;}
         return true;
     }
 }
@@ -1490,22 +1472,153 @@ class AnswerButton extends AnimatedButton {
 
 class MultiChoice extends PageElement {
     constructor() {
-        super('multi-choice-container',['multichoice'])
+        super('multi-choice-container', ['multichoice']); // ensure lowercase
+        this.choices = null;
+        this.selectedChoice = null;
     }
-    createStyles() {
-        const css = `
-        `;
-        return css
+
+    // Override shouldShow to help debug visibility issues
+    shouldShow() {
+        const cq = this.getCurrentQuestion();
+        return true; // or your specific logic
     }
 
     getContent(gs) {
-        let ret = null;
-        let cq = this.getCurrentQuestion();
-        const timeLeft = cq.timeLeft;
-        if (timeLeft !== undefined && timeLeft !== null) {
-            ret = document.createTextNode(timeLeft);
+        const cq = this.getCurrentQuestion();
+        if (!cq || !cq.choices) {
+            console.log('MultiChoice: No question or choices available');
+            return;
         }
-        return ret;
+
+        // Only update if choices have changed
+        if (this.choices && gs.compareArrays(this.choices, cq.choices)) {
+            console.log('MultiChoice: Choices unchanged');
+            return;
+        }
+
+        console.log('MultiChoice: Creating new content');
+        this.choices = cq.choices;
+
+        const container = document.createElement('div');
+        container.role = 'radiogroup'; // Accessibility
+        container.setAttribute('aria-label', 'Answer choices');
+
+        // Create a button for each choice
+        cq.choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.className = 'multi-choice-button';
+            button.textContent = choice;
+            button.setAttribute('role', 'radio'); // Accessibility
+            button.setAttribute('aria-checked', 'false');
+
+            // If this was previously selected, restore the state
+            if (choice === this.selectedChoice) {
+                button.classList.add('selected');
+                button.setAttribute('aria-checked', 'true');
+            }
+
+            // Add click handler
+            button.addEventListener('click', () => {
+                // Remove selected class from all buttons
+                container.querySelectorAll('.multi-choice-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                    btn.setAttribute('aria-checked', 'false');
+                });
+
+                // Add selected class to clicked button
+                button.classList.add('selected');
+                button.setAttribute('aria-checked', 'true');
+
+                // Store the choice
+                this.selectedChoice = choice;
+
+                // Update game state
+                const answer = gs.createAnswerObject();
+                answer.answer = choice;
+                this.selectedChoice = answer;
+            });
+
+            container.appendChild(button);
+        });
+        return container;
+    }
+
+    createStyles() {
+        const css = `
+            #multi-choice-container {
+                padding: 15px;
+                margin: 0 auto;
+                visibility: visible !important; /* Force visibility */
+            }
+
+            .multi-choice-button {
+                width: 100%;
+                padding: 15px 20px;
+                border: 2px solid var(--bccblue);
+                background-color: var(--bccgold);
+                color: var(--bccblue);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 1.8vw;
+                text-align: left;
+                transition: all 0.2s ease-in-out;
+                visibility: visible !important; /* Force visibility */
+            }
+
+            .multi-choice-button:hover {
+                background-color: var(--bccblue);
+                color: white;
+            }
+
+            .multi-choice-button.selected {
+                background-color: white;
+                color: var(--bccblue);
+                font-weight: 500;
+            }
+
+            /* Add radio-like indicator */
+            .multi-choice-button {
+                position: relative;
+                padding-left: 45px;
+            }
+
+            .multi-choice-button::before {
+                content: '';
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 20px;
+                height: 20px;
+                border: 2px solid var(--bccblue);
+                border-radius: 50%;
+                background: white;
+                transition: all 0.2s ease;
+            }
+
+            .multi-choice-button.selected::before {
+                background: white;
+                border-color: white;
+            }
+
+            .multi-choice-button.selected::after {
+                content: '';
+                position: absolute;
+                left: 19px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--bccblue);
+            }
+        `;
+        return css;
+    }
+
+    // Add method to get the current answer
+    getAnswer() {
+        return this.selectedChoice;
     }
 }
 

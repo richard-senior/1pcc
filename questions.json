@@ -1,5 +1,47 @@
 [
     {
+        "question": "MultiChoice (100%): Who wrote Romeo and Juliet?",
+        "type": "multichoice",
+        "choices": [
+            "Charles Dickens",
+            "William Shakespeare",
+            "Jane Austen",
+            "Mark Twain"
+        ],
+        "correctAnswer": "William Shakespeare",
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 20,
+        "pointsAvailable": 1
+    },
+    {
+        "question": "MultiChoice (80%): What year was the 'Battle Of Hastings'?",
+        "type": "multichoice",
+        "choices": [
+            "480 BC",
+            "871 AD",
+            "1066 AD",
+            "1346 AD"
+        ],
+        "correctAnswer": "1066 AD",
+        "hostAnswer": "battles: Thermopyle (Leonidas), Ashdown (Alfred), Hastings, Crecy",
+        "timeLimit": 20,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "MultiChoice (60%): Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?",
+        "type": "multichoice",
+        "choices": [
+            "EG40 LZC",
+            "EDIO EZO",
+            "FDIO LZB",
+            "EDIO UZD"
+        ],
+        "correctAnswer": "EDIO EZO",
+        "hostAnswer": "L-E, C-O" ,
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
         "question": "GeoGuessing (100%): Click the world map where you think the streetview is. You can zoom and move everything.",
         "type": "geolocation",
         "choices": [],
@@ -97,20 +139,6 @@
         "correctAnswer": "4",
         "hostAnswer": "",
         "timeLimit": 15,
-        "pointsAvailable": 3
-    },
-    {
-        "question": "Who wrote Romeo and Juliet?",
-        "type": "multichoice",
-        "choices": [
-            "Charles Dickens",
-            "William Shakespeare",
-            "Jane Austen",
-            "Mark Twain"
-        ],
-        "correctAnswer": "William Shakespeare",
-        "hostAnswer": "",
-        "timeLimit": 20,
         "pointsAvailable": 3
     },
     {
