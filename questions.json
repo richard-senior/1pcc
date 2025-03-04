@@ -1,16 +1,27 @@
 [
     {
-        "question": "MultiChoice (100%): Who wrote Romeo and Juliet?",
+        "question": "MultiChoice (100%): Where is this?",
         "type": "multichoice",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
         "choices": [
-            "Charles Dickens",
-            "William Shakespeare",
-            "Jane Austen",
-            "Mark Twain"
+            "Chicago",
+            "London",
+            "New York",
+            "Abu Dhabi"
         ],
-        "correctAnswer": "William Shakespeare",
+        "correctAnswer": "New York",
         "hostAnswer": "I think we all knew that..",
-        "timeLimit": 20,
+        "timeLimit": 30,
+        "pointsAvailable": 1
+    },
+    {
+        "question": "MultiChoice (100%): Where is this?",
+        "type": "freetext",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
+        "correctAnswer": "New York",
+        "penalisationFactor": 4.0,
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 30,
         "pointsAvailable": 1
     },
     {

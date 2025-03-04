@@ -36,6 +36,7 @@ type Player struct {
 
 type Question struct {
 	Answers            []Answer  `json:"answers,omitempty"`        // as users answer, they'll be added to this list
+	TempAnswer         Answer    `json:"tempAnswer,omitempty"`     // used client side to temporarily hold an answer before submission
 	Question           string    `json:"question"`                 // the actual question text to show the users
 	QuestionNumber     int       `json:"questionNumber,omitempty"` // the question number, this should be worked out dynamically
 	ImageUrl           string    `json:"imageUrl,omitempty"`       // if there's an image this should be the local path or remote url
@@ -66,10 +67,9 @@ type Answer struct {
 }
 
 var (
-	instance  *GameState
-	prevCount *int
-	once      sync.Once
-	mu        sync.RWMutex
+	instance *GameState
+	once     sync.Once
+	mu       sync.RWMutex
 )
 
 // In game.go, modify the GetGame() function:
@@ -104,7 +104,6 @@ func GetGame() *GameState {
 		instance.TotalQuestions = len(instance.AllQuestions)
 		logger.Info(fmt.Sprintf("%d questions loaded.. game state initiated", instance.TotalQuestions))
 	})
-
 	decorateGameState(instance)
 	return instance
 }
@@ -114,10 +113,7 @@ func decorateGameState(gs *GameState) {
 		find out why stop game isn't stopping it
 		implement pause question
 		implement un-pause question
-		implement map clicker games
-		implement image clicker games
 		on observe page show answer explainations and links on question ended
-		implement multi-choice
 	*/
 	mu.Lock()
 	defer mu.Unlock()
@@ -127,6 +123,12 @@ func decorateGameState(gs *GameState) {
 	if cq == nil || len(gs.Players) == 0 {
 		return
 	}
+	if gs.HaveAllPlayersAnswered() {
+		cq.TimeStarted = time.Time{}
+		cq.TimeLeft = 0
+		cq.IsTimedOut = true
+		onQuestionEnded(gs)
+	}
 	if !cq.TimeStarted.IsZero() {
 		// Calculate elapsed time since question started
 		elapsed := time.Since(cq.TimeStarted).Seconds()
@@ -134,33 +136,23 @@ func decorateGameState(gs *GameState) {
 		// TimeLimit is in seconds, subtract elapsed time
 		remainingTime := float64(cq.TimeLimit) - elapsed
 		remainingInt := int(remainingTime)
-		// If time is up, set to 0 and mark as timed out
-		if remainingInt <= 0 {
+		// If countdown is conlucded, set to 0 and mark as timed out
+		if remainingTime < 0.0 {
+			cq.TimeStarted = time.Time{}
+			remainingTime = 0.0
+			remainingInt = 0
 			cq.TimeLeft = 0
 			cq.IsTimedOut = true
-			if prevCount != nil && *prevCount > 0 {
-				remainingInt = 0
-				prevCount = &remainingInt
-				cq.TimeStarted = time.Time{}
-				// trigger question timed out event
-				onQuestionEnded(gs)
-			}
+			onQuestionEnded(gs)
+		} else {
+			cq.TimeLeft = remainingInt
+			cq.IsTimedOut = false
 		}
-		// update the state
-		cq.TimeLeft = remainingInt
-		cq.IsTimedOut = false
-	} else if gs.HaveAllPlayersAnswered() {
-		cq.IsTimedOut = true
-		cq.TimeStarted = time.Time{}
-		onQuestionEnded(gs)
 	}
 }
 
 func onQuestionEnded(gs *GameState) {
-	/* CAUTION this event is triggered from inside GetGame */
 	logger.Info("Question timed out.. doQuestionTimeout")
-	// calculate player scores
-	// update player stats
 }
 
 // In game.go, change the function to be a method on GameState
@@ -320,41 +312,33 @@ func (gs *GameState) NextQuestion() {
 	if gs.CurrentQuestion == nil {
 		ccn = 1
 	} else {
-		if gs.CurrentQuestion.QuestionNumber < len(gs.AllQuestions) {
-			ccn = gs.CurrentQuestion.QuestionNumber + 1
-		} else {
-			ccn = len(gs.AllQuestions) // Stay at last question
-		}
+		ccn = min(gs.CurrentQuestion.QuestionNumber+1, len(gs.AllQuestions))
 	}
 	// Set the current question to the new question number
 	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
 }
 
-// returns to the previous question
 func (gs *GameState) PreviousQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
-	if instance == nil {
+	// Get current question number
+	if gs.CurrentQuestion == nil {
 		return
 	}
-	var ccn int
-	if gs.CurrentQuestion == nil {
-		ccn = 1
-	} else {
-		if gs.CurrentQuestion.QuestionNumber > 1 {
-			ccn = gs.CurrentQuestion.QuestionNumber
-		} else {
-			ccn = 1
-		}
+	// Calculate previous question number (1-based indexing)
+	prevNum := gs.CurrentQuestion.QuestionNumber - 1
+	// Check bounds
+	if prevNum < 1 {
+		return // Already at first question
 	}
-	// now we have the question number then set the current question appropriately
-	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
+	// Set previous question (using 0-based array index)
+	gs.CurrentQuestion = &instance.AllQuestions[prevNum-1]
 }
 
 // GetCurrentQuestion returns the current question
 func (gs *GameState) GetCurrentQuestion() *Question {
 	if gs.CurrentQuestion == nil {
-		return nil
+		gs.CurrentQuestion = &instance.AllQuestions[0]
 	}
 	return gs.CurrentQuestion
 }
@@ -366,6 +350,7 @@ func (gs *GameState) StartQuestion() {
 	cq := gs.GetCurrentQuestion()
 	if cq != nil {
 		cq.TimeStarted = time.Now()
+		cq.TimeLeft = cq.TimeLimit
 	}
 }
 
@@ -393,6 +378,7 @@ func (gs *GameState) StopQuestion() {
 	cq := gs.GetCurrentQuestion()
 	if cq != nil {
 		cq.TimeStarted = time.Time{}
+		cq.TimeLeft = 0
 		onQuestionEnded(gs)
 	}
 }

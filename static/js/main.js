@@ -3,46 +3,34 @@ class GameAPI {
     constructor() {
         if (GameAPI.instance) {return GameAPI.instance;}
         this.state = null;
+        this.currentQuestion = null;
         this.currentUser = null;
         this.pollInterval = null;
         this.failureCount = 0;  // Add failure counter
         this.maxFailures = 1800;   // Maximum failures before stopping polls
+        // contains a list of all page elements
+        this.allPageElements = []
         // Initialize the game type classes
-        this.questionView = new QuestionView();
-        this.clickMap = new ClickMap();
-        this.multiChoice = new MultiChoice();
-        this.streetView = new StreetView();
-        this.leaderboard = new Leaderboard();
+        this.allPageElements.push(new QuestionView());
+        this.allPageElements.push(new ClickMap());
+        this.allPageElements.push(new FreeText());
+        this.allPageElements.push(new MultiChoice());
+        this.allPageElements.push(new StreetView());
+        this.allPageElements.push(new Leaderboard());
         // Initialize buttons
-        this.answerButton = new AnswerButton();
-        this.nextQuestionButton = new NextQuestionButton();
-        this.previousQuestionButton = new PreviousQuestionButton();
-        this.startQuestionButton = new StartQuestionButton();
-        this.stopQuestionButton = new StopQuestionButton()
-        this.pauseQuestionButton = new PauseQuestionButton()
+        this.allPageElements.push(new AnswerButton());
+        this.allPageElements.push(new NextQuestionButton());
+        this.allPageElements.push(new PreviousQuestionButton());
+        this.allPageElements.push(new StartQuestionButton());
+        this.allPageElements.push(new StopQuestionButton());
+        this.allPageElements.push(new PauseQuestionButton());
         // Initialise the timer
-        this.timer = new Timer();
+        this.allPageElements.push(new Timer());
         // observer
-        this.leaderboard = new Leaderboard()
-        this.currentAnswers = new CurrentAnswers()
-        // add 'PageElement' objects to an array we can update on poll
-        // TODO find any object implementing PageElement and add to array automatically
-        // TODO populate this based on path
-        this.pageElements = [
-            this.streetView,
-            this.clickMap,
-            this.questionView,
-            this.timer,
-            this.answerButton,
-            this.startQuestionButton,
-            this.pauseQuestionButton,
-            this.stopQuestionButton,
-            this.nextQuestionButton,
-            this.previousQuestionButton,
-            this.leaderboard,
-            this.currentAnswers,
-            this.multiChoice
-        ];
+        this.allPageElements.push(new Leaderboard());
+        this.allPageElements.push(new CurrentAnswers());
+        // holds page elements relevant to the current page and question
+        this.pageElements = this.allPageElements;
         // start polling
         this.startPolling();
         GameAPI.instance = this;
@@ -73,14 +61,29 @@ class GameAPI {
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
-            // update any 'PageElement' objects we have instantiated
-            for (let pe of this.pageElements) {
-                pe.update(this);
-            }
             // fire an event in case anythiing is listening
             window.dispatchEvent(new CustomEvent('gameStateUpdated', {
                 detail: newState
             }));
+            // fire questionChanged if necessary
+            if (newState.currentQuestion.questionNumber !== this.currentQuestion?.questionNumber) {
+                this.currentQuestion = newState.currentQuestion;
+                // trigger the quesetion change event
+                window.dispatchEvent(new CustomEvent('questionChanged', {
+                    detail: newState.currentQuestion
+                }));
+            }
+            // add a listener for questionChanged to handle rotation of active PageElement's
+            // this cuts down on the amount of polling required
+            window.addEventListener('questionChanged', (event) => {
+                let q = event.detail;
+                // wipe the current page elements
+                this.pageElements = this.allPageElements.filter(pe => pe.doShouldShow());
+            });
+            // update any 'PageElement' objects and update them on each poll
+            for (let pe of this.pageElements) {
+                pe.update(this);
+            }
             return newState;
         } catch (error) {
             this.failureCount++;
@@ -93,9 +96,7 @@ class GameAPI {
 
     isQuestionActive() {
         let cq = this.getCurrentQuestion();
-        if (!cq) {return false;}
-        if (cq.timeLeft && cq.timeLeft > 0) {return true;}
-        return false
+        return cq.timeLeft && cq.timeLeft > 0;
     }
 
     getPlayers() {
@@ -108,7 +109,10 @@ class GameAPI {
         if (!s.players) {return null;}
         return s.players;
     }
-
+    /**
+     * Gets the currently logged in user
+     * @returns the current user
+     */
     getCurrentUser() {
         // first check if we have this member variable
         let s = this.state;
@@ -119,19 +123,12 @@ class GameAPI {
         if (!s.currentUser) {return null;}
         return s.currentUser;
     }
-
     /**
      * returns the current question if it is set, null otherwise
      */
     getCurrentQuestion() {
-        // first check if we have this member variable
-        let s = this.state;
-        // try the dom
-        if (!s) {s = window.gameState}
-        // ok error!
-        if (!s) {return null;}
-        if (!s.currentQuestion) {return null;}
-        return s.currentQuestion;
+        if (!this.currentQuestion) {return null;}
+        return this.currentQuestion;
     }
 
     compareArrays(f, s) {
@@ -143,7 +140,6 @@ class GameAPI {
         }
         return true;
     }
-
     /**
      * Returns any answers which have been submitted on the
      * current question
@@ -156,7 +152,11 @@ class GameAPI {
         if (!answers) {return;}
         return answers;
     }
-
+    /**
+     * Returns true if the answers on the current question has a length
+     * greater than zero
+     * @returns bool true if any user has answered this question yet
+     */
     hasAnyoneAnswered() {
         let cq = this.getCurrentQuestion();
         if (!cq) {return false;}
@@ -164,7 +164,9 @@ class GameAPI {
         if (!answers) {return false;}
         return answers.length > 0;
     }
-
+    /**
+     * @returns bool true if the current user has answered the current question
+     */
     hasAnswered() {
         //return true if the current user has answered the current question
         let cq = this.getCurrentQuestion();
@@ -208,19 +210,19 @@ class GameAPI {
         };
         return answer;
     }
-
+    /**
+     * Submits the answer object to the server
+     * @returns
+     */
     async submitAnswer() {
         let cq = this.getCurrentQuestion()
-        // If we're not counting down then you can't submit
-        /*
         if (!cq || !cq.timeLeft || cq.timeLeft <= 0) {
             return
         }
-        */
         // work out what and where the answer is based on
         // what the current question is
         let questionType = cq?.type ?? 'unknown';
-        let answer;  // <-- Add this line to declare the variable
+        let answer;
 
         if (questionType === 'geolocation') {
             // get the answer from the click map
@@ -228,9 +230,12 @@ class GameAPI {
         } else if (questionType === 'multichoice') {
             // get the answer from the multichoice object
             answer = this.multiChoice.getAnswer();
+        } else if (questionType === 'freetext') {
+            // get answer from freetext object
+            answer = this.freeText.getAnswer();
         } else {
-            // get the answer from the text input
-            answer = document.getElementById('answer-input').value;
+            console.log("unknown question type: " + questionType);
+            return;
         }
 
         if (!answer) {
@@ -323,6 +328,7 @@ class PageElement {
             }
         }
     }
+
     /**
      * Finds the dom element managed by this object in the current
      * dom model, or creates and inserts it.
@@ -367,7 +373,16 @@ class PageElement {
      * @returns the current players map
      */
     getPlayers() {return this.getGameState().getPlayers()}
-
+    /**
+     * By default will return true if the current question is
+     * counting down. False otherwise.
+     * May be overriden to provide different hueristics.
+     * @returns bool true if this page element is enabled
+     */
+    isEnabled() {
+        let gs = this.getGameState()
+        return gs.isQuestionActive();
+    }
     /**
      * returns true if the dom element that this object manages should be
      * updated. First checks
@@ -497,7 +512,6 @@ class PageElement {
      * @returns A string containing CSS markup
      */
     createStyles() {return null;}
-
     /**
      * hides or shows the dom element managed by this object
      * based on some logic.
@@ -510,12 +524,23 @@ class PageElement {
     doShouldShow() {
         if (!this.getElement()) {return false;}
         let cq = this.getCurrentQuestion();
-        if (!cq || !cq.type) {return;}
+        if (!cq || !cq.type) {
+            console.log("no question.. can't continue")
+            this.hide();
+            return false;
+        }
         let t = cq.type
+        if (!t) {
+            console("question doesn't have a type");
+            this.hide()
+            return false;
+        }
         let qt = this.questionTypes
         // Check if this PageElement supports the current game type
+        // this is non-negotiable
         if (qt && Array.isArray(qt) && !qt.includes("*")) {
             if (!qt.includes(cq.type)) {
+                this.hide();
                 return false;
             }
         }
@@ -538,14 +563,12 @@ class PageElement {
 
     show() {
         let el = this.getElement()
-        if (!el) {return;}
         //el.style.position = 'relative'
         el.style.visibility = 'visible';
         el.style.display = 'block';
     }
     hide() {
         let el = this.getElement()
-        if (!el) {return;}
         el.style.visibility = 'hidden';
         el.style.display = 'none';
     }
@@ -645,7 +668,7 @@ class StreetView extends PageElement {
 class ClickMap extends PageElement {
 
     constructor() {
-        super('click-container', `['geolocation','khazakstan']`)
+        super('click-container', ['geolocation','khazakstan'])
         this.answerx = null;
         this.answery = null;
         this.markerSize = 50;
@@ -697,7 +720,12 @@ class ClickMap extends PageElement {
         return css;
     }
 
+    doShouldShow() {
+        return super.doShouldShow();
+    }
+
     shouldUpdate() {
+        console.log("ClickMap shouldUpdate")
         // if we've not been properly instantiated yet
         if (!this.svg) {return true;}
         if (!this.imagePath) {return true;}
@@ -712,6 +740,7 @@ class ClickMap extends PageElement {
     }
 
     getContent(gs) {
+        console.log("ClickMap getContent")
         let cq = this.getCurrentQuestion()
         this.imagePath = cq.clickImage;
         let rawSvg = this.getGameState().getFileContent(this.imagePath);
@@ -804,7 +833,8 @@ class ClickMap extends PageElement {
         if (a.points < 0) a.points = 0;
 
         console.log(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
-
+        //set the temp answer where it will be found by the answer button
+        cq.tempAnswer = a;
         return a;
     }
 
@@ -1050,6 +1080,8 @@ class CurrentAnswers extends PageElement {
     getStyles() {}
 
     getContent(gs) {
+        const aa = gs.hasAnyoneAnswered()
+
         let t = document.createElement('table');
         let answersHtml = `
             <table class="table">
@@ -1067,8 +1099,7 @@ class CurrentAnswers extends PageElement {
         let pl = gs.getPlayers();
         for (const [username, player] of Object.entries(pl)) {
             if (player.isSpectator || player.isAdmin) continue;
-
-            const hasAnswered = gs.hasAnswered(username);
+            const hasAnswered = gs.hasAnswered();
             const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
             const playerAnswer = gs.getCurrentQuestion().answers.find(a => a.username === username);
 
@@ -1136,14 +1167,6 @@ class Leaderboard extends PageElement {
 class Timer extends PageElement {
     constructor() {
         super('timer',['*']);
-    }
-
-    shouldShow() {
-        let gs = this.getGameState();
-        if (!gs.isQuestionActive()) {
-            return false;
-        }
-        return true;
     }
 
     createStyles() {
@@ -1225,6 +1248,12 @@ class AnimatedButton extends PageElement {
     // because there may be many buttons all with the same css
     getStyles() {}
 
+    /**
+     * Handles the clicking of this button by calling
+     * the extending object's implementation of 'buttonAction'
+     * @param {*} e
+     * @returns
+     */
     handleClick(e) {
         const button = this.getElement();
         // Don't allow clicking if the button is disabled
@@ -1261,6 +1290,10 @@ class AnimatedButton extends PageElement {
         }, 1000);
     }
 
+    /**
+     * method to indicate errors to the user
+     * @returns null
+     */
     shake() {
         const button = this.getElement();
         // Prevent multiple shakes
@@ -1270,7 +1303,6 @@ class AnimatedButton extends PageElement {
         button.classList.remove('button-flash')
         button.classList.remove('button-disabled')
         button.classList.remove('button-cooldown')
-        button.textContent = `Answer?`;
         button.classList.add('button-shake');
         // Remove shake class after animation completes
         setTimeout(() => {
@@ -1313,11 +1345,6 @@ class AnimatedButton extends PageElement {
         }
         return null;
     }
-    /**
-     * Override this to dynamically decide if the button is clickable
-     * @returns bool if the button or should be enabled
-     */
-    isEnabled() {return true;}
 
     /**
      * overriden by extending class to perform whatever
@@ -1325,7 +1352,7 @@ class AnimatedButton extends PageElement {
      * @param {*} e the mouse click event
      * @returns true if the button action was successful, false otherwise
      */
-    buttonAction(e) {
+    async buttonAction(e) {
         console.warn('buttonAction not implemented');
         return true;
     }
@@ -1337,8 +1364,8 @@ class NextQuestionButton extends AnimatedButton {
         super('next-question-button', 2);
     }
 
-    buttonAction() {
-        fetch('/api/next-question')
+    async buttonAction() {
+        await fetch('/api/next-question')
             .then(response => {
                 if (!response.ok) {
                     return false;
@@ -1346,7 +1373,12 @@ class NextQuestionButton extends AnimatedButton {
                 return true
             })
             .catch(error => {return false;});
+    }
 
+    isEnabled() {
+        let gs = this.getGameState()
+        if (!gs.isQuestionActive()) {return true;}
+        return false;
     }
 }
 
@@ -1356,8 +1388,8 @@ class PreviousQuestionButton extends AnimatedButton {
         super('previous-question-button', 2); // 2 second cooldown
     }
 
-    buttonAction() {
-        fetch('/api/previous-question')
+    async buttonAction() {
+        await fetch('/api/previous-question')
         .then(response => {
             if (!response.ok) {
                 return false;
@@ -1365,6 +1397,12 @@ class PreviousQuestionButton extends AnimatedButton {
             return true
         })
         .catch(error => {return false;});
+    }
+
+    isEnabled() {
+        let gs = this.getGameState()
+        if (!gs.isQuestionActive()) {return true;}
+        return false;
     }
 }
 
@@ -1374,21 +1412,27 @@ class StartQuestionButton extends AnimatedButton {
         super('start-question-button', 3); // 3 second cooldown
     }
 
-    buttonAction() {
-        fetch('/api/start-question')
+    async buttonAction() {
+        console.log("StartQuestion button pushed");
+        await fetch('/api/start-question')
         .then(response => {
             if (!response.ok) {
+                console.log("bad response from start question");
                 return false;
             }
+            console.log("good response from start question");
             return true
         })
-        .catch(error => {return false;});
+        .catch(error => {
+            console.log("error from start question");
+            return false;
+        });
     }
 
     isEnabled() {
         let gs = this.getGameState()
-        if (gs.isQuestionActive()) {return false;}
-        return true;
+        if (!gs.isQuestionActive()) {return true;}
+        return false;
     }
 }
 
@@ -1398,8 +1442,8 @@ class PauseQuestionButton extends AnimatedButton {
         super('pause-question-button', 3); // 3 second cooldown
     }
 
-    buttonAction() {
-        fetch('/api/pause-question')
+    async buttonAction() {
+        await fetch('/api/pause-question')
         .then(response => {
             if (!response.ok) {
                 return false;
@@ -1407,13 +1451,6 @@ class PauseQuestionButton extends AnimatedButton {
             return true
         })
         .catch(error => {return false;});
-    }
-
-    isEnabled() {
-        // not enabled if game isn't running
-        let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return false;}
-        return true;
     }
 }
 
@@ -1423,8 +1460,8 @@ class StopQuestionButton extends AnimatedButton {
         super('stop-question-button', 3); // 3 second cooldown
     }
 
-    buttonAction() {
-        fetch('/api/stop-question')
+    async buttonAction() {
+        await fetch('/api/stop-question')
         .then(response => {
             if (!response.ok) {
                 return false;
@@ -1432,12 +1469,6 @@ class StopQuestionButton extends AnimatedButton {
             return true
         })
         .catch(error => {return false;});
-    }
-
-    isEnabled() {
-        let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return false;}
-        return true;
     }
 }
 
@@ -1458,14 +1489,13 @@ class AnswerButton extends AnimatedButton {
 
     isEnabled() {
         let gs = this.getGameState()
-        let active = gs.isQuestionActive()
-        if (!active) {return false;}
+        let foo = super.isEnabled();
+        if (!foo) {return false;}
         let answered = gs.hasAnswered()
         if (answered) {return false;}
         return true;
     }
 }
-
 // ###################################################################
 // MULTICHOICE
 // ###################################################################
@@ -1478,30 +1508,61 @@ class MultiChoice extends PageElement {
     }
 
     // Override shouldShow to help debug visibility issues
-    shouldShow() {
-        const cq = this.getCurrentQuestion();
-        return true; // or your specific logic
+    doShouldShow() {
+        return super.doShouldShow();
+    }
+    /**
+     * If this multichoice question has image content then load the image
+     * into the main container div
+     * @param {*} container the parent container we are going to populate
+     * @returns null (amends the given container object)
+     */
+    createImageDiv(container) {
+        if (!container) {return;}
+        let cq = this.getCurrentQuestion();
+        // If there's an image URL, create and add the image container
+        if (cq.imageUrl) {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'multi-choice-image-container';
+            imageContainer.id = "multi-choice-image-container";
+            const image = document.createElement('img');
+            image.src = cq.imageUrl;
+            image.alt = 'Question Image';
+            image.className = 'multi-choice-image';
+
+            // Add loading state
+            image.style.opacity = '0';
+            image.style.transition = 'opacity 0.3s ease-in';
+            // Show image when loaded
+            image.onload = () => {
+                image.style.opacity = '1';
+            };
+            // Handle loading errors
+            image.onerror = () => {
+                console.error('Failed to load image:', cq.imageUrl);
+                imageContainer.remove();
+            };
+            imageContainer.appendChild(image);
+            container.appendChild(imageContainer);
+        }
     }
 
-    getContent(gs) {
-        const cq = this.getCurrentQuestion();
-        if (!cq || !cq.choices) {
-            console.log('MultiChoice: No question or choices available');
-            return;
-        }
-
-        // Only update if choices have changed
-        if (this.choices && gs.compareArrays(this.choices, cq.choices)) {
-            console.log('MultiChoice: Choices unchanged');
-            return;
-        }
-
-        console.log('MultiChoice: Creating new content');
+    /**
+     * Creates the actual multichoice radio button group dom elements
+     * @param {*} container the parent container we are going to populate
+     * @returns null (amends the given container object)
+     */
+    createButtons(container) {
+        if (!container) {return;}
+        let cq = this.getCurrentQuestion();
+        let gs = this.getGameState();
         this.choices = cq.choices;
 
-        const container = document.createElement('div');
-        container.role = 'radiogroup'; // Accessibility
-        container.setAttribute('aria-label', 'Answer choices');
+        const pc = document.createElement('div');
+        pc.className = 'multi-choice-buttons-container';
+        pc.id = "multi-choice-buttons-container";
+        pc.role = 'radiogroup'; // Accessibility
+        pc.setAttribute('aria-label', 'Answer choices');
 
         // Create a button for each choice
         cq.choices.forEach((choice, index) => {
@@ -1537,49 +1598,86 @@ class MultiChoice extends PageElement {
                 answer.answer = choice;
                 this.selectedChoice = answer;
             });
-
-            container.appendChild(button);
+            pc.appendChild(button);
         });
+        container.appendChild(pc);
+    }
+
+    getContent(gs) {
+        const cq = this.getCurrentQuestion();
+        if (!cq || !cq.choices) {
+            console.log('MultiChoice: No question or choices available');
+            return;
+        }
+        // Only update if choices have changed
+        if (this.choices && gs.compareArrays(this.choices, cq.choices)) {
+            return;
+        }
+        console.log('MultiChoice: Creating new content');
+        this.choices = cq.choices;
+
+        // Create main container
+        const container = document.createElement('div');
+        // populate the container
+        this.createImageDiv(container);
+        this.createButtons(container);
         return container;
     }
 
+    // Add these styles to createStyles()
     createStyles() {
-        const css = `
+        const ret = `
             #multi-choice-container {
                 padding: 15px;
                 margin: 0 auto;
                 visibility: visible !important; /* Force visibility */
             }
 
-            .multi-choice-button {
+            .multi-choice-image-container {
                 width: 100%;
-                padding: 15px 20px;
-                border: 2px solid var(--bccblue);
-                background-color: var(--bccgold);
-                color: var(--bccblue);
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 1.8vw;
-                text-align: left;
-                transition: all 0.2s ease-in-out;
+                max-width: 800px;
+                margin: 0 auto 20px auto;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .multi-choice-image {
+                width: 100%;
+                height: auto;
+                display: block;
+                object-fit: contain;
+            }
+
+            .multi-choice-buttons-container {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                width: 100%;
                 visibility: visible !important; /* Force visibility */
             }
 
-            .multi-choice-button:hover {
-                background-color: var(--bccblue);
-                color: white;
+            .multi-choice-main-container {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 20px;
+                padding: 20px;
             }
 
-            .multi-choice-button.selected {
-                background-color: white;
-                color: var(--bccblue);
-                font-weight: 500;
-            }
-
-            /* Add radio-like indicator */
             .multi-choice-button {
-                position: relative;
+                width: 100%;
+                padding: 15px 20px;
                 padding-left: 45px;
+                border: 2px solid var(--bccblue);
+                border-radius: 8px;
+                background: white;
+                cursor: pointer;
+                text-align: left;
+                font-size: 16px;
+                transition: all 0.2s ease;
+                position: relative;
+                visibility: visible !important; /* Force visibility */
             }
 
             .multi-choice-button::before {
@@ -1594,6 +1692,11 @@ class MultiChoice extends PageElement {
                 border-radius: 50%;
                 background: white;
                 transition: all 0.2s ease;
+            }
+
+            .multi-choice-button.selected {
+                background: var(--bccblue);
+                color: white;
             }
 
             .multi-choice-button.selected::before {
@@ -1612,13 +1715,191 @@ class MultiChoice extends PageElement {
                 border-radius: 50%;
                 background: var(--bccblue);
             }
+
+            .multi-choice-button:hover {
+                background: var(--bccblue);
+                color: white;
+            }
         `;
-        return css;
+        return ret;
     }
 
-    // Add method to get the current answer
     getAnswer() {
         return this.selectedChoice;
+    }
+}
+
+// ###################################################################
+// FREETEXT
+// ###################################################################
+
+class FreeText extends PageElement {
+
+    constructor() {
+        super('free-text-container', ['freetext']);
+        this.textInput = null;
+        this.container = null;
+    }
+
+    shouldUpdate() {
+        if (!this.container) {return true;}
+        return false;
+    }
+
+
+    createImageDiv(container) {
+        if (!container) {return;}
+        let cq = this.getCurrentQuestion();
+        // If there's an image URL, create and add the image container
+        if (cq.imageUrl) {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'free-text-image-container';
+            imageContainer.id = "free-text-image-container";
+            const image = document.createElement('img');
+            image.src = cq.imageUrl;
+            image.alt = 'Question Image';
+            image.className = 'free-text-image';
+
+            // Add loading state
+            image.style.opacity = '0';
+            image.style.transition = 'opacity 0.3s ease-in';
+            // Show image when loaded
+            image.onload = () => {
+                image.style.opacity = '1';
+            };
+            // Handle loading errors
+            image.onerror = () => {
+                console.error('Failed to load image:', cq.imageUrl);
+                imageContainer.remove();
+            };
+            imageContainer.appendChild(image);
+            container.appendChild(imageContainer);
+        }
+    }
+
+    createInputArea(container) {
+        if (!container) {return;}
+        let gs = this.getGameState();
+
+        const inputContainer = document.createElement('div');
+        inputContainer.className = 'free-text-input-container';
+
+        // Create text input
+        this.textInput = document.createElement('input');
+        this.textInput.type = 'text';
+        this.textInput.id = 'free-text-input';
+        this.textInput.className = 'free-text-input';
+        this.textInput.placeholder = 'Type your answer here...';
+        inputContainer.appendChild(this.textInput);
+        container.appendChild(inputContainer);
+    }
+
+    getContent(gs) {
+        this.container = document.createElement('div');
+        this.createImageDiv(this.container);
+        this.createInputArea(this.container);
+        return this.container;
+    }
+
+    createStyles() {
+        const ret = `
+            #free-text-container {
+                padding: 15px;
+                margin: 0 auto;
+                visibility: visible !important;
+            }
+
+            .free-text-image-container {
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto 20px auto;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .free-text-image {
+                width: 100%;
+                height: auto;
+                display: block;
+                object-fit: contain;
+            }
+
+            .free-text-input-container {
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .free-text-input {
+                width: 100%;
+                padding: 15px 20px;
+                border: 2px solid var(--bccblue);
+                border-radius: 8px;
+                background: white;
+                font-size: 16px;
+                transition: all 0.2s ease;
+            }
+
+            .free-text-input:focus {
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(var(--bccblue-rgb), 0.2);
+            }
+
+            .free-text-input::placeholder {
+                color: #999;
+            }
+        `;
+        return ret;
+    }
+
+    fuzzyMatch(str1, str2) {
+        const len1 = str1.length;
+        const len2 = str2.length;
+
+        let matrix = Array(len1 + 1);
+        for (let i = 0; i <= len1; i++) {
+          matrix[i] = Array(len2 + 1);
+        }
+
+        for (let i = 0; i <= len1; i++) {
+          matrix[i][0] = i;
+        }
+
+        for (let j = 0; j <= len2; j++) {
+          matrix[0][j] = j;
+        }
+
+        for (let i = 1; i <= len1; i++) {
+          for (let j = 1; j <= len2; j++) {
+            if (str1[i - 1] === str2[j - 1]) {
+              matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+              matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j - 1] + 1
+              );
+            }
+          }
+        }
+        return matrix[len1][len2];
+      }
+
+    getAnswer() {
+        if (!this.textInput || !this.textInput.value) {return null;}
+        let a = this.textInput.value;
+        if (!a) {return null;}
+        let ret = this.getGameState().createAnswerObject();
+        // now do fuzzy search and give score
+        const cq = this.getCurrentQuestion();
+        let pf = cq.penalisationFactor;
+        if (!pf) {pf = 4.0;}
+        const foo = this.fuzzyMatch(this.answer, cq.correctAnswer);
+        console.log('foo', foo);
+        // now factor in the penalisationFactor
+        return ret;
     }
 }
 
