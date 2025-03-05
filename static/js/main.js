@@ -1,7 +1,12 @@
+/**
+ * Singleton class which manages interaction with the server API
+ */
 class GameAPI {
 
     constructor() {
         if (GameAPI.instance) {return GameAPI.instance;}
+        this.timeLeft = 0;
+        this.previousTimeLeft = 0;
         this.state = null;
         this.currentQuestion = null;
         this.currentUser = null;
@@ -31,12 +36,22 @@ class GameAPI {
         this.allPageElements.push(new CurrentAnswers());
         // holds page elements relevant to the current page and question
         this.pageElements = this.allPageElements;
+        // register some handlers
+        window.addEventListener('questionChanged', (event) => {
+            console.log("questionChanged handler invoked");
+        });
+        window.addEventListener('questionTimedOut', (event) => {
+            console.log("questionTimedOut handler invoked");
+        });
+        GameAPI.instance = this;
         // start polling
         this.startPolling();
-        GameAPI.instance = this;
     }
 
-    // Static method to get instance
+    /**
+     * Returns the singleton instance of this object
+     * @returns {GameAPI}
+     */
     static getInstance() {
         if (!GameAPI.instance) {
             GameAPI.instance = new GameAPI();
@@ -44,14 +59,31 @@ class GameAPI {
         return GameAPI.instance;
     }
 
-    async getGameState() {
+    /**
+     * returns the 'state' field of the instance
+     * which represents the current state of the game
+     * has elements such as Questions etc.
+     * @returns {Object} the json object representing the current game state
+     */
+    static getGameState() {
+        return GameAPI.getInstance().state;
+    }
+    /**
+     * Updates the current data held in this.state and window.gameState
+     * which is accessible via GameAPI.getGameState()
+     * This data represents the current state of the game as returned
+     * from the server /api as a JSON object
+     * This method is polled every N seconds.
+     * @returns {void}
+     */
+    async update() {
         try {
             const response = await fetch('/api/game-state').catch(error => {return { ok: false };});
             if (!response.ok) {
                 this.failureCount++;
-                console.log(`Failed to get game state ${this.failureCount} times`);
+                console.warn(`Failed to get game state ${this.failureCount} times`);
                 if (this.failureCount >= this.maxFailures) {
-                    console.log(`Stopping polls after ${this.maxFailures} failures`);
+                    console.warn(`Stopping polls after ${this.maxFailures} failures`);
                     this.stopPolling();
                 }
             }
@@ -61,47 +93,84 @@ class GameAPI {
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
-            // fire an event in case anythiing is listening
-            window.dispatchEvent(new CustomEvent('gameStateUpdated', {
-                detail: newState
-            }));
-            // fire questionChanged if necessary
-            if (newState.currentQuestion.questionNumber !== this.currentQuestion?.questionNumber) {
+            // update the local timer countdown cacheed number
+            this.setTimeLeft(newState.currentQuestion.timeLeft);
+            // update the local question cache
+            if (!this.currentQuestion) {
                 this.currentQuestion = newState.currentQuestion;
-                // trigger the quesetion change event
-                window.dispatchEvent(new CustomEvent('questionChanged', {
-                    detail: newState.currentQuestion
-                }));
+            } else {
+                this.setCurrentQuestion(newState.currentQuestion);
             }
-            // add a listener for questionChanged to handle rotation of active PageElement's
-            // this cuts down on the amount of polling required
-            window.addEventListener('questionChanged', (event) => {
-                let q = event.detail;
-                // wipe the current page elements
-                this.pageElements = this.allPageElements.filter(pe => pe.doShouldShow());
-            });
             // update any 'PageElement' objects and update them on each poll
             for (let pe of this.pageElements) {
                 pe.update(this);
             }
-            return newState;
+            // fire an event in case anythiing is listening
+            window.dispatchEvent(new CustomEvent('gameStateUpdated', {
+                detail: newState
+            }));
         } catch (error) {
+            console.error('Error updating game state:', error);
             this.failureCount++;
             if (this.failureCount >= this.maxFailures) {
                 this.stopPolling();
             }
-            return this.state;
         }
     }
-
+    /**
+     * If the current question is counting down it is active, false otherwise
+     * @returns {boolean} true if the current question is active
+     */
     isQuestionActive() {
-        let cq = this.getCurrentQuestion();
-        return cq.timeLeft && cq.timeLeft > 0;
+        let t = this.getTimeLeft();
+        if (t > 0) {return true;}
+        return false;
     }
+    /**
+     * Sets the cached value of 'timeLeft' which is the countdown
+     * of time which the user has left to answer this question
+     * Fires questionTimedOut when the timeLeft reaches zero
+     * @param {number} t
+     * @returns {void}
+     */
+    async setTimeLeft(t) {
+        if (typeof t !== 'number' || isNaN(t) || t < 0) {
+            console.warn("was sent an invalid time left value");
+            this.timeLeft = 0;
+        } else {
+            this.timeLeft = t;
+        }
 
+        if (this.timeLeft <= 0) {
+            if (this.previousTimeLeft > 0) {
+                this.timeLeft = 0;
+                console.info("Timer : 0");
+                window.dispatchEvent(new CustomEvent('questionTimedOut', {
+                    detail: this.currentQuestion
+                }));
+            }
+        } else {
+            this.timeLeft = t;
+            console.info(`Timer : ${this.timeLeft}`);
+        }
+        this.previousTimeLeft = this.timeLeft;
+    }
+    /**
+     * If the current question is counting down then this
+     * will return the time that remains to answer the question
+     * @returns {number} the time left to answer the question
+     */
+    getTimeLeft() {
+        if (!this.timeLeft || this.timeLeft < 0) {this.timeLeft = 0;}
+        return this.timeLeft;
+    }
+    /**
+     * A map of the currently signed in players
+     * @returns {map[string]Player} a map of players matching that in game.go
+     */
     getPlayers() {
         // first check if we have this member variable
-        let s = this.state;
+        let s = GameAPI.getGameState();
         // try the dom
         if (!s) {s = window.gameState}
         // ok error!
@@ -115,7 +184,7 @@ class GameAPI {
      */
     getCurrentUser() {
         // first check if we have this member variable
-        let s = this.state;
+        let s = GameAPI.getGameState();
         // try the dom
         if (!s) {s = window.gameState}
         // ok error!
@@ -124,13 +193,41 @@ class GameAPI {
         return s.currentUser;
     }
     /**
+     * caches the question passed in the memeber varables of this object
+     * if the question number differs from that of the previous cached value
+     * fires the question changed event.
+     * @param {Question} question
+     * @returns {void}
+     */
+    async setCurrentQuestion(question) {
+        // fire questionChanged if necessary
+        if (this.currentQuestion.questionNumber !== question.questionNumber) {
+            this.currentQuestion = question;
+            // Reduce the size of the array based on whether page elements exist
+            this.pageElements = this.allPageElements.filter(pe => pe.getContent());
+            window.dispatchEvent(new CustomEvent('questionChanged', {detail: question}));
+        } else {
+            this.currentQuestion = question;
+        }
+    }
+    /**
      * returns the current question if it is set, null otherwise
      */
     getCurrentQuestion() {
-        if (!this.currentQuestion) {return null;}
+        if (!this.currentQuestion) {
+            console.warn("this.currentQuestion is null");
+            return null;
+        }
         return this.currentQuestion;
     }
-
+    /**
+     * compares two string arrays agnostic to position
+     * that is, if the arrays contain exactly the same elements
+     * regardless of order then the response is true, false otherwise
+     * @param {array{string}} f
+     * @param {array{string}} s
+     * @returns {boolean}
+     */
     compareArrays(f, s) {
         if (!f && !s) {return true;}
         if (!f || !s) {return false;}
@@ -185,12 +282,12 @@ class GameAPI {
 
     startPolling(interval = 2000) { // Poll every 2 seconds by default
         this.stopPolling(); // Clear any existing interval
-        this.pollInterval = setInterval(() => this.getGameState(), interval);
+        this.pollInterval = setInterval(() => this.update(), interval);
     }
 
     stopPolling() {
         if (this.pollInterval) {
-            clearInterval(this.pollInterval);
+            clearInterval(this.pollInterval);g
             this.pollInterval = null;
         }
     }
@@ -212,40 +309,43 @@ class GameAPI {
     }
     /**
      * Submits the answer object to the server
-     * @returns
+     * @returns {boolean} true if the answer was accepted, false otherwise
      */
     async submitAnswer() {
         let cq = this.getCurrentQuestion()
-        if (!cq || !cq.timeLeft || cq.timeLeft <= 0) {
-            return
+        if (!this.isQuestionActive()) {
+            console.log('Question is not active, cannot submit answer');
+            return false;
         }
+
         // work out what and where the answer is based on
         // what the current question is
         let questionType = cq?.type ?? 'unknown';
-        let answer;
+        console.log('Submitting answer for question type:', questionType);
 
-        if (questionType === 'geolocation') {
-            // get the answer from the click map
-            answer = this.clickMap.getAnswer();
-        } else if (questionType === 'multichoice') {
-            // get the answer from the multichoice object
-            answer = this.multiChoice.getAnswer();
-        } else if (questionType === 'freetext') {
-            // get answer from freetext object
-            answer = this.freeText.getAnswer();
-        } else {
-            console.log("unknown question type: " + questionType);
-            return;
+        // Find the appropriate page element for this question type
+        let answerComponent = this.allPageElements.find(element => {
+            if (questionType === 'geolocation' && element instanceof ClickMap) return true;
+            if (questionType === 'multichoice' && element instanceof MultiChoice) return true;
+            if (questionType === 'freetext' && element instanceof FreeText) return true;
+            return false;
+        });
+
+        if (!answerComponent) {
+            console.warn("Could not find appropriate component for question type:", questionType);
+            return false;
         }
 
+        let answer = answerComponent.getAnswer();
+
         if (!answer) {
-            console.log("no answer provided.. no points");
-            // add zero points for this user for this question
-            return;
+            console.warn("No answer provided");
+            return false;
         }
 
         try {
             let s = JSON.stringify(answer);
+            console.log('Submitting answer:', s);
             const response = await fetch('/api/submit-answer', {
                 method: 'POST',
                 headers: {
@@ -254,14 +354,24 @@ class GameAPI {
                 body: s
             });
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.warn('Server returned error when submitting answer:', response.status);
+                return false;
             }
-            await this.getGameState();
+            this.update();
         } catch (error) {
-            console.error('Failed to submit answer:', error);
+            console.warn('Failed to submit answer:', error);
+            return false;
         }
+        return true;
     }
-
+    /**
+     * removes a player from the players list by
+     * calling the API and asking for a removal
+     * this will log the user out of the game.
+     * It is also possible to ban the user (prevent
+     * re-login) altogether by IP address if necessary
+     * @param {string} playerName
+     */
     async removePlayer(playerName) {
         try {
             const response = await fetch('/api/remove-player', {
@@ -274,11 +384,12 @@ class GameAPI {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            await this.getGameState();
+            this.update();
         } catch (error) {
             console.error('Failed to remove player:', error);
         }
     }
+
     getFileContent(filePath) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', filePath, false);
@@ -296,23 +407,16 @@ class GameAPI {
     }
 }
 
-// ###################################################################
-// UI functions - update some universal page items
-// ###################################################################
-
-// *******************************
-// ************ OBSERVER *********
-// *******************************
-
-
-// *******************************
-// ************ HOST *************
-// *******************************
-
 // *******************************
 // ************ PAGE ELEMENT *****
 // *******************************
-
+/**
+ * The base type of all page elements
+ * A page Elment is an object that manages the content
+ * style and visibility of a dom element
+ * This object should be implemented by extending classes
+ * in order to manage different elements of the page
+ */
 class PageElement {
     constructor(name, questionTypes) {
         this.element = null;
@@ -334,7 +438,7 @@ class PageElement {
      * dom model, or creates and inserts it.
      * Once found or created, caches it locally to prevent constant
      * dom searches
-     * @returns the dom element that this object manages
+     * @returns {Document.Object} the dom element that this object manages
      */
     getElement() {
         if (this.element) {return this.element;}
@@ -354,35 +458,54 @@ class PageElement {
      * called when the dom element managed by this object doesn't already
      * exist in the page. Creates and inserts the dom element in the correct
      * page of the dom model
-     * @returns void
+     * @returns {void}
      */
     createElement() { return null;}
     /**
      * Convenience method for getting the GameAPI instance
-     * @returns the GameAPI instance
+     * @returns {GameAPI} the GameAPI instance
      */
-    getGameState() {return GameAPI.getInstance()}
+    getApi() {return GameAPI.getInstance();}
+    /**
+     * Convenience method for getting the current game state
+     * @returns {Object} the current game state
+     */
+    getGameState() {return GameAPI.getGameState();}
     /**
      * Convenience method for getting the current Question object
      * from the game state
-     * @returns the current question object
+     * @returns {Question} the current question object
      */
-    getCurrentQuestion() {return this.getGameState().getCurrentQuestion();}
+    getCurrentQuestion() {return this.getApi().getCurrentQuestion();}
+    /**
+     * Convenience method for getting response from game state
+     * @returns {boolean} the current GameAPI instance isQustionActive respnose
+     */
+    isQuestionActive() {
+        let a = this.getApi()
+        return a.isQuestionActive()
+    }
+    /**
+     * Returns the current countdown time
+     * which is the time remaining to answer the question
+     * @returns {number} the current time remaining in seconds
+     */
+    getTimeLeft() {
+        let a = this.getApi();
+        return a.getTimeLeft();
+    }
     /**
      * Concenience method for getting the current players map
-     * @returns the current players map
+     * @returns {Players} the current players map
      */
-    getPlayers() {return this.getGameState().getPlayers()}
+    getPlayers() {return this.getApi().getPlayers()}
     /**
      * By default will return true if the current question is
      * counting down. False otherwise.
      * May be overriden to provide different hueristics.
-     * @returns bool true if this page element is enabled
+     * @returns {boolean} true if this page element is enabled
      */
-    isEnabled() {
-        let gs = this.getGameState()
-        return gs.isQuestionActive();
-    }
+    isEnabled() {return this.isQuestionActive();}
     /**
      * returns true if the dom element that this object manages should be
      * updated. First checks
@@ -390,7 +513,7 @@ class PageElement {
      * 2) current question exists (returns false if not)
      * 3) this object should even be shown on the page
      * finally calls shouldUpdate which can be overriden by the extending class
-     * @returns bool true if this object should update the dom element it manages
+     * @returns {boolean} true if this object should update the dom element it manages
      */
     doShouldUpdate() {
         if (!this.getElement()) {
@@ -412,41 +535,37 @@ class PageElement {
      * Method intended to be overriden by the extending class
      * Allows the extending class to add logic determining whether
      * the dom element managed by this object should be updated
-     * @returns bool default true
+     * @returns {boolean} default true
      */
     shouldUpdate() {return true;}
     /**
      * Buffers the update of the dom element managed by this object
      * Calls getContent to get the new content of the dom element
      * then calls applyUpdate to actually update the main dom element
-     * @param {*} gameState the current GameAPI
-     * @returns void
+     * @param {GameAPI} gameState the current GameAPI
+     * @returns {void}
      */
-    update(gameState) {
+    update(api) {
         let cn = this.constructor.name
         if (!this.doShouldUpdate()) {
             return;
         }
         this.getStyles();
         //console.log("updating " + cn)
-        let o = this.getContent(gameState)
+        let o = this.getContent(api)
         this.applyUpdate(o);
     }
     /**
      * Uses animation frame to replace the content of the managed
      * element without flickering etc.
-     * @param {*} o page element or elements
-     * @returns null
+     * @param {Document.Object} content a page element or elements
+     * @returns {void}
      */
     applyUpdate(content) {
         let cn = this.constructor.name;
         if (!content) {return;}
         const element = this.getElement();
         if (!element) return;
-
-        if (cn === "MultiChoice") {
-            console.log("updating multichoice")
-        }
         requestAnimationFrame(() => {
             if (Array.isArray(content) || content instanceof NodeList) {
                 element.replaceChildren(...content);
@@ -457,17 +576,16 @@ class PageElement {
             }
         });
     }
-
-
     /**
      * Should be overriden by the extending class to return
      * new dom elements which should replace the existing dom elements
      * inside the main dom element managed by this object
      * Can be ignored if applyUpdate is overriden and performs page manipulation
      * directly
-     * @param {*} gameState the current GameAPI
+     * @param {GameAPI} gameState the current GameAPI
+     * @returns {Document.Object} a dom object or objects to be placed into the managed page element
      */
-    getContent(gameState) {}
+    getContent(api) {}
     /**
      * Calls createStyles to create any css styles required
      * buy the dom object managed by this object.
@@ -476,8 +594,8 @@ class PageElement {
      * If you wish to do something dynamic with styles you can
      * set this.styles=null and createStyles will be re-called
      * Can be overriden by extending classes to do some other sort
-     * of CSS manipulation (differently named css classes
-     * @returns null
+     * of CSS manipulation (differently named css classes etc.)
+     * @returns {void}
      */
     getStyles() {
         if (this.styles) {return;}
@@ -493,7 +611,7 @@ class PageElement {
         let css = this.createStyles();
 
         if (!css) {
-            console.log("no styles")
+            console.debug("no styles")
             this.styles = 'nostyles';
             return;
         }
@@ -509,7 +627,7 @@ class PageElement {
      * instead implement getStyles as:
      * - getStyles() {}
      * This will save a little time
-     * @returns A string containing CSS markup
+     * @returns {string} containing CSS markup
      */
     createStyles() {return null;}
     /**
@@ -519,19 +637,19 @@ class PageElement {
      * 2) the current question is not none
      * 3) this.shouldShow returns true or false
      *
-     * @returns bool
+     * @returns {boolean} true if the managed element should be shown
      */
     doShouldShow() {
         if (!this.getElement()) {return false;}
         let cq = this.getCurrentQuestion();
         if (!cq || !cq.type) {
-            console.log("no question.. can't continue")
+            console.warn("no question.. can't continue")
             this.hide();
             return false;
         }
         let t = cq.type
         if (!t) {
-            console("question doesn't have a type");
+            console.warn("question doesn't have a type");
             this.hide()
             return false;
         }
@@ -555,18 +673,33 @@ class PageElement {
         }
     }
     /**
+     * Should be overriden to return the answer to the current question
+     * as submitted by the user
+     * @returns {Answer}
+     */
+    getAnswer() {return null;}
+    /**
      * Should be overriden to determine if this dom element should
      * be hidden or shown based on some logic. Default true
-     * @returns bool true if the dom element should be visible
+     * @returns {boolean} true if the dom element should be visible
      */
     shouldShow() {return true;}
-
+    /**
+     * sets the managed page elements style visibility and
+     * display parameters such that the element is shown
+     * @returns {void}
+     */
     show() {
         let el = this.getElement()
         //el.style.position = 'relative'
         el.style.visibility = 'visible';
         el.style.display = 'block';
     }
+    /**
+     * sets the managed page elements style visibility and
+     * display parameters such that the element is hidden
+     * @returns {void}
+     */
     hide() {
         let el = this.getElement()
         el.style.visibility = 'hidden';
@@ -577,12 +710,14 @@ class PageElement {
 // ###################################################################
 // QUESTION
 // ###################################################################
-
+/**
+ * PageElement which manages the display of the actual question
+ * that is the text or otherwise which prompts the player for a response
+ */
 class QuestionView extends PageElement {
     constructor() {
         super('question-title', ['*'])
     }
-    /** just speed things up a little */
     getStyles() {}
     getContent(gs) {
         let cq = this.getCurrentQuestion();
@@ -596,7 +731,10 @@ class QuestionView extends PageElement {
 // ###################################################################
 // STREETVIEW
 // ###################################################################
-
+/**
+ * PageElement that manages the displaying of google streetview for
+ * geolocation questions
+ */
 class StreetView extends PageElement {
     constructor() {
         super('streetview-container', ['geolocation']);
@@ -606,8 +744,8 @@ class StreetView extends PageElement {
         this.url = null;
     }
 
-    update(gs) {
-        super.update(gs)
+    update(api) {
+        super.update(api)
     }
 
     /** just speed things up a little */
@@ -664,7 +802,12 @@ class StreetView extends PageElement {
 // ###################################################################
 // CLICKABLE IMAGE
 // ###################################################################
-
+/**
+ * PageElement that handles the display and input from
+ * a map or other clickable image which can return the coordinates
+ * on which the user clicked set
+ * Used primarily in geolocation questions in which it displays a world map
+ */
 class ClickMap extends PageElement {
 
     constructor() {
@@ -720,12 +863,15 @@ class ClickMap extends PageElement {
         return css;
     }
 
-    doShouldShow() {
-        return super.doShouldShow();
+    shouldShow() {
+        let cq = this.getCurrentQuestion();
+        if (!cq || !cq.clickImage) {
+            return false;
+        }
+        return true;
     }
 
     shouldUpdate() {
-        console.log("ClickMap shouldUpdate")
         // if we've not been properly instantiated yet
         if (!this.svg) {return true;}
         if (!this.imagePath) {return true;}
@@ -740,33 +886,59 @@ class ClickMap extends PageElement {
     }
 
     getContent(gs) {
-        console.log("ClickMap getContent")
-        let cq = this.getCurrentQuestion()
+        let cq = this.getCurrentQuestion();
         this.imagePath = cq.clickImage;
-        let rawSvg = this.getGameState().getFileContent(this.imagePath);
+        let rawSvg = this.getApi().getFileContent(this.imagePath);
+
         if (!rawSvg) {
-            console.error('Error loading SVG:', error);
+            console.error('Error: No SVG content loaded');
             return null;
         }
+
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(rawSvg, 'image/svg+xml');
         const originalSvg = svgDoc.documentElement;
-        // Get dimensions from the original SVG
-        this.imageWidth = parseFloat(originalSvg.getAttribute('width') || originalSvg.viewBox.baseVal.width);
-        this.imageHeight = parseFloat(originalSvg.getAttribute('height') || originalSvg.viewBox.baseVal.height);
-        // Copy the original SVG directly
+
+        // Validate that we have a valid SVG
+        if (originalSvg.nodeName !== 'svg') {
+            console.error('Error: Invalid SVG document');
+            return null;
+        }
+
+        // Safely get dimensions with fallbacks
+        let width = originalSvg.getAttribute('width');
+        let height = originalSvg.getAttribute('height');
+        let viewBox = originalSvg.getAttribute('viewBox');
+
+        // Parse viewBox if it exists
+        let viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : null;
+
+        // Set dimensions with fallbacks
+        this.imageWidth = width ? parseFloat(width) :
+                         (viewBoxValues ? viewBoxValues[2] : 800); // default width
+
+        this.imageHeight = height ? parseFloat(height) :
+                          (viewBoxValues ? viewBoxValues[3] : 600); // default height
+
+        // Copy the original SVG
         this.svg = originalSvg;
+
         // Set SVG to fill container completely
         this.svg.style.width = "100%";
         this.svg.style.height = "100%";
         this.svg.style.display = "block"; // Removes any inline spacing
-        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
-        if (!this.svg.hasAttribute('viewBox')) {
+
+        // Ensure viewBox exists
+        if (!viewBox) {
             this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
         }
+
+        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
+
         // Initialize events after adding to DOM
         this.initializeEvents();
-        return this.svg
+
+        return this.svg;
     }
 
     getAnswer() {
@@ -832,9 +1004,7 @@ class ClickMap extends PageElement {
         // Ensure points don't go negative
         if (a.points < 0) a.points = 0;
 
-        console.log(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
-        //set the temp answer where it will be found by the answer button
-        cq.tempAnswer = a;
+        console.info(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
         return a;
     }
 
@@ -884,7 +1054,7 @@ class ClickMap extends PageElement {
         this.answerx = svgX;
         this.answery = svgY;
 
-        console.log(`marker X: ${this.answerx}, marker Y: ${this.answery}`);
+        console.info(`marker X: ${this.answerx}, marker Y: ${this.answery}`);
 
         // Make radius inversely proportional to zoom level
         const zoomAdjustedRadius = this.markerSize / this.scale;
@@ -966,7 +1136,7 @@ class ClickMap extends PageElement {
             window.setTimeout(() => {
                 const dx = Math.abs(tx - this.mx);
                 const dy = Math.abs(ty - this.my);
-                console.log("dx " + dx + ": dy " + dy)
+                console.info("dx " + dx + ": dy " + dy)
                 // has the mouse moved?
                 // TODO change this for 'approximate' has the mouse moved
                 if (dx > 1 || dy > 1) {
@@ -1064,23 +1234,40 @@ class ClickMap extends PageElement {
 // ###################################################################
 // LEADERBOARD
 // ###################################################################
-
+/**
+ * Class which handle showing the observer who has answered
+ * and what they scored for the current question
+ */
 class CurrentAnswers extends PageElement {
-
-    constructor(divName) {
-        super('current-answers-div',['*'])
+    constructor() {
+        super('current-answers-div', ['*']);
     }
 
     shouldShow() {
-        let gs = this.getGameState();
-        let a = gs.hasAnyoneAnswered()
-        return a
+        const api = this.getApi();
+        if (!api) {
+            console.warn('CurrentAnswers: Could not get GameAPI instance');
+            return false;
+        }
+        return api.hasAnyoneAnswered();
     }
 
     getStyles() {}
 
     getContent(gs) {
-        const aa = gs.hasAnyoneAnswered()
+        // Get GameAPI instance
+        const gameAPI = gs || this.getApi();
+        if (!gameAPI) {
+            console.warn('CurrentAnswers: Could not get GameAPI instance');
+            return null;
+        }
+
+        // Check if anyone has answered
+        const hasAnswers = gameAPI.hasAnyoneAnswered();
+        if (!hasAnswers) {
+            console.debug('CurrentAnswers: No answers yet');
+            return null;
+        }
 
         let t = document.createElement('table');
         let answersHtml = `
@@ -1096,30 +1283,54 @@ class CurrentAnswers extends PageElement {
                 <tbody>
         `;
 
-        let pl = gs.getPlayers();
-        for (const [username, player] of Object.entries(pl)) {
-            if (player.isSpectator || player.isAdmin) continue;
-            const hasAnswered = gs.hasAnswered();
-            const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
-            const playerAnswer = gs.getCurrentQuestion().answers.find(a => a.username === username);
+        try {
+            const players = gameAPI.getPlayers();
+            if (!players) {
+                console.warn('CurrentAnswers: No players data available');
+                return null;
+            }
+
+            for (const [username, player] of Object.entries(players)) {
+                // Skip spectators and admins
+                if (player.isSpectator || player.isAdmin) continue;
+
+                const hasAnswered = gameAPI.hasAnswered();
+                const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
+
+                // Get current question and find player's answer
+                const currentQuestion = gameAPI.getCurrentQuestion();
+                if (!currentQuestion || !currentQuestion.answers) {
+                    console.warn('CurrentAnswers: No current question or answers available');
+                    continue;
+                }
+
+                const playerAnswer = currentQuestion.answers.find(a => a.username === username);
+
+                answersHtml += `
+                    <tr ${rowStyle}>
+                        <td>${username}</td>
+                        <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
+                        <td>${playerAnswer ? playerAnswer.points : '0'}</td>
+                        <td>${playerAnswer ? playerAnswer.comment : ''}</td>
+                    </tr>
+                `;
+            }
 
             answersHtml += `
-                <tr ${rowStyle}>
-                    <td>${username}</td>
-                    <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
-                    <td>${playerAnswer ? playerAnswer.points : '0'}</td>
-                    <td>${playerAnswer ? playerAnswer.comment : ''}</td>
-                </tr>
+                    </tbody>
+                </table>
             `;
+
+            t.innerHTML = answersHtml;
+            return t;
+
+        } catch (error) {
+            console.error('CurrentAnswers: Error creating content:', error);
+            return null;
         }
-        answersHtml += `
-                </tbody>
-            </table>
-        `;
-        t.innerHTML = answersHtml;
-        return t
     }
 }
+
 
 class Leaderboard extends PageElement {
     constructor() {
@@ -1129,7 +1340,14 @@ class Leaderboard extends PageElement {
     getStyles() {}
 
     getContent(gs) {
-        const t = document.createElement('table')
+        // Get GameAPI instance if gs is not provided
+        const gameAPI = gs || this.getApi();
+        if (!gameAPI) {
+            console.warn('Leaderboard: Could not get GameAPI instance');
+            return null;
+        }
+
+        const t = document.createElement('table');
         let h = `
             <table class="table">
                 <thead>
@@ -1141,22 +1359,37 @@ class Leaderboard extends PageElement {
                 <tbody>
         `;
 
-        const players = gs.getPlayers();
-        for (const [username, player] of Object.entries(players)) {
-            if (player.isSpectator || player.isAdmin) continue;
+        try {
+            const players = gameAPI.getPlayers();
+            if (!players) {
+                console.warn('Leaderboard: No players data available');
+                return null;
+            }
+
+            for (const [username, player] of Object.entries(players)) {
+                // Skip spectators and admin users
+                if (player.isSpectator || player.isAdmin) continue;
+
+                h += `
+                    <tr>
+                        <td>${username}</td>
+                        <td>${player.percent}</td>
+                    </tr>
+                `;
+            }
+
             h += `
-                <tr>
-                    <td>${username}</td>
-                    <td>${player.percent}</td>
-                </tr>
+                    </tbody>
+                </table>
             `;
+
+            t.innerHTML = h;
+            return t;
+
+        } catch (error) {
+            console.error('Leaderboard: Error creating content:', error);
+            return null;
         }
-        h += `
-                </tbody>
-            </table>
-        `;
-        t.innerHTML = h;
-        return t
     }
 }
 
@@ -1167,6 +1400,16 @@ class Leaderboard extends PageElement {
 class Timer extends PageElement {
     constructor() {
         super('timer',['*']);
+    }
+
+    shouldShow() {
+        let a = this.isQuestionActive();
+        return a;
+    }
+
+    doShouldUpdate() {
+        let u = super.doShouldUpdate()
+        return u;
     }
 
     createStyles() {
@@ -1219,12 +1462,9 @@ class Timer extends PageElement {
     }
 
     getContent(gs) {
-        let ret = null;
-        let cq = this.getCurrentQuestion();
-        const timeLeft = cq.timeLeft;
-        if (timeLeft !== undefined && timeLeft !== null) {
-            ret = document.createTextNode(timeLeft);
-        }
+        if (!this.isQuestionActive()) {return null;}
+        let timeLeft = this.getTimeLeft();
+        let ret = document.createTextNode(timeLeft);
         return ret;
     }
 }
@@ -1279,8 +1519,8 @@ class AnimatedButton extends PageElement {
 
         let timeLeft = this.COOLDOWN_TIME;
         const countdownInterval = setInterval(() => {
-            timeLeft--;
             button.textContent = `Wait ${timeLeft}s`;
+            timeLeft--;
             if (timeLeft <= 0) {
                 button.classList.remove('button-cooldown');
                 button.textContent = this.originalText;
@@ -1376,8 +1616,8 @@ class NextQuestionButton extends AnimatedButton {
     }
 
     isEnabled() {
-        let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return true;}
+        let a = this.getApi()
+        if (!a.isQuestionActive()) {return true;}
         return false;
     }
 }
@@ -1400,8 +1640,8 @@ class PreviousQuestionButton extends AnimatedButton {
     }
 
     isEnabled() {
-        let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return true;}
+        let a = this.getApi()
+        if (!a.isQuestionActive()) {return true;}
         return false;
     }
 }
@@ -1413,25 +1653,24 @@ class StartQuestionButton extends AnimatedButton {
     }
 
     async buttonAction() {
-        console.log("StartQuestion button pushed");
         await fetch('/api/start-question')
         .then(response => {
             if (!response.ok) {
-                console.log("bad response from start question");
+                console.warn("bad response from start question");
                 return false;
             }
-            console.log("good response from start question");
+            console.debug("good response from start question");
             return true
         })
         .catch(error => {
-            console.log("error from start question");
+            console.error("error from start question", error);
             return false;
         });
     }
 
     isEnabled() {
-        let gs = this.getGameState()
-        if (!gs.isQuestionActive()) {return true;}
+        let a = this.getApi()
+        if (!a.isQuestionActive()) {return true;}
         return false;
     }
 }
@@ -1471,27 +1710,25 @@ class StopQuestionButton extends AnimatedButton {
         .catch(error => {return false;});
     }
 }
-
+/**
+ * The button used to submit answers on all question types
+ */
 class AnswerButton extends AnimatedButton {
     constructor() {
         super('answer-button', 5); // 5 second cooldown
     }
 
     buttonAction() {
-        let gs = this.getGameState()
-        // has the user actually submitted an answer?
-        if (!gs.hasAnswered()) {
-            return false;
-        }
-        gs.submitAnswer();
-        return true;
+        let a = this.getApi()
+        console.info("submitting answer");
+        return a.submitAnswer();
     }
 
     isEnabled() {
-        let gs = this.getGameState()
+        let a = this.getApi()
         let foo = super.isEnabled();
         if (!foo) {return false;}
-        let answered = gs.hasAnswered()
+        let answered = a.hasAnswered()
         if (answered) {return false;}
         return true;
     }
@@ -1555,7 +1792,7 @@ class MultiChoice extends PageElement {
     createButtons(container) {
         if (!container) {return;}
         let cq = this.getCurrentQuestion();
-        let gs = this.getGameState();
+        let a = this.getApi();
         this.choices = cq.choices;
 
         const pc = document.createElement('div');
@@ -1594,7 +1831,7 @@ class MultiChoice extends PageElement {
                 this.selectedChoice = choice;
 
                 // Update game state
-                const answer = gs.createAnswerObject();
+                const answer = a.createAnswerObject();
                 answer.answer = choice;
                 this.selectedChoice = answer;
             });
@@ -1603,17 +1840,17 @@ class MultiChoice extends PageElement {
         container.appendChild(pc);
     }
 
-    getContent(gs) {
+    getContent(api) {
+        api = api || this.getApi();
         const cq = this.getCurrentQuestion();
         if (!cq || !cq.choices) {
-            console.log('MultiChoice: No question or choices available');
+            console.debug('MultiChoice: No question or choices available');
             return;
         }
         // Only update if choices have changed
-        if (this.choices && gs.compareArrays(this.choices, cq.choices)) {
+        if (this.choices && api.compareArrays(this.choices, cq.choices)) {
             return;
         }
-        console.log('MultiChoice: Creating new content');
         this.choices = cq.choices;
 
         // Create main container
@@ -1724,8 +1961,41 @@ class MultiChoice extends PageElement {
         return ret;
     }
 
+    /**
+     * Finds which radio button is clicked (if any) and returns
+     * the text value of that button
+     * @returns {string} the text of the selected radio button
+     */
+    getSelectedChoice() {
+        // Get the container that holds all the buttons
+        const container = this.getElement();
+        if (!container) {
+            console.warn('MultiChoice: Container not found');
+            return null;
+        }
+
+        // Find the button that has the 'selected' class
+        const selectedButton = container.querySelector('.multi-choice-button.selected');
+        if (!selectedButton) {
+            console.warn('MultiChoice: No button selected');
+            return null;
+        }
+
+        // Return the text content of the selected button
+        return selectedButton.textContent;
+    }
+
     getAnswer() {
-        return this.selectedChoice;
+        const a = this.getApi();
+        let answer = a.createAnswerObject();
+        const selectedChoice = this.getSelectedChoice();
+        if (!selectedChoice) {
+            console.warn('No choice selected');
+            return null;
+        }
+        // Populate the answer object
+        answer.answer = selectedChoice;
+        return answer;
     }
 }
 
@@ -1779,7 +2049,7 @@ class FreeText extends PageElement {
 
     createInputArea(container) {
         if (!container) {return;}
-        let gs = this.getGameState();
+        let a = this.getApi();
 
         const inputContainer = document.createElement('div');
         inputContainer.className = 'free-text-input-container';
@@ -1794,7 +2064,7 @@ class FreeText extends PageElement {
         container.appendChild(inputContainer);
     }
 
-    getContent(gs) {
+    getContent(api) {
         this.container = document.createElement('div');
         this.createImageDiv(this.container);
         this.createInputArea(this.container);
@@ -1887,20 +2157,51 @@ class FreeText extends PageElement {
         return matrix[len1][len2];
       }
 
-    getAnswer() {
-        if (!this.textInput || !this.textInput.value) {return null;}
-        let a = this.textInput.value;
-        if (!a) {return null;}
-        let ret = this.getGameState().createAnswerObject();
-        // now do fuzzy search and give score
-        const cq = this.getCurrentQuestion();
-        let pf = cq.penalisationFactor;
-        if (!pf) {pf = 4.0;}
-        const foo = this.fuzzyMatch(this.answer, cq.correctAnswer);
-        console.log('foo', foo);
-        // now factor in the penalisationFactor
-        return ret;
+      getAnswer() {
+        const gameAPI = this.getApi();
+        let answer = gameAPI.createAnswerObject();
+
+        // Get the text input element
+        const textInput = this.getElement().querySelector('input[type="text"]');
+        if (!textInput) {
+            console.warn('FreeText: Text input element not found');
+            return null;
+        }
+
+        // Get the text value and trim whitespace
+        const textValue = textInput.value.trim();
+        if (!textValue) {
+            console.warn('FreeText: No text entered');
+            return null;
+        }
+
+        // Get the current question to access the correct answer
+        const currentQuestion = gameAPI.getCurrentQuestion();
+        if (!currentQuestion || !currentQuestion.correctAnswer) {
+            console.warn('FreeText: No correct answer available');
+            return null;
+        }
+
+        // Calculate the Levenshtein distance between user input and correct answer
+        const distance = this.fuzzyMatch(
+            textValue.toLowerCase(),
+            currentQuestion.correctAnswer.toLowerCase()
+        );
+        console.info(`Levenshtein distance: ${distance}`);
+        // You might want to adjust these thresholds based on your needs
+        const maxLength = Math.max(textValue.length, currentQuestion.correctAnswer.length);
+        const similarity = 1 - (distance / maxLength);
+
+        console.info(`Answer similarity: ${similarity * 100}%`);
+
+        // Calculate points based on similarity
+        answer.points = Math.round(currentQuestion.pointsAvailable * similarity);
+        answer.answer = textValue;
+        answer.comment = `Similarity: ${Math.round(similarity * 100)}%`;
+
+        return answer;
     }
+
 }
 
 // ###################################################################

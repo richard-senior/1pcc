@@ -19,41 +19,40 @@ type GameState struct {
 	// Game core data
 	Players         map[string]*Player `json:"players"`
 	AllQuestions    []Question         `json:"allQuestions"`
-	CurrentQuestion *Question          `json:"currentQuestion,omitempty"`
+	CurrentQuestion *Question          `json:"currentQuestion"`
 	TotalQuestions  int                `json:"totalQuestions"`
 	// Session/User data
-	CurrentUser *Player `json:"currentUser,omitempty"`
+	CurrentUser *Player `json:"currentUser"`
 }
 
 type Player struct {
 	Username    string `json:"username"`
 	Score       int    `json:"score"`
 	Percent     int    `json:"percent"`
-	IsAdmin     bool   `json:"isAdmin,omitempty"`
-	IsSpectator bool   `json:"isSpectator,omitempty"`
-	IpAddress   string `json:"ipaddress,omitempty"`
+	IsAdmin     bool   `json:"isAdmin"`
+	IsSpectator bool   `json:"isSpectator"`
+	IpAddress   string `json:"ipaddress"`
 }
 
 type Question struct {
-	Answers            []Answer  `json:"answers,omitempty"`        // as users answer, they'll be added to this list
-	TempAnswer         Answer    `json:"tempAnswer,omitempty"`     // used client side to temporarily hold an answer before submission
-	Question           string    `json:"question"`                 // the actual question text to show the users
-	QuestionNumber     int       `json:"questionNumber,omitempty"` // the question number, this should be worked out dynamically
-	ImageUrl           string    `json:"imageUrl,omitempty"`       // if there's an image this should be the local path or remote url
-	Link               string    `json:"link,omitempty"`           // this is for showing info about the correct answer
-	Type               string    `json:"type"`                     // "multiple_choice" or "text"
-	Choices            []string  `json:"choices,omitempty"`        // if this is multichoice, then these are the choices
-	CorrectAnswer      string    `json:"correctAnswer"`            // indicates the correct answer, can be anything from coordinates to a name etc.
-	PenalisationFactor float32   `json:"penalisationFactor"`       // for geoguessing, how harsh to be. The higher the number the harsher
-	HostAnswer         string    `json:"hostAnswer"`               // Only included for admin
-	PointsAvailable    int       `json:"pointsAvailable"`          // how many points are available for this question
-	TimeLimit          int       `json:"timeLimit"`                // how long do the users have to answer?
-	TimeStarted        time.Time `json:"timeStarted,omitempty"`    // when did this question start
-	TimeLeft           int       `json:"timeLeft,omitempty"`       // how long has the user left to answer this question
+	Answers            []Answer  `json:"answers"`                      // as users answer, they'll be added to this list
+	Question           string    `json:"question"`                     // the actual question text to show the users
+	QuestionNumber     int       `json:"questionNumber"`               // the question number, this should be worked out dynamically
+	ImageUrl           string    `json:"imageUrl,omitempty"`           // if there's an image this should be the local path or remote url
+	Link               string    `json:"link,omitempty"`               // this is for showing info about the correct answer
+	Type               string    `json:"type"`                         // "multiple_choice" or "text"
+	Choices            []string  `json:"choices,omitempty"`            // if this is multichoice, then these are the choices
+	CorrectAnswer      string    `json:"correctAnswer"`                // indicates the correct answer, can be anything from coordinates to a name etc.
+	PenalisationFactor float32   `json:"penalisationFactor,omitempty"` // for geoguessing, how harsh to be. The higher the number the harsher
+	HostAnswer         string    `json:"hostAnswer,omitempty"`         // Only included for admin
+	PointsAvailable    int       `json:"pointsAvailable,omitempty"`    // how many points are available for this question
+	TimeLimit          int       `json:"timeLimit,omitempty"`          // how long do the users have to answer?
+	TimeLeft           int       `json:"timeLeft"`                     // how long has the user left to answer this question
+	TimeStarted        time.Time `json:"timeStarted"`                  // when did this question start
 	//IsPaused           bool      `json:"isPaused,omitempty"`       // New field to track pause state
 	//PausedAt           time.Time `json:"pausedAt,omitempty"`       // When the question was paused
 	//TimeElapsed        float64   `json:"timeElapsed,omitempty"`    // Total time elapsed before pausing
-	IsTimedOut bool   `json:"isTimedOut,omitempty"` // has the question been run and finished?
+	IsTimedOut bool   `json:"isTimedOut"`           // has the question been run and finished?
 	ClickImage string `json:"clickImage,omitempty"` // if this is a click question then the local path to the image we're clicking on
 	StreetView string `json:"streetView,omitempty"` // if this is a geoguesser then the specific info required for streetview
 }
@@ -117,18 +116,19 @@ func decorateGameState(gs *GameState) {
 	*/
 	mu.Lock()
 	defer mu.Unlock()
-	// Calculate the time remaining on the current question
-	// first get the question in a thread safe non-recusion inducing fashion
 	cq := gs.CurrentQuestion
-	if cq == nil || len(gs.Players) == 0 {
+	if cq == nil {
+		logger.Warn("there is no current question in decorate GameState")
 		return
 	}
+
 	if gs.HaveAllPlayersAnswered() {
 		cq.TimeStarted = time.Time{}
 		cq.TimeLeft = 0
 		cq.IsTimedOut = true
 		onQuestionEnded(gs)
 	}
+	// Calculate the time remaining on the current question
 	if !cq.TimeStarted.IsZero() {
 		// Calculate elapsed time since question started
 		elapsed := time.Since(cq.TimeStarted).Seconds()
@@ -147,6 +147,7 @@ func decorateGameState(gs *GameState) {
 		} else {
 			cq.TimeLeft = remainingInt
 			cq.IsTimedOut = false
+			logger.Info(fmt.Sprintf("countdown : %d", cq.TimeLeft))
 		}
 	}
 }
@@ -348,6 +349,8 @@ func (gs *GameState) StartQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
+	// remove any existing answers
+	cq.Answers = []Answer{}
 	if cq != nil {
 		cq.TimeStarted = time.Now()
 		cq.TimeLeft = cq.TimeLimit
@@ -407,6 +410,8 @@ func NewGameState() *GameState {
 		logger.Info("Loaded first question into gamestate")
 		gs.CurrentQuestion = &questions[0]
 		gs.CurrentQuestion.IsTimedOut = false
+		gs.CurrentQuestion.TimeLeft = 0
+		gs.CurrentQuestion.TimeStarted = time.Time{}
 	}
 
 	return gs
