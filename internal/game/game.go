@@ -4,14 +4,12 @@ package game
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/richard-senior/1pcc/internal/logger"
-	"github.com/richard-senior/1pcc/internal/session"
 )
 
 // GameState represents the complete game state and UI configuration
@@ -26,12 +24,12 @@ type GameState struct {
 }
 
 type Player struct {
-	Username    string `json:"username"`
-	Score       int    `json:"score"`
-	Percent     int    `json:"percent"`
-	IsAdmin     bool   `json:"isAdmin"`
-	IsSpectator bool   `json:"isSpectator"`
-	IpAddress   string `json:"ipaddress"`
+	Username    string  `json:"username"`
+	Score       float32 `json:"score"`
+	Percent     int     `json:"percent"`
+	IsAdmin     bool    `json:"isAdmin"`
+	IsSpectator bool    `json:"isSpectator"`
+	IpAddress   string  `json:"ipaddress"`
 }
 
 type Question struct {
@@ -58,11 +56,11 @@ type Question struct {
 }
 
 type Answer struct {
-	QuestionNumber int    `json:"questionNumber"`
-	Username       string `json:"username"`
-	Answer         string `json:"answer"`
-	Comment        string `json:"comment"`
-	Points         int    `json:"points"`
+	QuestionNumber int     `json:"questionNumber"`
+	Username       string  `json:"username"`
+	Answer         string  `json:"answer"`
+	Comment        string  `json:"comment"`
+	Points         float32 `json:"points"`
 }
 
 var (
@@ -194,11 +192,17 @@ func (gs *GameState) SetPlayerSpectator(username string) {
 	}
 }
 
-// Add this to game/game.go
-// this is kind of a 'static' function
-// that is, we can access it from anywhere with just GetMe(r) etc.
-func GetMe(r *http.Request) *Player {
-	username := session.GetUsername(r)
+// In game/game.go
+func PlayerExists(username string) bool {
+	gs := GetGame()
+	if _, exists := gs.Players[username]; exists {
+		return true
+	}
+	return false
+}
+
+// And optionally a method to get a specific player
+func GetPlayer(username string) *Player {
 	gs := GetGame()
 	if player, exists := gs.Players[username]; exists {
 		return player
@@ -250,7 +254,7 @@ func (gs *GameState) getCurrentMaxPoints() int {
 
 func (gs *GameState) GetLeaderboard() []*Player {
 	// Create a map to store running totals for each player
-	playerScores := make(map[string]int)
+	playerScores := make(map[string]float32)
 
 	// Iterate through all questions
 	for _, question := range gs.AllQuestions {

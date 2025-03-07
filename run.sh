@@ -1,5 +1,6 @@
 #!/bin/bash
 #export GOCACHE=off.
+
 tree >> ./dir_structure.txt
 echo "building 1pcc.."
 rm ./1pcc
@@ -10,5 +11,5 @@ go mod tidy
 go build -v -o 1pcc ./cmd/main.go
 chmod 777 1pcc
 echo "Tr3mble5-----" | sudo -S cp 1pcc /usr/local/bin/1pcc
-
+open -na "Google Chrome" --args --new-window "http://localhost:8080/join"
 1pcc

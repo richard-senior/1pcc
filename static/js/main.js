@@ -34,16 +34,23 @@ class GameAPI {
         // observer
         this.allPageElements.push(new Leaderboard());
         this.allPageElements.push(new CurrentAnswers());
+        // host
+        this.allPageElements.push(new PlayerAdmin());
         // holds page elements relevant to the current page and question
         this.pageElements = this.allPageElements;
         // register some handlers
-        window.addEventListener('questionChanged', (event) => {
-            console.log("questionChanged handler invoked");
-        });
-        window.addEventListener('questionTimedOut', (event) => {
-            console.log("questionTimedOut handler invoked");
-        });
         GameAPI.instance = this;
+        // Store bound listeners
+        this.boundOnNewQuestion = (event) => {
+            window.location.reload(true);
+        };
+        this.boundOnQuestionTimeout = (event) => {
+            window.location.reload(true);
+        };
+        // Add listeners
+        window.addEventListener('questionChanged', this.boundOnNewQuestion);
+        window.addEventListener('questionTimedOut', this.boundOnQuestionTimeout);
+
         // start polling
         this.startPolling();
     }
@@ -282,6 +289,8 @@ class GameAPI {
 
     startPolling(interval = 2000) { // Poll every 2 seconds by default
         this.stopPolling(); // Clear any existing interval
+        // do an initial update to avoid interval delay in page update
+        this.update()
         this.pollInterval = setInterval(() => this.update(), interval);
     }
 
@@ -345,7 +354,6 @@ class GameAPI {
 
         try {
             let s = JSON.stringify(answer);
-            console.log('Submitting answer:', s);
             const response = await fetch('/api/submit-answer', {
                 method: 'POST',
                 headers: {
@@ -419,6 +427,7 @@ class GameAPI {
  */
 class PageElement {
     constructor(name, questionTypes) {
+        this.classname = this.constructor.name;
         this.element = null;
         this.styles = null;
         this.name = name;
@@ -432,7 +441,6 @@ class PageElement {
             }
         }
     }
-
     /**
      * Finds the dom element managed by this object in the current
      * dom model, or creates and inserts it.
@@ -452,6 +460,7 @@ class PageElement {
             this.element = pe;
             return pe;
         }
+        this.element = null;
     }
     /**
      * Abstract method that should be overriden by the extending class
@@ -631,17 +640,13 @@ class PageElement {
      */
     createStyles() {return null;}
     /**
-     * hides or shows the dom element managed by this object
-     * based on some logic.
-     * 1) The element is present in the dom
-     * 2) the current question is not none
-     * 3) this.shouldShow returns true or false
-     *
-     * @returns {boolean} true if the managed element should be shown
+     * checks fields in the question to determine if this page element
+     * is relevant. For example if this is not a multichoice question then
+     * then any page element dealing with multichoice questions is not appropriate
+     * @param {*} q
+     * @returns {boolean} true this page element is appropriate for the given question
      */
-    doShouldShow() {
-        if (!this.getElement()) {return false;}
-        let cq = this.getCurrentQuestion();
+    isCompatibleWithQuestion(cq) {
         if (!cq || !cq.type) {
             console.warn("no question.. can't continue")
             this.hide();
@@ -654,20 +659,43 @@ class PageElement {
             return false;
         }
         let qt = this.questionTypes
+        if (!qt || !Array.isArray(qt)) {
+            console.warn("no question types")
+            this.hide()
+            return false;
+        }
         // Check if this PageElement supports the current game type
         // this is non-negotiable
-        if (qt && Array.isArray(qt) && !qt.includes("*")) {
+        if (!qt.includes("*")) {
             if (!qt.includes(cq.type)) {
                 this.hide();
                 return false;
             }
+        }
+        //console.log(`${qt} is compatible with ${cq.type}`)
+        return true
+    }
+
+    /**
+     * hides or shows the dom element managed by this object
+     * based on some logic.
+     * 1) The element is present in the dom
+     * 2) the current question is not none
+     * 3) this.shouldShow returns true or false
+     *
+     * @returns {boolean} true if the managed element should be shown
+     */
+    doShouldShow() {
+        if (!this.getElement()) {return false;}
+        let cq = this.getCurrentQuestion();
+        if (!this.isCompatibleWithQuestion(cq)) {
+            return false;
         }
         // let the extending class have the final say
         let ss = this.shouldShow();
         if (ss) {
             this.show();
             return true;
-        } else {
             this.hide();
             return false;
         }
@@ -690,18 +718,26 @@ class PageElement {
      * @returns {void}
      */
     show() {
-        let el = this.getElement()
-        //el.style.position = 'relative'
+        let el = this.getElement();
+        if (!el) {
+            console.warn(`Element ${this.name} not found in DOM`);
+            return;
+        }
         el.style.visibility = 'visible';
         el.style.display = 'block';
     }
+
     /**
      * sets the managed page elements style visibility and
      * display parameters such that the element is hidden
      * @returns {void}
      */
     hide() {
-        let el = this.getElement()
+        let el = this.getElement();
+        if (!el) {
+            console.warn(`Element ${this.name} not found in DOM`);
+            return;
+        }
         el.style.visibility = 'hidden';
         el.style.display = 'none';
     }
@@ -784,8 +820,8 @@ class StreetView extends PageElement {
         overlay.style.position = 'absolute';
         overlay.style.top = '0';
         overlay.style.left = '0';
-        overlay.style.width = '300px';
-        overlay.style.height = '80px';
+        overlay.style.width = '45vw';
+        overlay.style.height = '10vh';
         overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'; // Semi-transparent black
         overlay.style.backdropFilter = 'blur(5px)'; // Add blur effect
         overlay.style.webkitBackdropFilter = 'blur(5px)'; // For Safari support
@@ -838,6 +874,12 @@ class ClickMap extends PageElement {
         this.svg = null;
         this.imageWidth = null;
         this.imageHeight = null;
+        // pinch zooming variables
+        this.initialPinchDistance = 0;
+        this.initialScale = 1;
+        this.lastScale = 1;
+        // Initialize events after adding to DOM
+        this.initializeEvents();
     }
 
     createStyles() {
@@ -901,7 +943,7 @@ class ClickMap extends PageElement {
 
         // Validate that we have a valid SVG
         if (originalSvg.nodeName !== 'svg') {
-            console.error('Error: Invalid SVG document');
+            console.warn('Error: Invalid SVG document');
             return null;
         }
 
@@ -935,15 +977,12 @@ class ClickMap extends PageElement {
 
         this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
 
-        // Initialize events after adding to DOM
-        this.initializeEvents();
-
         return this.svg;
     }
 
     getAnswer() {
         let gs = GameAPI.getInstance();
-        let a = gs.createAnswerObject();
+        let a = GameAPI.createAnswerObject();
         let cq = gs.getCurrentQuestion();
         let ap = cq.pointsAvailable;
 
@@ -1067,11 +1106,27 @@ class ClickMap extends PageElement {
     }
 
     initializeEvents() {
-        const container = this.getElement()
+        const container = this.getElement();
         container.style.cursor = 'default';
+
+        // Feature detection for passive support
+        let passiveSupported = false;
+        try {
+            const opts = Object.defineProperty({}, 'passive', {
+                get: function() {
+                    passiveSupported = true;
+                    return true;
+                }
+            });
+            window.addEventListener("test", null, opts);
+        } catch (e) {}
+
+        // Set up passive options based on support
+        const passiveOpts = passiveSupported ? { passive: true } : false;
+        const nonPassiveOpts = { passive: false };
+
+        // MOUSE MOVEMENT HANDLING
         container.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
             if (!this.svg) return;
 
             // Update mouse position tracking
@@ -1079,10 +1134,8 @@ class ClickMap extends PageElement {
             this.prevmy = this.my;
             this.mx = e.clientX;
             this.my = e.clientY;
-            //const dx = e.clientX - this.startPoint.x;
-            //const dy = e.clientY - this.startPoint.y;
+
             if (this.isDragging) {
-                // do dragging
                 const box = this.svg.viewBox.baseVal;
                 const scale = box.width / this.svg.clientWidth;
 
@@ -1093,92 +1146,302 @@ class ClickMap extends PageElement {
                 // Update viewBox by moving it opposite to the drag direction
                 box.x -= dx;
                 box.y -= dy;
-                this.dragx += dx
-                this.dragy += dy
+                this.dragx += dx;
+                this.dragy += dy;
             }
-        });
+        }, nonPassiveOpts);
 
+        // MOUSE EXIT HANDLING
         container.addEventListener('mouseleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.clearInterval()
+            window.clearInterval();
             if (!this.svg) return;
-            this.isDragging = false
+            this.isDragging = false;
             container.style.cursor = 'default';
-        });
+        }, passiveOpts);
 
+        // MOUSE UP HANDLING
         container.addEventListener('mouseup', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.clearInterval()
+            window.clearInterval();
             if (!this.svg) return;
-            // mouse up go back to ordinary mouse pointer
             container.style.cursor = 'default';
             if (this.isDragging) {
-                // we've finished dragging
                 this.isDragging = false;
-            } else {
-                // nothing to do here?
             }
-        });
+        }, passiveOpts);
 
-        // Mouse down handler
+        // MOUSE DOWN HANDLING
         container.addEventListener('mousedown', (e) => {
             e.preventDefault();
-            e.stopPropagation();
             if (!this.svg) return;
-            // if we're already waiting for a timer to finish then cancel it?
-            window.clearInterval()
-            // note the mouse current location
-            let tx = e.clientX
-            let ty = e.clientY
-            // wait a short time and check if the mouse moves
+            window.clearInterval();
+            let tx = e.clientX;
+            let ty = e.clientY;
             window.setTimeout(() => {
                 const dx = Math.abs(tx - this.mx);
                 const dy = Math.abs(ty - this.my);
-                console.info("dx " + dx + ": dy " + dy)
-                // has the mouse moved?
-                // TODO change this for 'approximate' has the mouse moved
                 if (dx > 1 || dy > 1) {
                     this.isDragging = true;
                     container.style.cursor = 'grabbing';
-                    // this is a drag event
-                    // initiate drag
                 } else {
                     this.isDragging = false;
                     container.style.cursor = 'default';
-                    this.addMarker()
-                    // do nothing until mouseup
+                    this.addMarker();
                 }
             }, 350);
-        });
+        }, nonPassiveOpts);
 
-        // In initializeEvents():
+        // CONTAINER WHEEL ZOOM HANDLING
         container.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Don't zoom if we're dragging
             if (this.isDragging) return;
-
             const scaleFactor = e.deltaY < 0 ? 1.1 : 0.9;
             const rect = container.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
             this.zoom(scaleFactor, mouseX, mouseY);
+        }, passiveOpts);
+
+        // PREVENT CTRL/CMD + WHEEL ZOOM IN CONTAINER
+        container.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+            }
+        }, nonPassiveOpts);
+
+        // TOUCH HANDLING FOR CONTAINER
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                this.mx = touch.clientX;
+                this.my = touch.clientY;
+                this.prevmx = this.mx;
+                this.prevmy = this.my;
+                this.isDragging = false;
+                this.clickStartTime = Date.now();
+
+                this.startPoint = {
+                    x: touch.clientX,
+                    y: touch.clientY
+                };
+                this.viewBoxStart = {
+                    x: this.viewBox.x,
+                    y: this.viewBox.y
+                };
+            } else if (e.touches.length === 2) {
+                // Initialize pinch zoom
+                this.secondPointerDown = true;
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                this.initialPinchDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+                this.initialScale = this.scale;
+                this.lastScale = 1;
+            }
+        }, passiveOpts);
+
+        // TOUCH MOVE HANDLING
+        // invokes the existing non-touch handlers such as mousedown etc.
+        container.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent default touch behaviors
+
+            if (e.touches.length === 1) {
+                // Simulate mousedown for single touch
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true
+                });
+                this.mx = touch.clientX;
+                this.my = touch.clientY;
+                this.prevmx = this.mx;
+                this.prevmy = this.my;
+                container.dispatchEvent(mouseEvent);
+            }
+            else if (e.touches.length === 2) {
+                // Store initial distance for pinch zoom
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                this.initialPinchDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+            }
         }, { passive: false });
 
-        // Track second pointer for pinch zoom detection
+        container.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+
+            if (e.touches.length === 1) {
+                // Simulate mousemove
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true
+                });
+                container.dispatchEvent(mouseEvent);
+            }
+            else if (e.touches.length === 2) {
+                // Handle pinch zoom by simulating wheel event
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+
+                const currentDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+
+                // Calculate zoom direction based on pinch movement
+                const delta = this.initialPinchDistance - currentDistance;
+
+                // Calculate center point of the pinch
+                const centerX = (touch1.clientX + touch2.clientX) / 2;
+                const centerY = (touch1.clientY + touch2.clientY) / 2;
+
+                // Create and dispatch wheel event
+                const wheelEvent = new WheelEvent('wheel', {
+                    deltaY: delta,
+                    clientX: centerX,
+                    clientY: centerY,
+                    bubbles: true
+                });
+                container.dispatchEvent(wheelEvent);
+
+                // Update initial distance for next move event
+                this.initialPinchDistance = currentDistance;
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', (e) => {
+            e.preventDefault();
+
+            // Simulate mouseup
+            const mouseEvent = new MouseEvent('mouseup', {
+                bubbles: true
+            });
+            container.dispatchEvent(mouseEvent);
+
+            // Reset pinch zoom state
+            this.initialPinchDistance = 0;
+            this.isDragging = false;
+            this.secondPointerDown = false;
+        }, { passive: false });
+
+        // POINTER EVENTS FOR PINCH DETECTION
         container.addEventListener('pointerdown', (e) => {
             if (e.isPrimary === false) {
                 this.secondPointerDown = true;
             }
-        });
+        }, passiveOpts);
+
         container.addEventListener('pointerup', (e) => {
             if (e.isPrimary === false) {
                 this.secondPointerDown = false;
             }
+        }, passiveOpts);
+
+        // DOCUMENT-LEVEL EVENT HANDLERS
+        // Prevent zooming outside of ClickMap etc.
+        document.addEventListener('wheel', (e) => {
+            if (!e.target.closest('.click-container') && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false,
+            capture: true
         });
+
+        // Prevent pinch zoom at document level except for click-container
+        document.addEventListener('touchmove', (e) => {
+            if (!e.target.closest('.click-container') && e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false,
+            capture: true
+        });
+
+        // Prevent keyboard zoom shortcuts except when click-container is focused
+        document.addEventListener('keydown', (e) => {
+            if (!e.target.closest('.click-container') && (e.ctrlKey || e.metaKey)) {
+                switch (e.key) {
+                    case '+':
+                    case '-':
+                    case '=':
+                    case '0':
+                        e.preventDefault();
+                        break;
+                }
+            }
+        });
+
+        // For wheel events that need preventDefault
+        document.addEventListener('wheel', function(e) {
+            // Only prevent Ctrl+wheel zoom outside of click-container
+            if (!e.target.closest('.click-container') && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false,  // Explicitly set non-passive due to preventDefault() usage
+            capture: true   // Use capture to handle event before it reaches other listeners
+        });
+
+        // For general wheel events that don't need preventDefault
+        document.addEventListener('wheel', function(e) {
+            if (e.target.closest('.click-container')) {
+                // Handle click-container wheel events normally
+                return;
+            }
+        }, {
+            passive: true   // This one can be passive as it never calls preventDefault
+        });
+
+        // Prevent pinch zoom at document level EXCEPT for click-container
+        document.addEventListener('touchmove', function(e) {
+            // Allow the event if it's from the click-container
+            if (e.target.closest('.click-container')) {
+                return;
+            }
+            // Prevent pinch zoom everywhere else
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false,  // Must be non-passive since we use preventDefault
+            capture: true
+        });
+
+        // Prevent keyboard zoom shortcuts EXCEPT when click-container is focused
+        document.addEventListener('keydown', function(e) {
+            // Allow if the click-container or its children are focused
+            if (e.target.closest('.click-container')) {
+                return;
+            }
+            // Prevent Ctrl/Cmd + Plus/Minus/Zero
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case '+':
+                    case '-':
+                    case '=':
+                    case '0':
+                        e.preventDefault();
+                        break;
+                }
+            }
+        });
+        // Prevent zooming with more than one finger
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault(); // Prevent zoom
+            }
+        }, { passive: false });
+
+        // Prevent pinch zooming with gestures
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault(); // Prevent zoom gesture
+        }, { passive: false });
     }
 
     zoom(scaleFactor, centerX, centerY) {
@@ -1230,7 +1493,6 @@ class ClickMap extends PageElement {
         };
     }
 }
-
 // ###################################################################
 // LEADERBOARD
 // ###################################################################
@@ -1262,6 +1524,15 @@ class CurrentAnswers extends PageElement {
             return null;
         }
 
+        // Create container div
+        const container = document.createElement('div');
+
+        // Create and add title bar
+        const titleBar = document.createElement('div');
+        titleBar.className = 'table-title-bar';
+        titleBar.textContent = 'Current Answers';
+        container.appendChild(titleBar);
+
         // Check if anyone has answered
         const hasAnswers = gameAPI.hasAnyoneAnswered();
         if (!hasAnswers) {
@@ -1291,13 +1562,10 @@ class CurrentAnswers extends PageElement {
             }
 
             for (const [username, player] of Object.entries(players)) {
-                // Skip spectators and admins
                 if (player.isSpectator || player.isAdmin) continue;
-
                 const hasAnswered = gameAPI.hasAnswered();
                 const rowStyle = hasAnswered ? '' : 'style="background-color: #f0f0f0;"';
 
-                // Get current question and find player's answer
                 const currentQuestion = gameAPI.getCurrentQuestion();
                 if (!currentQuestion || !currentQuestion.answers) {
                     console.warn('CurrentAnswers: No current question or answers available');
@@ -1305,7 +1573,6 @@ class CurrentAnswers extends PageElement {
                 }
 
                 const playerAnswer = currentQuestion.answers.find(a => a.username === username);
-
                 answersHtml += `
                     <tr ${rowStyle}>
                         <td>${username}</td>
@@ -1320,18 +1587,161 @@ class CurrentAnswers extends PageElement {
                     </tbody>
                 </table>
             `;
-
             t.innerHTML = answersHtml;
-            return t;
-
+            container.appendChild(t);
+            return container;
         } catch (error) {
             console.error('CurrentAnswers: Error creating content:', error);
             return null;
         }
     }
 }
+/**
+ * Class which deals with displaying the current players
+ * and allows for administration of those players
+ */
+class PlayerAdmin extends PageElement {
+    constructor() {
+        super('player-admin',['*'])
+        this.numplayers = 0;
+    }
 
+    static click(username, action) {
+        if (!username || !action) {return;}
+        let pts = document.getElementById("player-admin-points");
+        populate these cases
+        switch(action.toLowerCase()) {
+            case 'kick':
+                console.log(`Kicking player: ${username}`);
+                // Add kick player logic here
+                break;
 
+            case 'ban':
+                console.log(`Banning player: ${username}`);
+                // Add ban player logic here
+                break;
+
+            case 'dock':
+                console.log(`Docking ${pts.value} points from player: ${username}`);
+                // Add point reduction logic here
+                break;
+
+            case 'award':
+                console.log(`Awarding ${pts.value} points to player: ${username}`);
+                // Add point award logic here
+                break;
+
+            default:
+                console.warn(`Unknown action: ${action} for player: ${username}`);
+                return;
+        }
+    }
+
+    getStyles() {
+        return `
+        .small-button {
+            padding: 2px 4px;
+            font-size: 0.8em;
+            margin: 1px;
+            border-radius: 2px;
+            border: 1px solid #ccc;
+            color: var(--bccstone);
+            background-color: var(--bcclightblue);
+            cursor: pointer;
+            min-width: min-content;
+            height: auto;
+            white-space: nowrap;
+            display: inline-block;
+            color: white;
+        }
+
+        .small-button:hover {
+            background-color: var(--bccblue);
+        }
+
+        .small-button:active {
+            background-color: var(--bccblue);
+        }
+        `
+    }
+
+    getContent(gs) {
+        // Get GameAPI instance if gs is not provided
+        const gameAPI = gs || this.getApi();
+        if (!gameAPI) {
+            console.warn('Leaderboard: Could not get GameAPI instance');
+            return null;
+        }
+        const players = gs.getPlayers();
+        if (!players) {
+            console.warn('PlayerAdmin: No players data available');
+            return null;
+        }
+        // Count total number of players
+        let currentPlayerCount = Object.keys(players).length;
+        // Compare with previous count
+        if (currentPlayerCount === this.numplayers) {
+            return
+        } else {
+            this.numplayers = currentPlayerCount;
+        }
+        // Create container div
+        const container = document.createElement('div');
+        // Create table
+        const t = document.createElement('table');
+        let h = `
+            <form name="players-form" id="players-form" action="/api/players" method="GET"  autocomplete="off" accept-charset="UTF-8">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        try {
+            for (const [username, player] of Object.entries(players)) {
+                if (player.isSpectator || player.isAdmin) continue;
+
+                h += `
+                    <tr>
+                        <td>${username}</td>
+                        <td>${player.percent}</td>
+                        <td>
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','kick')" value="Kick" />
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','ban')" value="Ban" />
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','dock')" value="Dock" />
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','award')" value="Award" />
+                        </td>
+                    </tr>
+                `;
+            }
+            h += `
+                    <tr>
+                        <td colspan="3">
+                            points: <input type="text" name="player-admin-points" id="player-admin-points" value="0" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+            `;
+            t.innerHTML = h;
+            container.appendChild(t);
+            return container;
+        } catch (error) {
+            console.error('PlayerAdmin: Error creating content:', error);
+            return null;
+        }
+    }
+}
+
+/**
+ * Class that deals with displaying the current total player rankings
+ */
 class Leaderboard extends PageElement {
     constructor() {
         super('leaderboard-div',['*'])
@@ -1347,6 +1757,16 @@ class Leaderboard extends PageElement {
             return null;
         }
 
+        // Create container div
+        const container = document.createElement('div');
+
+        // Create and add title bar
+        const titleBar = document.createElement('div');
+        titleBar.className = 'table-title-bar';
+        titleBar.textContent = 'Current Standings';
+        container.appendChild(titleBar);
+
+        // Create table
         const t = document.createElement('table');
         let h = `
             <table class="table">
@@ -1369,7 +1789,6 @@ class Leaderboard extends PageElement {
             for (const [username, player] of Object.entries(players)) {
                 // Skip spectators and admin users
                 if (player.isSpectator || player.isAdmin) continue;
-
                 h += `
                     <tr>
                         <td>${username}</td>
@@ -1377,22 +1796,19 @@ class Leaderboard extends PageElement {
                     </tr>
                 `;
             }
-
             h += `
                     </tbody>
                 </table>
             `;
-
             t.innerHTML = h;
-            return t;
-
+            container.appendChild(t);
+            return container;
         } catch (error) {
             console.error('Leaderboard: Error creating content:', error);
             return null;
         }
     }
 }
-
 // ###################################################################
 // TIMER
 // ###################################################################
@@ -1744,6 +2160,12 @@ class MultiChoice extends PageElement {
         this.selectedChoice = null;
     }
 
+    onNewQuestion() {
+        // clean up some thing so that dom elements get re-instantiated
+        this.choices = null;
+        this.selectedChoice = null;
+    }
+
     // Override shouldShow to help debug visibility issues
     doShouldShow() {
         return super.doShouldShow();
@@ -1826,13 +2248,11 @@ class MultiChoice extends PageElement {
                 // Add selected class to clicked button
                 button.classList.add('selected');
                 button.setAttribute('aria-checked', 'true');
-
-                // Store the choice
-                this.selectedChoice = choice;
-
-                // Update game state
+                // create a new answer object and store it locally
+                // getAnswer will find it when the answer button is pushed
                 const answer = a.createAnswerObject();
-                answer.answer = choice;
+                answer.answer = button.textContent;
+                console.log(answer)
                 this.selectedChoice = answer;
             });
             pc.appendChild(button);
@@ -1961,40 +2381,23 @@ class MultiChoice extends PageElement {
         return ret;
     }
 
-    /**
-     * Finds which radio button is clicked (if any) and returns
-     * the text value of that button
-     * @returns {string} the text of the selected radio button
-     */
-    getSelectedChoice() {
-        // Get the container that holds all the buttons
-        const container = this.getElement();
-        if (!container) {
-            console.warn('MultiChoice: Container not found');
-            return null;
-        }
-
-        // Find the button that has the 'selected' class
-        const selectedButton = container.querySelector('.multi-choice-button.selected');
-        if (!selectedButton) {
-            console.warn('MultiChoice: No button selected');
-            return null;
-        }
-
-        // Return the text content of the selected button
-        return selectedButton.textContent;
-    }
-
     getAnswer() {
         const a = this.getApi();
-        let answer = a.createAnswerObject();
-        const selectedChoice = this.getSelectedChoice();
-        if (!selectedChoice) {
-            console.warn('No choice selected');
-            return null;
+        let answer = this.selectedChoice;
+        if (!answer) {return null;}
+        //calculate points
+        let cq = this.getCurrentQuestion();
+        let ca = cq.correctAnswer;
+        if (ca === answer.answer) {
+            console.log("correct answer");
+            answer.points = cq.pointsAvailable;
+            answer.comment = "yes";
+        } else {
+            console.log("incorrect answer");
+            answer.points = 0;
+            answer.comment = "no";
         }
-        // Populate the answer object
-        answer.answer = selectedChoice;
+        // now add small penalty for time take
         return answer;
     }
 }
@@ -2125,39 +2528,73 @@ class FreeText extends PageElement {
     }
 
     fuzzyMatch(str1, str2) {
+        // Normalize strings: lowercase and remove extra spaces
+        str1 = str1.toLowerCase().trim();
+        str2 = str2.toLowerCase().trim();
+
+        // Find the shortest and longest strings
+        let shorter = str1.length <= str2.length ? str1 : str2;
+        let longer = str1.length > str2.length ? str1 : str2;
+
+        // Try to find the best partial match by sliding the shorter string
+        // across the longer string
+        let minDistance = Infinity;
+
+        for (let i = 0; i <= longer.length - shorter.length; i++) {
+            const substring = longer.substr(i, shorter.length);
+            const distance = this.levenshteinDistance(shorter, substring);
+            minDistance = Math.min(minDistance, distance);
+
+            // Early exit if we find a perfect match
+            if (minDistance === 0) break;
+        }
+
+        return minDistance;
+    }
+
+    // Separate the core Levenshtein distance calculation
+    levenshteinDistance(str1, str2) {
         const len1 = str1.length;
         const len2 = str2.length;
 
         let matrix = Array(len1 + 1);
         for (let i = 0; i <= len1; i++) {
-          matrix[i] = Array(len2 + 1);
+            matrix[i] = Array(len2 + 1);
         }
 
         for (let i = 0; i <= len1; i++) {
-          matrix[i][0] = i;
+            matrix[i][0] = i;
         }
 
         for (let j = 0; j <= len2; j++) {
-          matrix[0][j] = j;
+            matrix[0][j] = j;
         }
 
         for (let i = 1; i <= len1; i++) {
-          for (let j = 1; j <= len2; j++) {
-            if (str1[i - 1] === str2[j - 1]) {
-              matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-              matrix[i][j] = Math.min(
-                matrix[i - 1][j] + 1,
-                matrix[i][j - 1] + 1,
-                matrix[i - 1][j - 1] + 1
-              );
+            for (let j = 1; j <= len2; j++) {
+                if (str1[i - 1] === str2[j - 1]) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,     // deletion
+                        matrix[i][j - 1] + 1,     // insertion
+                        matrix[i - 1][j - 1] + 1  // substitution
+                    );
+                }
             }
-          }
         }
-        return matrix[len1][len2];
-      }
 
-      getAnswer() {
+        return matrix[len1][len2];
+    }
+    /**
+     * Uses fuzzy logic to determine if the user has answered
+     * the question adequately.
+     * currentQuestion.penalisationFactor is used to tune 'how wrong'
+     * User input can be and still be considered a correct answer
+     * @see {PageElement#getAnswer()}
+     * @returns {Object} the scored answer object
+     */
+    getAnswer() {
         const gameAPI = this.getApi();
         let answer = gameAPI.createAnswerObject();
 
@@ -2177,31 +2614,31 @@ class FreeText extends PageElement {
 
         // Get the current question to access the correct answer
         const currentQuestion = gameAPI.getCurrentQuestion();
-        if (!currentQuestion || !currentQuestion.correctAnswer) {
-            console.warn('FreeText: No correct answer available');
+        if (!currentQuestion || !currentQuestion.correctAnswer || !currentQuestion.penalisationFactor) {
+            console.warn('FreeText: No correct answer available or missing penalisationFactor');
             return null;
         }
-
+        let maxDistance = parseInt(currentQuestion.penalisationFactor);
         // Calculate the Levenshtein distance between user input and correct answer
         const distance = this.fuzzyMatch(
             textValue.toLowerCase(),
             currentQuestion.correctAnswer.toLowerCase()
         );
-        console.info(`Levenshtein distance: ${distance}`);
-        // You might want to adjust these thresholds based on your needs
+        // console.info(`Levenshtein distance: ${distance}`);
         const maxLength = Math.max(textValue.length, currentQuestion.correctAnswer.length);
         const similarity = 1 - (distance / maxLength);
-
-        console.info(`Answer similarity: ${similarity * 100}%`);
-
-        // Calculate points based on similarity
-        answer.points = Math.round(currentQuestion.pointsAvailable * similarity);
-        answer.answer = textValue;
         answer.comment = `Similarity: ${Math.round(similarity * 100)}%`;
-
+        if (distance > maxDistance) {
+            console.info(`wrong answer.. pf = ${maxDistance} actual distance ${distance}`);
+            answer.points = 0
+            answer.answer = textValue
+        } else {
+            console.info(`right answer.. pf = ${maxDistance} actual distance ${distance}`);
+            answer.points = currentQuestion.pointsAvailable;
+            answer.answer = currentQuestion.correctAnswer;
+        }
         return answer;
     }
-
 }
 
 // ###################################################################
@@ -2213,7 +2650,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // start the game API singleton if it hasn't already been started
     // This will also start pollling the server for game state updates
     const gameApi = GameAPI.getInstance();
-
-    // TODO replace this when everything implements PageElement
-    //window.addEventListener('gameStateUpdated', updateAll);
 });

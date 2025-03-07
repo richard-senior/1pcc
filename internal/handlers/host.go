@@ -4,12 +4,12 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/richard-senior/1pcc/internal/game"
+	"github.com/richard-senior/1pcc/internal/session"
 )
 
 func HostHandler(w http.ResponseWriter, r *http.Request) {
 	// only allow admins into host
-	player := game.GetMe(r)
+	player := session.GetMe(r)
 	// IF this user is the host then assign admin rights
 	if player.IsAdmin {
 		//logger.Info("player is admin")

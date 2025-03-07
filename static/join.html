@@ -20,8 +20,11 @@
             <!-- Option 2: For text content -->
             <div class="frame-text">
                 <h1>Join the Game</h1>
-                <form id="join-form" method="POST">
-                    <input type="text" value="richard" name="username" placeholder="Enter your (or your team's) name" required/>
+                <form id="join-form" method="POST" action="/join" autocomplete="off" accept-charset="UTF-8">
+                    <input type="text" value="richard" name="username"
+                           placeholder="Enter your (or your team's) name"
+                           autocomplete="off"
+                           required/>
                     <input type="submit" value="Submit Name"/>
                 </form>
                 <p>&nbsp;</p>

@@ -10,9 +10,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/richard-senior/1pcc/internal/game"
 	"github.com/richard-senior/1pcc/internal/logger"
+	"github.com/richard-senior/1pcc/internal/session"
 )
 
 /*
@@ -34,7 +37,8 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 	// Set JSON content type
 	w.Header().Set("Content-Type", "application/json")
 	// Handle different API endpoints
-	switch r.URL.Path {
+	path := strings.TrimSuffix(r.URL.Path, "/") // Remove trailing slash if present
+	switch path {
 	case "/api/game-state":
 		handleGameState(w, r)
 	case "/api/get-leaderboard":
@@ -51,6 +55,8 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 		handlePauseQuestion(w, r)
 	case "/api/stop-question":
 		handleStopQuestion(w, r)
+	case "/api/players":
+		handlePlayers(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -78,7 +84,7 @@ func handleGameState(w http.ResponseWriter, r *http.Request) {
 	// get the game state from the game singleton
 	state := game.GetGame()
 	// populate some extra fields from session etc.
-	p := game.GetMe(r)
+	p := session.GetMe(r)
 	state.CurrentUser = p
 
 	// Encode the state as JSON and send it back
@@ -132,6 +138,45 @@ func handlePauseQuestion(w http.ResponseWriter, r *http.Request) {
 }
 func handleStopQuestion(w http.ResponseWriter, r *http.Request) {
 	game.GetGame().StopQuestion()
+}
+func handlePlayers(w http.ResponseWriter, r *http.Request) {
+	au := session.GetMe(r)
+	if au == nil || !au.IsAdmin {
+		return
+	}
+	username := r.URL.Query().Get("username")
+	action := r.URL.Query().Get("action")
+	points := r.URL.Query().Get("points")
+	if username == "" || action == "" {
+		return
+	}
+	if !game.PlayerExists(username) {
+		return
+	}
+	player := game.GetPlayer(username)
+
+	switch action {
+	case "kick":
+		session.EjectByUsername(player.Username)
+	case "ban":
+		session.Ban(player.Username)
+	case "dock":
+		pointsFloat, err := strconv.ParseFloat(points, 32)
+		if err != nil {
+			http.Error(w, "Invalid points value", http.StatusBadRequest)
+			return
+		}
+		player.Score -= float32(pointsFloat)
+	case "award":
+		pointsFloat, err := strconv.ParseFloat(points, 32)
+		if err != nil {
+			http.Error(w, "Invalid points value", http.StatusBadRequest)
+			return
+		}
+		player.Score += float32(pointsFloat)
+	default:
+		http.Error(w, "Invalid action", http.StatusBadRequest)
+	}
 }
 
 /*
