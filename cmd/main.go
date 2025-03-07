@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -44,6 +45,7 @@ func baseHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set CORS headers for all responses
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
@@ -53,22 +55,43 @@ func baseHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		if isPublicPath(r.URL.Path) {
+		// First check if it's /join path - this should always be accessible
+		if r.URL.Path == "/join" {
 			next.ServeHTTP(w, r)
 			return
 		}
-		// TODO handle player banning by IP
-		// Check to see if the user has a session cookie
-		if !session.IsUserLoggedIn(r) {
-			// if they do not, then check if it's a public path
-			if !publicPaths[r.URL.Path] {
-				http.Redirect(w, r, "/join", http.StatusSeeOther)
+
+		// Then check if user is logged in
+		if !session.IsUserLoggedIn(w, r) {
+			// If not logged in, only allow specific public paths
+			if isPublicPath(r.URL.Path) {
+				next.ServeHTTP(w, r)
 				return
 			}
+			// For all other paths, redirect to /join
+			http.Redirect(w, r, "/join", http.StatusSeeOther)
+			return
 		}
-		// Call the next handler
+
+		// User is logged in, proceed with the request
 		next.ServeHTTP(w, r)
 	})
+}
+
+// Add this helper function
+func getHostIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "unknown"
+	}
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return "unknown"
 }
 
 func main() {
@@ -109,7 +132,7 @@ func main() {
 	game.GetGame()
 
 	// Listen and serve
-	logger.Info("1pcc Server is ready to handle requests at %s", serverPort)
+	logger.Info("1pcc Server is ready to handle requests at %s:%s", getHostIP(), serverPort)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v", serverPort, err)
 	}

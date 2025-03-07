@@ -16,6 +16,23 @@
 :root {
     --bccblue: #24354F;
     --bccgold: #BA9128;
+    /* Core brand extension colors */
+    --bccnavy: #1A2638;        /* Darker blue */
+    --bcclightblue: #4A6285;   /* Lighter blue */
+    --bccdarkgold: #8B6B1E;    /* Darker gold */
+    --bcclightgold: #D4B05C;   /* Lighter gold */
+
+    /* Complementary accent colors */
+    --bccslate: #5F6B7A;       /* Neutral slate */
+    --bccstone: #E5E7EA;       /* Light neutral */
+    --bccrust: #A65D21;        /* Warm accent */
+    --bccsage: #687A61;        /* Muted green */
+    /* others */
+    --bccdarkgrey: #404756;
+    --bcclightgrey: #a4abbd;
+    --bccyellow: #f9f871;
+    --bccteal: #00c6bb;
+    --bccbeige: #fff7d6;
 }
 
 * {
@@ -36,27 +53,47 @@ body {
     overflow-x: hidden;
 }
 
+/* Table Styles */
 table {
     width: 100%;
-    margin-top: 0;
-    border: 1px solid var(--bccblue);
-    border-top: none;
-    border-radius: 0 0 4px 4px;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
 }
-tr {
-    background-color: var(--bccblue);
-    color: #ffffff;
-    text-align: left;
-}
-th, td {
-    padding: 12px 15px;
-}
-tr:nth-of-type(even) {
+thead {
     background-color: var(--bccgold);
+    color: var(var(--bccblue));
 }
-tr:last-of-type {
-    border-bottom: 2px solid var(--bccblue);
+th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
+td {
+    padding: 1rem;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 0.95rem;
+}
+tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+tr:nth-child(odd) {
+    background-color: white;
+}
+tbody tr:hover {
+    background-color: #e8f4fd;
+    transition: background-color 0.2s ease;
+}
+tr:last-child td {
+    border-bottom: none;
+}
+
 button {
     visibility: hidden;
 }
@@ -78,13 +115,15 @@ input[type=button], input[type=submit], input[type=reset] {
 /* #################################################################### */
 
 /* The bar above the leaderboard tables */
+/* Table Title Bar */
 .table-title-bar {
-    background-color: var(--bccblue);
+    background: #2c3e50;
     color: white;
-    padding: 10px;
-    font-weight: bold;
-    border-radius: 4px 4px 0 0;
-    margin-bottom: 0;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Buttons and button animation */
