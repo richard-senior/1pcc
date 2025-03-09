@@ -13,30 +13,9 @@ class GameAPI {
         this.pollInterval = null;
         this.failureCount = 0;  // Add failure counter
         this.maxFailures = 1800;   // Maximum failures before stopping polls
-        // contains a list of all page elements
-        this.allPageElements = []
-        // Initialize the game type classes
-        this.allPageElements.push(new QuestionView());
-        this.allPageElements.push(new ClickMap());
-        this.allPageElements.push(new FreeText());
-        this.allPageElements.push(new MultiChoice());
-        this.allPageElements.push(new StreetView());
-        this.allPageElements.push(new Leaderboard());
-        // Initialize buttons
-        this.allPageElements.push(new AnswerButton());
-        this.allPageElements.push(new NextQuestionButton());
-        this.allPageElements.push(new PreviousQuestionButton());
-        this.allPageElements.push(new StartQuestionButton());
-        this.allPageElements.push(new StopQuestionButton());
-        this.allPageElements.push(new PauseQuestionButton());
-        // Initialise the timer
-        this.allPageElements.push(new Timer());
-        // observer
-        this.allPageElements.push(new Leaderboard());
-        this.allPageElements.push(new CurrentAnswers());
-        // host
-        this.allPageElements.push(new PlayerAdmin());
-        // holds page elements relevant to the current page and question
+        // init the page elements
+        this.allPageElements = [];
+        this.initialisePageElements()
         this.pageElements = this.allPageElements;
         // register some handlers
         GameAPI.instance = this;
@@ -50,11 +29,41 @@ class GameAPI {
         // Add listeners
         window.addEventListener('questionChanged', this.boundOnNewQuestion);
         window.addEventListener('questionTimedOut', this.boundOnQuestionTimeout);
-
         // start polling
         this.startPolling();
     }
 
+    /**
+     * instantiates page elements.
+     * PageElements are classes that handle dom objects and
+     * how they are displayed on a page. Not all Page elements
+     * will be displayed on any one page, but they are all instantiated
+     * and code elsewhere will determine which elements are important
+     */
+    initialisePageElements() {
+        // Move page element initialization to separate method
+        this.allPageElements.push(new QuestionView());
+        this.allPageElements.push(new ClickMap());
+        this.allPageElements.push(new FreeText());
+        this.allPageElements.push(new MultiChoice());
+        this.allPageElements.push(new StreetView());
+        // Initialize buttons
+        this.allPageElements.push(new AnswerButton());
+        this.allPageElements.push(new NextQuestionButton());
+        this.allPageElements.push(new PreviousQuestionButton());
+        this.allPageElements.push(new StartQuestionButton());
+        this.allPageElements.push(new StopQuestionButton());
+        this.allPageElements.push(new PauseQuestionButton());
+        // Initialize the timer
+        this.allPageElements.push(new Timer());
+        // observer
+        this.allPageElements.push(new Leaderboard());
+        this.allPageElements.push(new CurrentAnswers());
+        // host
+        this.allPageElements.push(new PlayerAdmin());
+        // player
+        this.allPageElements.push(new PlayerMessage());
+    }
     /**
      * Returns the singleton instance of this object
      * @returns {GameAPI}
@@ -75,6 +84,38 @@ class GameAPI {
     static getGameState() {
         return GameAPI.getInstance().state;
     }
+
+    /**
+     * gets the current game state from the server api
+     * handles server outage etc.
+     * @returns {object} or null if the game state could not be got
+     */
+    async fetchGameState() {
+        try {
+            const response = await fetch('/api/game-state').catch(error => {return { ok: false };});
+            if (!response.ok) {
+                this.failureCount++;
+                console.warn(`Failed to get game state ${this.failureCount} times`);
+                if (this.failureCount >= this.maxFailures) {
+                    console.warn(`Stopping polls after ${this.maxFailures} failures`);
+                    this.stopPolling();
+                }
+                return null;
+            }
+            // Reset failure count on success
+            this.failureCount = 0;
+            const newState = await response.json();
+            if (!newState) {throw new Error("Failed to parse game state");}
+            return newState;
+        } catch (error) {
+            this.failureCount++;
+            if (this.failureCount >= this.maxFailures) {
+                this.stopPolling();
+            }
+        }
+        return null;
+    }
+
     /**
      * Updates the current data held in this.state and window.gameState
      * which is accessible via GameAPI.getGameState()
@@ -85,18 +126,7 @@ class GameAPI {
      */
     async update() {
         try {
-            const response = await fetch('/api/game-state').catch(error => {return { ok: false };});
-            if (!response.ok) {
-                this.failureCount++;
-                console.warn(`Failed to get game state ${this.failureCount} times`);
-                if (this.failureCount >= this.maxFailures) {
-                    console.warn(`Stopping polls after ${this.maxFailures} failures`);
-                    this.stopPolling();
-                }
-            }
-            // Reset failure count on success
-            this.failureCount = 0;
-            const newState = await response.json();
+            let newState = await this.fetchGameState();
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
@@ -141,8 +171,7 @@ class GameAPI {
      * @returns {void}
      */
     async setTimeLeft(t) {
-        if (typeof t !== 'number' || isNaN(t) || t < 0) {
-            console.warn("was sent an invalid time left value");
+        if (!t || typeof t !== 'number' || isNaN(t) || t < 0) {
             this.timeLeft = 0;
         } else {
             this.timeLeft = t;
@@ -151,7 +180,6 @@ class GameAPI {
         if (this.timeLeft <= 0) {
             if (this.previousTimeLeft > 0) {
                 this.timeLeft = 0;
-                console.info("Timer : 0");
                 window.dispatchEvent(new CustomEvent('questionTimedOut', {
                     detail: this.currentQuestion
                 }));
@@ -189,13 +217,9 @@ class GameAPI {
      * Gets the currently logged in user
      * @returns the current user
      */
-    getCurrentUser() {
+    getCurrentPlayer() {
         // first check if we have this member variable
         let s = GameAPI.getGameState();
-        // try the dom
-        if (!s) {s = window.gameState}
-        // ok error!
-        if (!s) {return null;}
         if (!s.currentUser) {return null;}
         return s.currentUser;
     }
@@ -413,6 +437,36 @@ class GameAPI {
             return null;
         }
     }
+
+    /**
+     * Uses the API to send a message to the named user
+     * @param {*} username the name of the user that should recieve the message
+     * @param {*} message The content of the message
+     * @param {*} duration The amount of seconds that the message should remain displayed
+     */
+    static sendMessage(username, message, duration) {
+        GameAPI.sendHttpRequest(`/api/players?username=${username}&action=message&points=${duration}&message=${message}`);
+    }
+    /**
+     * Makes http requests using XMLHttpRequest
+     * @param {*} url
+     * @returns the body text of the http response or null
+     */
+    static sendHttpRequest(url) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, false);
+        try {
+            xhr.send();
+            if (xhr.status !== 200) {
+                console.error('Failed to submit api request', xhr.statusText);
+                return;
+            }
+            return  xhr.responseText;
+        } catch (error) {
+            console.error('error submitting api request:', error);
+            return null;
+        }
+    }
 }
 
 // *******************************
@@ -503,11 +557,12 @@ class PageElement {
         let a = this.getApi();
         return a.getTimeLeft();
     }
+    getCurrentPlayer() {return this.getApi().getCurrentPlayer();}
     /**
      * Concenience method for getting the current players map
      * @returns {Players} the current players map
      */
-    getPlayers() {return this.getApi().getPlayers()}
+    getPlayers() {return this.getApi().getPlayers();}
     /**
      * By default will return true if the current question is
      * counting down. False otherwise.
@@ -1604,37 +1659,15 @@ class PlayerAdmin extends PageElement {
     constructor() {
         super('player-admin',['*'])
         this.numplayers = 0;
+        this.totalPoints = 0;
     }
 
     static click(username, action) {
         if (!username || !action) {return;}
         let pts = document.getElementById("player-admin-points");
-        populate these cases
-        switch(action.toLowerCase()) {
-            case 'kick':
-                console.log(`Kicking player: ${username}`);
-                // Add kick player logic here
-                break;
-
-            case 'ban':
-                console.log(`Banning player: ${username}`);
-                // Add ban player logic here
-                break;
-
-            case 'dock':
-                console.log(`Docking ${pts.value} points from player: ${username}`);
-                // Add point reduction logic here
-                break;
-
-            case 'award':
-                console.log(`Awarding ${pts.value} points to player: ${username}`);
-                // Add point award logic here
-                break;
-
-            default:
-                console.warn(`Unknown action: ${action} for player: ${username}`);
-                return;
-        }
+        let points = 0;
+        if (pts) {points = pts.value;}
+        GameAPI.sendHttpRequest(`/api/players?username=${username}&action=${action}&points=${points}`);
     }
 
     getStyles() {
@@ -1665,25 +1698,39 @@ class PlayerAdmin extends PageElement {
         `
     }
 
-    getContent(gs) {
-        // Get GameAPI instance if gs is not provided
-        const gameAPI = gs || this.getApi();
-        if (!gameAPI) {
-            console.warn('Leaderboard: Could not get GameAPI instance');
-            return null;
-        }
-        const players = gs.getPlayers();
-        if (!players) {
-            console.warn('PlayerAdmin: No players data available');
-            return null;
-        }
-        // Count total number of players
+    shouldUpdate() {
+        let players = this.getPlayers()
+        // count total number of players
         let currentPlayerCount = Object.keys(players).length;
-        // Compare with previous count
-        if (currentPlayerCount === this.numplayers) {
-            return
+        if (currentPlayerCount === 0) {return false;}
+
+        // Calculate total score across all players
+        let totalScore = 0;
+        for (const [username, player] of Object.entries(players)) {
+            if (!player.isSpectator && !player.isAdmin) {
+                totalScore += player.score;
+            }
+        }
+        if (this.totalPoints === totalScore) {
+            // have we got new players?
+            if (currentPlayerCount === this.numplayers) {
+                return false;
+            } else {
+                this.numplayers = currentPlayerCount;
+                return true;
+            }
         } else {
-            this.numplayers = currentPlayerCount;
+            this.totalPoints = totalScore;
+            return true;
+        }
+    }
+
+    getContent(gs) {
+        // Get players using the existing GameAPI method
+        const players = this.getPlayers();
+        if (!players) {
+            console.warn("No players available");
+            return null;
         }
         // Create container div
         const container = document.createElement('div');
@@ -1701,7 +1748,6 @@ class PlayerAdmin extends PageElement {
                 </thead>
                 <tbody>
         `;
-
         try {
             for (const [username, player] of Object.entries(players)) {
                 if (player.isSpectator || player.isAdmin) continue;
@@ -1709,12 +1755,13 @@ class PlayerAdmin extends PageElement {
                 h += `
                     <tr>
                         <td>${username}</td>
-                        <td>${player.percent}</td>
+                        <td>${player.score}</td>
                         <td>
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','kick')" value="Kick" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','ban')" value="Ban" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','dock')" value="Dock" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','award')" value="Award" />
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','msg')" value="Message" />
                         </td>
                     </tr>
                 `;
@@ -1722,7 +1769,7 @@ class PlayerAdmin extends PageElement {
             h += `
                     <tr>
                         <td colspan="3">
-                            points: <input type="text" name="player-admin-points" id="player-admin-points" value="0" />
+                            points/msg: <input type="text" name="player-admin-points" id="player-admin-points" value="0" />
                         </td>
                     </tr>
                     </tbody>
@@ -1735,6 +1782,67 @@ class PlayerAdmin extends PageElement {
         } catch (error) {
             console.error('PlayerAdmin: Error creating content:', error);
             return null;
+        }
+    }
+}
+
+/**
+ * Deals with showing the user prompt and error messages etc
+ */
+class PlayerMessage extends PageElement {
+    constructor() {
+        super('player-message',['*'])
+    }
+
+    shouldShow() {
+        let p = this.getCurrentPlayer()
+        if (!p) {return false;}
+        if (!p.message) {return false;}
+        return true;
+    }
+
+    getStyles() {
+        return `
+            #player-message {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 10px 20px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                border-radius: 4px;
+                opacity: 1;
+                transition: opacity 0.3s;
+                z-index: 1000;
+            }
+
+            #player-message.hidden {
+                opacity: 0;
+            }
+        `
+    }
+
+    shouldUpdate() {
+        let gs = this.getApi()
+        if (!gs.currentUser) {return false;}
+        if (!gs.currentUser.message) {return false;}
+        console.log("showing message")
+        return true;
+    }
+
+    getContent(gs) {
+        if (!this.hasInitalised()) {
+            const container = document.createElement('div');
+            let tn = document.createTextNode("");
+            tn.id = "player-message-text"
+            container.appendChild(tn);
+            return container;
+        }
+        console.log("here");
+        if (gs.currentUser.message) {
+            let tn = document.getElementById("player-message-text");
+            tn.textContent = gs.currentUser.message;
         }
     }
 }

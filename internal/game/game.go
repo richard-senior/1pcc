@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -19,8 +20,7 @@ type GameState struct {
 	AllQuestions    []Question         `json:"allQuestions"`
 	CurrentQuestion *Question          `json:"currentQuestion"`
 	TotalQuestions  int                `json:"totalQuestions"`
-	// Session/User data
-	CurrentUser *Player `json:"currentUser"`
+	CurrentUser     *Player            `json:"currentUser"`
 }
 
 type Player struct {
@@ -30,6 +30,8 @@ type Player struct {
 	IsAdmin     bool    `json:"isAdmin"`
 	IsSpectator bool    `json:"isSpectator"`
 	IpAddress   string  `json:"ipaddress"`
+	Message     string  `json:"message"`
+	MessageTime int     `json:"messageTime"`
 }
 
 type Question struct {
@@ -105,6 +107,21 @@ func GetGame() *GameState {
 	return instance
 }
 
+func curatePlayers(gs *GameState) {
+
+	// deal with message duration
+	for _, player := range gs.Players {
+		mt := player.MessageTime
+		if mt > 0 {
+			mt = mt - 1
+			player.MessageTime = mt
+		} else {
+			player.Message = ""
+		}
+	}
+
+}
+
 func decorateGameState(gs *GameState) {
 	/*
 		find out why stop game isn't stopping it
@@ -120,27 +137,31 @@ func decorateGameState(gs *GameState) {
 		return
 	}
 
-	if gs.HaveAllPlayersAnswered() {
+	// deals with player curation
+	curatePlayers(gs)
+
+	if !cq.IsTimedOut && gs.HaveAllPlayersAnswered() {
 		cq.TimeStarted = time.Time{}
 		cq.TimeLeft = 0
 		cq.IsTimedOut = true
+		cq.IsTimedOut = true
+		logger.Info("Timed out in have all players answered")
 		onQuestionEnded(gs)
+		return
 	}
+
 	// Calculate the time remaining on the current question
 	if !cq.TimeStarted.IsZero() {
-		// Calculate elapsed time since question started
 		elapsed := time.Since(cq.TimeStarted).Seconds()
-		// Calculate remaining time in seconds
-		// TimeLimit is in seconds, subtract elapsed time
 		remainingTime := float64(cq.TimeLimit) - elapsed
 		remainingInt := int(remainingTime)
-		// If countdown is conlucded, set to 0 and mark as timed out
-		if remainingTime < 0.0 {
+
+		if !cq.IsTimedOut && remainingTime < 0.0 {
 			cq.TimeStarted = time.Time{}
-			remainingTime = 0.0
-			remainingInt = 0
 			cq.TimeLeft = 0
 			cq.IsTimedOut = true
+			cq.IsTimedOut = true
+			logger.Info("Timed out in loop")
 			onQuestionEnded(gs)
 		} else {
 			cq.TimeLeft = remainingInt
@@ -167,6 +188,52 @@ func (gs *GameState) AddPlayer(username string, isAdmin bool, isObserver bool, i
 			IpAddress:   ipAddress,
 		}
 	}
+}
+
+func MessagePlayer(player string, message string, duration int) {
+	if player == "" || message == "" {
+		logger.Warn("No player or message given to message player")
+		return
+	}
+	if duration == 0 {
+		duration = 5
+	}
+
+	gs := GetGame()
+	logger.Info("sending message to player")
+	if player, exists := gs.Players[player]; exists {
+		player.Message = message
+		player.MessageTime = duration
+	}
+}
+
+/**
+* Awards the given player the given points
+* Called from api.go etc.
+* @param player The player to award
+* @param points The points to award
+ */
+func Award(player string, points string) {
+	if player == "" || points == "" {
+		logger.Warn("No player or points given to award points")
+		return
+	}
+	gs := GetGame()
+	// Declare p at this scope level so it's available throughout the function
+	p, exists := gs.Players[player]
+	if !exists {
+		logger.Warn("Player not found in game state")
+		return
+	}
+	// Convert points to float32 since Score is float32
+	pts, err := strconv.ParseFloat(points, 32)
+	if err != nil {
+		logger.Warn("Can't convert points value to float")
+		return
+	}
+	p.Score += float32(pts)
+	pp := gs.Players[player]
+	logger.Info("Awarding", player, pp.Score)
 }
 
 // RemovePlayer removes a player from the game
@@ -321,6 +388,7 @@ func (gs *GameState) NextQuestion() {
 	}
 	// Set the current question to the new question number
 	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
+	gs.CurrentQuestion.IsTimedOut = false // Reset the flag for the new question
 }
 
 func (gs *GameState) PreviousQuestion() {
@@ -338,6 +406,7 @@ func (gs *GameState) PreviousQuestion() {
 	}
 	// Set previous question (using 0-based array index)
 	gs.CurrentQuestion = &instance.AllQuestions[prevNum-1]
+	gs.CurrentQuestion.IsTimedOut = false // Reset the flag for the new question
 }
 
 // GetCurrentQuestion returns the current question
@@ -358,6 +427,7 @@ func (gs *GameState) StartQuestion() {
 	if cq != nil {
 		cq.TimeStarted = time.Now()
 		cq.TimeLeft = cq.TimeLimit
+		cq.IsTimedOut = false // Reset the flag when starting a question
 	}
 }
 
@@ -365,8 +435,12 @@ func (gs *GameState) PauseQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
-	if cq != nil {
-		cq.TimeStarted = time.Time{}
+	if cq != nil && !cq.TimeStarted.IsZero() {
+		// Store the current TimeLeft
+		elapsed := time.Since(cq.TimeStarted).Seconds()
+		cq.TimeLeft = int(float64(cq.TimeLimit) - elapsed)
+		cq.TimeStarted = time.Time{} // Setting to zero time effectively pauses
+		logger.Info("Question paused with time left: ", cq.TimeLeft)
 	}
 }
 
@@ -374,8 +448,10 @@ func (gs *GameState) UnPauseQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
-	if cq != nil {
-		cq.TimeStarted = time.Time{}
+	if cq != nil && cq.TimeStarted.IsZero() && cq.TimeLeft > 0 {
+		// Set new start time based on remaining TimeLeft
+		cq.TimeStarted = time.Now().Add(-time.Duration((cq.TimeLimit - cq.TimeLeft)) * time.Second)
+		logger.Info("Question unpaused with time left: ", cq.TimeLeft)
 	}
 }
 

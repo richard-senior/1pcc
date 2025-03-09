@@ -37,8 +37,16 @@ var (
 	cookieName = "1pcc"
 )
 
-/** Fascism methods */
+func GetSession(username string) *Session {
+	for _, session := range manager.sessions {
+		if session.Username == username {
+			return session
+		}
+	}
+	return nil
+}
 
+/** Fascism methods */
 func EjectByUsername(username string) {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
@@ -255,10 +263,31 @@ func GetSessionUser(r *http.Request) (string, bool) {
 	return "", false
 }
 
-// Update SetSessionUser to initialize the Values map
+func UserExists(username string) bool {
+	manager.mu.RLock()
+	defer manager.mu.RUnlock()
+	if username == "" {
+		return false
+	}
+	for _, session := range manager.sessions {
+		if session.Username == username {
+			return true
+		}
+	}
+	return false
+}
+
 func SetSessionUser(w http.ResponseWriter, username string, ip string) {
+
+	// if the player has been kicked then let them back in
 	sessionID := generateSessionID()
-	logger.Info("Creating new session for user: %s with ID: %s", username, sessionID)
+	// do we have a player with this username already?
+	s := GetSession(username)
+	if s != nil && s.ID != "" {
+		sessionID = s.ID // Changed from sessionId to sessionID
+	}
+
+	logger.Info("Creating new session for user.", username, sessionID)
 
 	manager.mu.Lock()
 	manager.sessions[sessionID] = &Session{
