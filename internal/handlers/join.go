@@ -2,22 +2,43 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
+	"strings"
 
-	"github.com/richard-senior/1pcc/internal/logger"
 	"github.com/richard-senior/1pcc/internal/session"
 )
+
+type RegisterResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
 
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	ip := session.GetIPAddress(r)
 	if r.Method == "POST" {
+		w.Header().Set("Content-Type", "application/json")
+		response := RegisterResponse{
+			Success: true,
+			Message: "Logged In",
+		}
 		username := r.FormValue("username")
 		if username == "" {
-			logger.Info("Empty username submitted from IP: %s", session.GetIPAddress(r))
-			http.Error(w, "Username is required", http.StatusBadRequest)
+			response.Message = "Username is required"
+			response.Success = false
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		username = strings.ToLower(username)
+		// don't allow people to log in as the same user
+		if session.UserExists(username) {
+			response.Message = "Username already taken, please choose another"
+			response.Success = false
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 		session.AddPlayer(w, r, username, ip)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 

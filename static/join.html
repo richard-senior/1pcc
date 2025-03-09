@@ -6,6 +6,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- css import here-->
     <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    <script>
+        function initializeJoinForm() {
+            const form = document.getElementById('join-form');
+            const messageContainer = document.createElement('div');
+
+            // Create and insert message container
+            messageContainer.id = 'message-container';
+            messageContainer.className = 'alert';
+            messageContainer.style.display = 'none';
+            form.insertBefore(messageContainer, form.firstChild);
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const submitButton = form.querySelector('input[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.value = 'Processing...';
+
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch('/join', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    // Check if response is a redirect
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        messageContainer.textContent = data.message;
+                        messageContainer.style.display = 'block';
+                        messageContainer.className = 'alert alert-danger';
+                    } else {
+                        messageContainer.textContent = 'Registration successful!';
+                        messageContainer.style.display = 'block';
+                        messageContainer.className = 'alert alert-success';
+                        form.reset();
+                    }
+                } catch (error) {
+                    let errorMessage = 'An error occurred. Please try again.';
+                    // Try to get the server error message if available
+                    if (error.response) {
+                        try {
+                            const errorData = await error.response.json();
+                            errorMessage = errorData.message || errorMessage;
+                        } catch {
+                            // If we can't parse the error response, use the default message
+                            errorMessage = error.message || errorMessage;
+                        }
+                    }
+
+                    messageContainer.textContent = errorMessage;
+                    messageContainer.style.display = 'block';
+                    messageContainer.className = 'alert alert-danger';
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.value = 'Submit Name';
+                }
+            });
+        }
+        // Wait for DOM to be fully loaded before initializing
+        document.addEventListener('DOMContentLoaded', initializeJoinForm);
+    </script>
+
+    <style>
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
 </head>
 <body>
     <img src="/qr" class="top-qr" alt="QR Code">
@@ -21,9 +109,10 @@
             <div class="frame-text">
                 <h1>Join the Game</h1>
                 <form id="join-form" method="POST" action="/join" autocomplete="off" accept-charset="UTF-8">
-                    <input type="text" value="richard" name="username"
+                    <input type="text" id="username" name="username"
                            placeholder="Enter your (or your team's) name"
                            autocomplete="off"
+                           value="richard"
                            required/>
                     <input type="submit" value="Submit Name"/>
                 </form>

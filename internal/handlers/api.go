@@ -8,6 +8,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -57,6 +58,8 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 		handleStopQuestion(w, r)
 	case "/api/players":
 		handlePlayers(w, r)
+	case "/api/session":
+		handleSession(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -139,6 +142,19 @@ func handlePauseQuestion(w http.ResponseWriter, r *http.Request) {
 func handleStopQuestion(w http.ResponseWriter, r *http.Request) {
 	game.GetGame().StopQuestion()
 }
+func handleSession(w http.ResponseWriter, r *http.Request) {
+	type SessionResponse struct {
+		IsLoggedIn bool `json:"isLoggedIn"`
+	}
+	response := SessionResponse{
+		IsLoggedIn: session.IsUserLoggedIn(w, r),
+	}
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Failed to encode session response", http.StatusInternalServerError)
+		return
+	}
+}
 func handlePlayers(w http.ResponseWriter, r *http.Request) {
 	au := session.GetMe(r)
 	if au == nil || !au.IsAdmin {
@@ -147,6 +163,7 @@ func handlePlayers(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	action := r.URL.Query().Get("action")
 	points := r.URL.Query().Get("points")
+
 	if username == "" || action == "" {
 		return
 	}
@@ -157,10 +174,13 @@ func handlePlayers(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "kick":
+		logger.Warn("Kicking player", "username", player.Username)
 		session.EjectByUsername(player.Username)
 	case "ban":
+		logger.Warn("Banning player", "username", player.Username)
 		session.Ban(player.Username)
 	case "dock":
+		logger.Warn("Docking player", "username", player.Username)
 		pointsFloat, err := strconv.ParseFloat(points, 32)
 		if err != nil {
 			http.Error(w, "Invalid points value", http.StatusBadRequest)
@@ -168,14 +188,16 @@ func handlePlayers(w http.ResponseWriter, r *http.Request) {
 		}
 		player.Score -= float32(pointsFloat)
 	case "award":
-		pointsFloat, err := strconv.ParseFloat(points, 32)
-		if err != nil {
-			http.Error(w, "Invalid points value", http.StatusBadRequest)
+		logger.Warn(fmt.Sprintf("Awarding player: %s - %s", player.Username, points))
+		game.Award(player.Username, points)
+	case "msg":
+		if points == "" {
 			return
 		}
-		player.Score += float32(pointsFloat)
+		game.MessagePlayer(username, points, 5)
 	default:
-		http.Error(w, "Invalid action", http.StatusBadRequest)
+		logger.Warn("Invalid action in players handler")
+		return
 	}
 }
 

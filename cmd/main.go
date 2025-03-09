@@ -132,7 +132,7 @@ func main() {
 	game.GetGame()
 
 	// Listen and serve
-	logger.Info("1pcc Server is ready to handle requests at %s:%s", getHostIP(), serverPort)
+	logger.Info("1pcc Server is ready to handle requests at", getHostIP(), serverPort)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v", serverPort, err)
 	}
