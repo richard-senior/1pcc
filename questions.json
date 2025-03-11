@@ -1,17 +1,78 @@
 [
     {
-        "question": "100%: What is 2 + 3 × 10",
-        "type": "freetext",
-        "imageUrl": "https://www.google.com/search?q=2%2B3*10",
+        "question": "Which word is the opposite of 'cold'",
+        "type": "multichoice",
+        "category": "Letters And Numbers",
+        "percent": 100,
+        "choices": [
+            "hot",
+            "cool",
+            "mild"
+        ],
+        "imageUrl": "",
+        "correctAnswer": "Hot",
+        "penalisationFactor": 0,
+        "hostAnswer": "Hot is the opposite of cold",
+        "timeLimit": 20,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What is 2 + 3 × 10",
+        "type": "multichoice",
+        "category": "Letters And Numbers",
+        "percent": 80,
+        "choices": [
+            "53",
+            "50",
+            "35",
+            "32"
+        ],
+        "imageUrl": "",
         "correctAnswer": "32",
         "penalisationFactor": 0,
         "hostAnswer": "If you said 50 : BODMAS!",
-        "timeLimit": 20,
-        "pointsAvailable": 1
+        "timeLimit": 25,
+        "pointsAvailable": 2
     },
     {
-        "question": "100%: Where is this?",
+        "question": "Which sequence of punctuation marks is in alphabetical order?",
+        "type": "multichoice",
+        "category": "Letters And Numbers",
+        "percent": 60,
+        "choices": [
+            "? : , ! .",
+            ": , ! . ?",
+            ", ! . ? ,",
+            "! . ? , :"
+        ],
+        "imageUrl": "",
+        "correctAnswer": ": , ! . ?",
+        "penalisationFactor": 0,
+        "hostAnswer": "CoLon, CoMma, Exclamation mark, Full stop (or Period), Question mark",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?",
+        "type": "multichoice",
+        "category": "Letters And Numbers",
+        "percent": 40,
+        "choices": [
+            "EG40 LZC",
+            "EDIO EZO",
+            "FDIO LZB",
+            "EDIO UZD"
+        ],
+        "correctAnswer": "EDIO EZO",
+        "hostAnswer": "L-E, C-O" ,
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Where is this?",
         "type": "freetext",
+        "category": "Places",
+        "percent": 100,
         "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
         "correctAnswer": "New York",
         "penalisationFactor": 1.0,
@@ -20,8 +81,10 @@
         "pointsAvailable": 1
     },
     {
-        "question": "100%: Where is this?",
+        "question": "Where is this?",
         "type": "multichoice",
+        "category": "Places",
+        "percent": 100,
         "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
         "choices": [
             "Chicago",
@@ -37,6 +100,8 @@
     {
         "question": "MultiChoice (80%): What year was the 'Battle Of Hastings'?",
         "type": "multichoice",
+        "category": "Events",
+        "percent": 80,
         "choices": [
             "480 BC",
             "871 AD",
@@ -49,22 +114,10 @@
         "pointsAvailable": 2
     },
     {
-        "question": "MultiChoice (60%): Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?",
-        "type": "multichoice",
-        "choices": [
-            "EG40 LZC",
-            "EDIO EZO",
-            "FDIO LZB",
-            "EDIO UZD"
-        ],
-        "correctAnswer": "EDIO EZO",
-        "hostAnswer": "L-E, C-O" ,
-        "timeLimit": 40,
-        "pointsAvailable": 2
-    },
-    {
         "question": "GeoGuessing (100%): Click the world map where you think the streetview is. You can zoom and move everything.",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 100,
         "choices": [],
         "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
         "correctAnswer": "2454.354565039059,432.38896023854124",
@@ -78,6 +131,8 @@
     {
         "question": "GeoGuessing (80%): If you get within 50 miles you've done ok",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 80,
         "choices": [],
         "link": "https://maps.app.goo.gl/j6yqqeJHS67TCAep8",
         "correctAnswer": "",
@@ -91,6 +146,8 @@
     {
         "question": "GeoGuessing (60%): Careful now!",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 60,
         "choices": [],
         "link": "https://maps.app.goo.gl/ga4cwmii8kDdnPn78",
         "correctAnswer": "4502.620963283039, 753.4690573367145",
@@ -104,6 +161,8 @@
     {
         "question": "GeoGuessing (40%): Looks easy right?",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 40,
         "choices": [],
         "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
         "correctAnswer": "2403.579900814714, 296.8883885349561",
@@ -117,6 +176,8 @@
     {
         "question": "GeoGuessing (20%): Tricky",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 20,
         "choices": [],
         "link": "https://maps.app.goo.gl/8W7sE3KeA2Hj6nuz5",
         "correctAnswer": "",
@@ -130,6 +191,8 @@
     {
         "question": "GeoGuessing (1%): Good luck!",
         "type": "geolocation",
+        "category": "Places",
+        "percent": 1,
         "choices": [],
         "link": "https://maps.app.goo.gl/szsHQWGmnks39rVi8",
         "correctAnswer": "",
@@ -143,6 +206,8 @@
     {
         "question": "What is the capital of France?",
         "type": "multichoice",
+        "category": "Places",
+        "percent": 100,
         "choices": [
             "London",
             "Paris",
@@ -157,6 +222,8 @@
     {
         "question": "Which planet is known as the Red Planet?",
         "type": "multichoice",
+        "category": "Science",
+        "percent": 100,
         "choices": [
             "Venus",
             "Mars",
@@ -171,6 +238,8 @@
     {
         "question": "Click on Thimphu",
         "type": "khazakstan",
+        "category": "Places",
+        "percent": 100,
         "choices": [],
         "link": "https://maps.app.goo.gl/mrYqT9qHkjHMMft86",
         "correctAnswer": "4502.620963283039, 753.4690573367145",

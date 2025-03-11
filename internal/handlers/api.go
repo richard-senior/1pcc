@@ -233,20 +233,10 @@ func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
 	// add the answer to the question.Answers array
 	cq.Answers = append(cq.Answers, answer)
 	// order the answers by score
-	tl := cq.TimeLimit
-	tr := cq.TimeLeft
-
+	tl := cq.TimeLeft
+	//tr := cq.TimeLeft
 	var timeIndication string
-	percentage := float64(tl) / float64(tr) * 100
-	if percentage < 30 {
-		timeIndication = "quick"
-	} else if percentage >= 30 && percentage < 60 {
-		timeIndication = "good"
-	} else if percentage >= 60 && percentage < 80 {
-		timeIndication = "slow"
-	} else {
-		timeIndication = "pushing it!"
-	}
+	timeIndication = fmt.Sprintf("answered with %d seconds remaining", tl)
 	game.MessagePlayer(answer.Username, timeIndication, 20)
 
 	sort.Slice(cq.Answers, func(i, j int) bool {
