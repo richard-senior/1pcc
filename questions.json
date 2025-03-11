@@ -1,10 +1,20 @@
 [
     {
+        "question": "100%: What is 2 + 3 × 10",
+        "type": "freetext",
+        "imageUrl": "https://www.google.com/search?q=2%2B3*10",
+        "correctAnswer": "32",
+        "penalisationFactor": 0,
+        "hostAnswer": "If you said 50 : BODMAS!",
+        "timeLimit": 20,
+        "pointsAvailable": 1
+    },
+    {
         "question": "100%: Where is this?",
         "type": "freetext",
         "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
         "correctAnswer": "New York",
-        "penalisationFactor": 2.0,
+        "penalisationFactor": 1.0,
         "hostAnswer": "I think we all knew that..",
         "timeLimit": 30,
         "pointsAvailable": 1
@@ -97,7 +107,7 @@
         "choices": [],
         "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
         "correctAnswer": "2403.579900814714, 296.8883885349561",
-        "penalisationFactor": 15.0,
+        "penalisationFactor": 18.0,
         "hostAnswer": "Lervik, Faroe Islands",
         "timeLimit": 140,
         "clickImage": "/static/images/worldmap.svg",
@@ -142,14 +152,6 @@
         "correctAnswer": "Paris",
         "hostAnswer": "",
         "timeLimit": 30,
-        "pointsAvailable": 3
-    },
-    {
-        "question": "What is 2 + 2?",
-        "type": "text",
-        "correctAnswer": "4",
-        "hostAnswer": "",
-        "timeLimit": 15,
         "pointsAvailable": 3
     },
     {
