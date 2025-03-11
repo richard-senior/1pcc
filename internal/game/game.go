@@ -38,6 +38,8 @@ type Question struct {
 	Answers            []Answer  `json:"answers"`                      // as users answer, they'll be added to this list
 	Question           string    `json:"question"`                     // the actual question text to show the users
 	QuestionNumber     int       `json:"questionNumber"`               // the question number, this should be worked out dynamically
+	Percent            int       `json:"percent"`                      // the difficulty of the question 100% being very easy and 1% being very difficult
+	Category           string    `json:"category"`                     // the category of the question, numbers, cars, actors etc.
 	ImageUrl           string    `json:"imageUrl,omitempty"`           // if there's an image this should be the local path or remote url
 	Link               string    `json:"link,omitempty"`               // this is for showing info about the correct answer
 	Type               string    `json:"type"`                         // "multiple_choice" or "text"

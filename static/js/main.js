@@ -130,14 +130,10 @@ class GameAPI {
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
+            // update the local question cache
+            this.setCurrentQuestion(newState.currentQuestion);
             // update the local timer countdown cacheed number
             this.setTimeLeft(newState.currentQuestion.timeLeft);
-            // update the local question cache
-            if (!this.currentQuestion) {
-                this.currentQuestion = newState.currentQuestion;
-            } else {
-                this.setCurrentQuestion(newState.currentQuestion);
-            }
             // update any 'PageElement' objects and update them on each poll
             for (let pe of this.pageElements) {
                 pe.update(this);
@@ -308,11 +304,13 @@ class GameAPI {
      */
     async setCurrentQuestion(question) {
         // fire questionChanged if necessary
-        if (this.currentQuestion.questionNumber !== question.questionNumber) {
-            this.currentQuestion = question;
-            // Reduce the size of the array based on whether page elements exist
-            this.pageElements = this.allPageElements.filter(pe => pe.getContent());
-            window.dispatchEvent(new CustomEvent('questionChanged', {detail: question}));
+        if (this.currentQuestion) {
+            if (this.currentQuestion.questionNumber !== question.questionNumber) {
+                this.currentQuestion = question;
+                // Reduce the size of the array based on whether page elements exist
+                this.pageElements = this.allPageElements.filter(pe => pe.doShouldShow());
+                window.dispatchEvent(new CustomEvent('questionChanged', {detail: question}));
+            }
         } else {
             this.currentQuestion = question;
         }
@@ -578,6 +576,10 @@ class GameAPI {
  */
 class PageElement {
     constructor(name, questionTypes) {
+        // event bindings
+        this.boundOnNewQuestion = null;
+        this.boundOnQuestionTimeout = null;
+        // general
         this.classname = this.constructor.name;
         this.element = null;
         this.styles = null;
@@ -591,6 +593,15 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
+    }
+    /**
+     * TODO decide if we need these events
+     */
+    initialise() {
+        this.boundOnNewQuestion = (event) => {};
+        this.boundOnQuestionTimeout = (event) => {};
+        window.addEventListener('questionChanged', this.boundOnNewQuestion);
+        window.addEventListener('questionTimedOut', this.boundOnQuestionTimeout);
     }
     /**
      * Finds the dom element managed by this object in the current
@@ -919,8 +930,13 @@ class QuestionView extends PageElement {
                 padding: 0px;
             }
             .username-span {
-                color: var(--bccstone);
+                color: var(--bcclightgold);
                 font-size: 0.8em;
+                font-weight: bold;
+            }
+            .percent-span {
+                color: var(--bccdarkgold);
+                font-size: 0.9em;
                 font-weight: bold;
             }
             .question-span {
@@ -943,7 +959,10 @@ class QuestionView extends PageElement {
         const usernameSpan = document.createElement('span');
         usernameSpan.className = 'username-span';
         usernameSpan.textContent = cp.username;
-
+        // Create percent span
+        const percentSpan = document.createElement('span');
+        percentSpan.className = 'percent-span';
+        percentSpan.textContent = cq.percent.toString() + "% - " + cq.category;
         // Create question span
         const questionSpan = document.createElement('span');
         questionSpan.className = 'question-span';
@@ -952,6 +971,7 @@ class QuestionView extends PageElement {
 
         // Add spans to container
         container.appendChild(usernameSpan);
+        container.appendChild(percentSpan);
         container.appendChild(questionSpan);
 
         return container;
@@ -1004,7 +1024,7 @@ class StreetView extends PageElement {
         this.iframe.id = 'streetview-iframe'
         this.iframe.class = 'streetview-iframe'
         this.iframe.src = embedUrl;
-        this.iframe.allow = "xr-spatial-tracking; accelerometer; gyroscope; magnetometer; autoplay; encrypted-media; picture-in-picture;";
+        this.iframe.allow = "autoplay; picture-in-picture;";
         this.iframe.sandbox = "allow-scripts allow-same-origin";
         this.iframe.allowfullscreen="false"
         this.iframe.loading="lazy"
