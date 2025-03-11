@@ -108,11 +108,11 @@ func GetGame() *GameState {
 }
 
 func curatePlayers(gs *GameState) {
-
 	// deal with message duration
 	for _, player := range gs.Players {
 		mt := player.MessageTime
 		if mt > 0 {
+			logger.Info(fmt.Sprintf("message time is %d", mt))
 			mt = mt - 1
 			player.MessageTime = mt
 		} else {
@@ -195,8 +195,8 @@ func MessagePlayer(player string, message string, duration int) {
 		logger.Warn("No player or message given to message player")
 		return
 	}
-	if duration == 0 {
-		duration = 5
+	if duration <= 2 {
+		duration = 8
 	}
 
 	gs := GetGame()

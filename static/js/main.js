@@ -154,6 +154,82 @@ class GameAPI {
             }
         }
     }
+
+    /**
+     *
+     * @returns {boolean} true if the user has a sessoin on the remote server
+     */
+    async checkLoggedIn() {
+        try {
+            const response = await fetch('/api/session', {
+                method: 'GET',
+                credentials: 'include' // This ensures cookies are sent with the request
+            });
+            if (!response.ok) {return false;}
+            const data = await response.json();
+            return data.isLoggedIn;
+        } catch (error) {
+            console.error('Session check failed:', error);
+            return false;
+        }
+    }
+
+    assertLoggedIn() {
+        const isLoggedIn = this.checkLoggedIn();
+        if (!isLoggedIn) {
+            window.location.href = '/join';
+            return false;
+        }
+        return true;
+    }
+
+    // Add this new method to GameAPI class
+    showServerUnavailablePage() {
+        // Create an entirely new document content
+        if (1==1) {return;}
+        document.documentElement.innerHTML = `
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Server Not Available</title>
+                </head>
+                <body style="
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f5f5f5;
+                    font-family: Arial, sans-serif;
+                ">
+                    <div style="
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        text-align: center;
+                        background-color: white;
+                        padding: 2rem;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    ">
+                        <h2>Server not available</h2>
+                        <p>The game server is currently unreachable.</p>
+                        <button onclick="window.location.href='/join'" style="
+                            padding: 10px 20px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            background-color: #007bff;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            transition: background-color 0.2s;
+                        ">Rejoin Game</button>
+                    </div>
+                </body>
+            </html>
+        `;
+    }
+
     /**
      * If the current question is counting down it is active, false otherwise
      * @returns {boolean} true if the current question is active
@@ -301,7 +377,7 @@ class GameAPI {
         if (!cq) {return false;}
         let answers = cq.answers;
         if (!answers) {return false;}
-        let currentUser = this.getCurrentUser();
+        let currentUser = this.getCurrentPlayer();
         if (!currentUser) {return false;}
         let username = currentUser.username;
         if (!username) {return false;}
@@ -333,7 +409,7 @@ class GameAPI {
         // TODO populate username and question number
         let answer = {
             "questionNumber": cq.questionNumber,
-            "username": this.getCurrentUser()?.username ?? null,
+            "username": this.getCurrentPlayer()?.username ?? null,
             "answer": null,
             "comment": null,
             "points": null,
@@ -354,7 +430,6 @@ class GameAPI {
         // work out what and where the answer is based on
         // what the current question is
         let questionType = cq?.type ?? 'unknown';
-        console.log('Submitting answer for question type:', questionType);
 
         // Find the appropriate page element for this question type
         let answerComponent = this.allPageElements.find(element => {
@@ -371,8 +446,8 @@ class GameAPI {
 
         let answer = answerComponent.getAnswer();
 
-        if (!answer) {
-            console.warn("No answer provided");
+        if (!answer || answer === "") {
+            this.sendSelfMessage("you must submit choose an answer", 10);
             return false;
         }
 
@@ -444,24 +519,44 @@ class GameAPI {
      * @param {*} message The content of the message
      * @param {*} duration The amount of seconds that the message should remain displayed
      */
-    static sendMessage(username, message, duration) {
-        GameAPI.sendHttpRequest(`/api/players?username=${username}&action=message&points=${duration}&message=${message}`);
+    static async sendMessage(username, message, duration) {
+        // TODO pass duration through
+        const encodedUsername = encodeURIComponent(username);
+        const encodedMessage = encodeURIComponent(message);
+        const url = `/api/players?username=${encodedUsername}&action=msg&points=${encodedMessage}`;
+        GameAPI.sendHttpRequest(url);
     }
+    /**
+     * sends an api call to the server which will enable
+     * a message for this (current) user and manage the message
+     * lifecycle
+     * @param {string} message the message to display
+     * @param {int} duration the duration of the message in seconds
+     */
+    async sendSelfMessage(message, duration) {
+        if (!message || !duration) {return;}
+        let c = this.getCurrentPlayer();
+        if (!c) {return;}
+        if (!c.username) {return;}
+        GameAPI.sendMessage(c.username, message, duration)
+    }
+
     /**
      * Makes http requests using XMLHttpRequest
      * @param {*} url
      * @returns the body text of the http response or null
      */
-    static sendHttpRequest(url) {
+    static async sendHttpRequest(url) {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false);
+        const encUrl = encodeURI(url)
+        xhr.open('GET', encUrl, false);
         try {
             xhr.send();
             if (xhr.status !== 200) {
                 console.error('Failed to submit api request', xhr.statusText);
-                return;
+                return null;
             }
-            return  xhr.responseText;
+            return xhr.responseText;
         } catch (error) {
             console.error('error submitting api request:', error);
             return null;
@@ -478,6 +573,8 @@ class GameAPI {
  * style and visibility of a dom element
  * This object should be implemented by extending classes
  * in order to manage different elements of the page
+ * Implements a sort of state management system siliar like frameworks
+ * such as React but vastly simplified.
  */
 class PageElement {
     constructor(name, questionTypes) {
@@ -557,6 +654,10 @@ class PageElement {
         let a = this.getApi();
         return a.getTimeLeft();
     }
+    /**
+     * Returns the user object
+     * @returns {object} the current player object
+     */
     getCurrentPlayer() {return this.getApi().getCurrentPlayer();}
     /**
      * Concenience method for getting the current players map
@@ -675,7 +776,6 @@ class PageElement {
         let css = this.createStyles();
 
         if (!css) {
-            console.debug("no styles")
             this.styles = 'nostyles';
             return;
         }
@@ -751,6 +851,7 @@ class PageElement {
         if (ss) {
             this.show();
             return true;
+        } else {
             this.hide();
             return false;
         }
@@ -809,13 +910,51 @@ class QuestionView extends PageElement {
     constructor() {
         super('question-title', ['*'])
     }
-    getStyles() {}
+    createStyles() {
+        return `
+            .question-title-container {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 0px;
+            }
+            .username-span {
+                color: var(--bccstone);
+                font-size: 0.8em;
+                font-weight: bold;
+            }
+            .question-span {
+                color: white;
+                font-size: 1.2em;
+            }
+        `;
+    }
     getContent(gs) {
+        let cp = this.getCurrentPlayer();
+        if (!cp) {return;}
         let cq = this.getCurrentQuestion();
         if (!cq) {return;}
-        let s = cq.questionNumber + ') ' + cq.question
-        let ret = document.createTextNode(s);
-        return ret;
+
+        // Create container div
+        const container = document.createElement('div');
+        container.className = 'question-title-container';
+
+        // Create username span
+        const usernameSpan = document.createElement('span');
+        usernameSpan.className = 'username-span';
+        usernameSpan.textContent = cp.username;
+
+        // Create question span
+        const questionSpan = document.createElement('span');
+        questionSpan.className = 'question-span';
+        // ${cq.questionNumber}
+        questionSpan.textContent = `${cq.question}`;
+
+        // Add spans to container
+        container.appendChild(usernameSpan);
+        container.appendChild(questionSpan);
+
+        return container;
     }
 }
 
@@ -840,7 +979,7 @@ class StreetView extends PageElement {
     }
 
     /** just speed things up a little */
-    getStyles() {}
+    createStyles() {}
 
     shouldUpdate() {
         // if we haven't been instantiated properly yet
@@ -1037,7 +1176,7 @@ class ClickMap extends PageElement {
 
     getAnswer() {
         let gs = GameAPI.getInstance();
-        let a = GameAPI.createAnswerObject();
+        let a = gs.createAnswerObject();
         let cq = gs.getCurrentQuestion();
         let ap = cq.pointsAvailable;
 
@@ -1569,7 +1708,7 @@ class CurrentAnswers extends PageElement {
         return api.hasAnyoneAnswered();
     }
 
-    getStyles() {}
+    createStyles() {}
 
     getContent(gs) {
         // Get GameAPI instance
@@ -1667,10 +1806,11 @@ class PlayerAdmin extends PageElement {
         let pts = document.getElementById("player-admin-points");
         let points = 0;
         if (pts) {points = pts.value;}
+        console.log(`/api/players?username=${username}&action=${action}&points=${points}`)
         GameAPI.sendHttpRequest(`/api/players?username=${username}&action=${action}&points=${points}`);
     }
 
-    getStyles() {
+    createStyles() {
         return `
         .small-button {
             padding: 2px 4px;
@@ -1691,9 +1831,18 @@ class PlayerAdmin extends PageElement {
         .small-button:hover {
             background-color: var(--bccblue);
         }
-
         .small-button:active {
             background-color: var(--bccblue);
+        }
+        #player-admin-points {
+            width: 100%;
+            cursor: auto;
+            font-size: 1em;
+            color: var(--bccblue);
+            background-color: var(--bccstone);
+            border-radius: 2px;
+            border: 1px solid var(--bcclightblue);
+            padding: 0.5em;
         }
         `
     }
@@ -1769,7 +1918,7 @@ class PlayerAdmin extends PageElement {
             h += `
                     <tr>
                         <td colspan="3">
-                            points/msg: <input type="text" name="player-admin-points" id="player-admin-points" value="0" />
+                            points/msg: <input type="text" name="player-admin-points" id="player-admin-points" value="" />
                         </td>
                     </tr>
                     </tbody>
@@ -1792,57 +1941,59 @@ class PlayerAdmin extends PageElement {
 class PlayerMessage extends PageElement {
     constructor() {
         super('player-message',['*'])
+        this.initialised = false;
     }
 
     shouldShow() {
         let p = this.getCurrentPlayer()
         if (!p) {return false;}
-        if (!p.message) {return false;}
+        if (!p.message || p.message === "") {
+            return false;
+        }
         return true;
-    }
-
-    getStyles() {
-        return `
-            #player-message {
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 10px 20px;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                border-radius: 4px;
-                opacity: 1;
-                transition: opacity 0.3s;
-                z-index: 1000;
-            }
-
-            #player-message.hidden {
-                opacity: 0;
-            }
-        `
     }
 
     shouldUpdate() {
-        let gs = this.getApi()
-        if (!gs.currentUser) {return false;}
-        if (!gs.currentUser.message) {return false;}
-        console.log("showing message")
+        let p = this.getCurrentPlayer()
+        if (!p) {return false;}
+        if (!p.message || p.message === "") {
+            return false;
+        }
         return true;
     }
 
+    createStyles() {
+        return `
+            .player-message {
+                background-color: var(--bccrust);
+                border-color: var(--bccblue);
+                color: var(--bccstone);
+                display: flex;
+                align-items: center;
+                text-align: center;
+                justify-content: center;
+                position: relative;
+                margin: 10px, 0;
+                border: 1px inset white;
+                overflow: hidden;
+                padding: 0.5em;
+                font-size: 1em;
+            }
+        `;
+    }
+
     getContent(gs) {
-        if (!this.hasInitalised()) {
+        if (! this.initialised) {
             const container = document.createElement('div');
-            let tn = document.createTextNode("");
-            tn.id = "player-message-text"
-            container.appendChild(tn);
+            container.id = "player-message-text";
+            this.initialised = true;
             return container;
         }
-        console.log("here");
-        if (gs.currentUser.message) {
-            let tn = document.getElementById("player-message-text");
-            tn.textContent = gs.currentUser.message;
+        if (gs.currentUser && gs.currentUser.message) {
+            let messageElement = document.getElementById("player-message-text");
+            if (messageElement) {
+                messageElement.textContent = gs.currentUser.message;
+            }
         }
     }
 }
@@ -1855,7 +2006,7 @@ class Leaderboard extends PageElement {
         super('leaderboard-div',['*'])
     }
 
-    getStyles() {}
+    createStyles() {}
 
     getContent(gs) {
         // Get GameAPI instance if gs is not provided
@@ -2010,7 +2161,7 @@ class AnimatedButton extends PageElement {
     // speeds things up a bit
     // styles are declared in the buttons section of main.css
     // because there may be many buttons all with the same css
-    getStyles() {}
+    createStyles() {}
 
     /**
      * Handles the clicking of this button by calling
@@ -2076,7 +2227,7 @@ class AnimatedButton extends PageElement {
     }
 
     setEnabled(enabled) {
-        let button = this.getElement();``
+        let button = this.getElement();
         if (enabled) {
             button.classList.remove('button-disabled');
             button.title = ''; // Remove any tooltip
@@ -2117,7 +2268,6 @@ class AnimatedButton extends PageElement {
      * @returns true if the button action was successful, false otherwise
      */
     async buttonAction(e) {
-        console.warn('buttonAction not implemented');
         return true;
     }
 }
@@ -2244,7 +2394,6 @@ class AnswerButton extends AnimatedButton {
 
     buttonAction() {
         let a = this.getApi()
-        console.info("submitting answer");
         return a.submitAnswer();
     }
 
@@ -2703,30 +2852,38 @@ class FreeText extends PageElement {
      * @returns {Object} the scored answer object
      */
     getAnswer() {
-        const gameAPI = this.getApi();
-        let answer = gameAPI.createAnswerObject();
+        const gs = this.getApi();
+        let answer = gs.createAnswerObject();
 
         // Get the text input element
         const textInput = this.getElement().querySelector('input[type="text"]');
-        if (!textInput) {
-            console.warn('FreeText: Text input element not found');
-            return null;
-        }
+        if (!textInput) {return null;}
 
         // Get the text value and trim whitespace
         const textValue = textInput.value.trim();
-        if (!textValue) {
-            console.warn('FreeText: No text entered');
+        if (!textValue || textValue === "") {
             return null;
         }
 
         // Get the current question to access the correct answer
-        const currentQuestion = gameAPI.getCurrentQuestion();
+        const currentQuestion = gs.getCurrentQuestion();
         if (!currentQuestion || !currentQuestion.correctAnswer || !currentQuestion.penalisationFactor) {
             console.warn('FreeText: No correct answer available or missing penalisationFactor');
             return null;
         }
         let maxDistance = parseInt(currentQuestion.penalisationFactor);
+        if (isNaN(maxDistance)) {
+            console.warn('FreeText: penalisationFactor is not a number');
+            return null;
+        }
+        if (maxDistance == 0) {
+            if (currentQuestion.correctAnswer === textInput) {
+                answer.points = currentQuestion.pointsAvailable;
+            } else {
+                answer.points = 0;
+            }
+            return answer;
+        }
         // Calculate the Levenshtein distance between user input and correct answer
         const distance = this.fuzzyMatch(
             textValue.toLowerCase(),
