@@ -1,19 +1,27 @@
 [
     {
-        "question": "Which word is the opposite of 'cold'",
-        "type": "multichoice",
-        "category": "Letters And Numbers",
+        "question": "What is 4 across?",
+        "type": "freetext",
+        "category": "numbers and letters",
         "percent": 100,
-        "choices": [
-            "hot",
-            "cool",
-            "mild"
-        ],
-        "imageUrl": "",
-        "correctAnswer": "Hot",
-        "penalisationFactor": 0,
-        "hostAnswer": "Hot is the opposite of cold",
-        "timeLimit": 20,
+        "imageUrl": "/static/images/crossword_towns.svg",
+        "correctAnswer": "Dewsbury",
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Super Difficult!",
+        "timeLimit": 40,
+        "pointsAvailable": 1
+    },
+    {
+        "question": "Click on the 'Umlaut'",
+        "type": "khazakstan",
+        "category": "numbers and letters",
+        "percent": 80,
+        "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
+        "correctAnswer": "90.7,43.8",
+        "penalisationFactor": 100.0,
+        "hostAnswer": "Jä!",
+        "timeLimit": 30,
+        "clickImage": "/static/images/umlaut.svg",
         "pointsAvailable": 2
     },
     {
@@ -234,19 +242,5 @@
         "hostAnswer": "",
         "timeLimit": 25,
         "pointsAvailable": 3
-    },
-    {
-        "question": "Click on Thimphu",
-        "type": "khazakstan",
-        "category": "Places",
-        "percent": 100,
-        "choices": [],
-        "link": "https://maps.app.goo.gl/mrYqT9qHkjHMMft86",
-        "correctAnswer": "4502.620963283039, 753.4690573367145",
-        "penalisationFactor": 3.0,
-        "hostAnswer": "Thimphu, Bhutan",
-        "timeLimit": 60,
-        "clickImage": "/static/images/worldmap.svg",
-        "pointsAvailable": 10
     }
 ]

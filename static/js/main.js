@@ -431,10 +431,17 @@ class GameAPI {
 
         // Find the appropriate page element for this question type
         let answerComponent = this.allPageElements.find(element => {
-            if (questionType === 'geolocation' && element instanceof ClickMap) return true;
-            if (questionType === 'multichoice' && element instanceof MultiChoice) return true;
-            if (questionType === 'freetext' && element instanceof FreeText) return true;
-            return false;
+            switch(questionType) {
+                case 'khazakstan':
+                case 'geolocation':
+                    return element instanceof ClickMap;
+                case 'multichoice':
+                    return element instanceof MultiChoice;
+                case 'freetext':
+                    return element instanceof FreeText;
+                default:
+                    return false;
+            }
         });
 
         if (!answerComponent) {
@@ -495,18 +502,39 @@ class GameAPI {
         }
     }
 
+    /**
+     * loads an image synchronously by calling await decode()
+     * @param {*} url
+     * @returns {object} an image object
+     */
+    static async getImage(url) {
+        if (!url) {return;}
+        try {
+            const img = new Image();
+            img.src = url;
+            await img.decode();
+            document.body.appendChild(img);
+            const p = document.createElement("p");
+            p.textContent = "Image is fully loaded!";
+            return img;
+        } catch (error) {
+            console.error('Error loading image:', error);
+            return null;
+        }
+    }
+
     getFileContent(filePath) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', filePath, false);
         try {
             xhr.send();
             if (xhr.status !== 200) {
-                console.error('Failed to load SVG:', xhr.statusText);
+                console.error('Failed to load file:', xhr.statusText);
                 return null;
             }
             return  xhr.responseText;
         } catch (error) {
-            console.error('Error loading SVG:', error);
+            console.error('Error loading file:', error);
             return null;
         }
     }
@@ -914,6 +942,11 @@ class PageElement {
 // QUESTION
 // ###################################################################
 /**
+ * On question ended, shows information about how the player should have answered
+ */
+class ProveAnswerView extends PageElement {
+}
+/**
  * PageElement which manages the display of the actual question
  * that is the text or otherwise which prompts the player for a response
  */
@@ -931,17 +964,17 @@ class QuestionView extends PageElement {
             }
             .username-span {
                 color: var(--bcclightgold);
-                font-size: 0.8em;
+                font-size: 1.2emem;
                 font-weight: bold;
             }
             .percent-span {
                 color: var(--bccdarkgold);
-                font-size: 0.9em;
+                font-size: 1.4em;
                 font-weight: bold;
             }
             .question-span {
                 color: white;
-                font-size: 1.2em;
+                font-size: 1.8em;
             }
         `;
     }
@@ -1176,6 +1209,8 @@ class ClickMap extends PageElement {
         this.imageHeight = height ? parseFloat(height) :
                           (viewBoxValues ? viewBoxValues[3] : 600); // default height
 
+        this.markerSize = Math.round(this.imageWidth / 50);
+        console.log("Marker size is : "+ this.markerSize)
         // Copy the original SVG
         this.svg = originalSvg;
 
@@ -1194,6 +1229,45 @@ class ClickMap extends PageElement {
         return this.svg;
     }
 
+    brokenGetContent(gs) {
+        if (this.svg) {return this.svg;}
+        let cq = this.getCurrentQuestion();
+        this.imagePath = cq.clickImage;
+
+        // Create the SVG element
+        let svgDoc = document.implementation.createDocument('http://www.w3.org/2000/svg', 'svg', null);
+        this.svg = svgDoc.documentElement;
+
+        // Create SVG image element (not HTML image)
+        const svgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        svgImage.setAttribute("href", this.imagePath);  // Use href instead of src
+        svgImage.setAttribute("width", "100%");
+        svgImage.setAttribute("height", "100%");
+
+        // Set SVG attributes
+        this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
+        this.svg.style.width = "100%";
+        this.svg.style.height = "100%";
+        this.svg.style.display = "block";
+        this.svg.style.visibility = "visible";
+        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        // Append the SVG image element
+        this.svg.appendChild(svgImage);
+
+        // Load the image to get dimensions
+        const img = new Image();
+        img.onload = () => {
+            this.imageWidth = img.naturalWidth;
+            this.imageHeight = img.naturalHeight;
+            // Update viewBox with actual dimensions
+            this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
+        };
+        img.src = this.imagePath;
+
+        return this.svg;
+    }
+
     getAnswer() {
         let gs = GameAPI.getInstance();
         let a = gs.createAnswerObject();
@@ -1203,8 +1277,6 @@ class ClickMap extends PageElement {
         if (this.answerx === null || this.answery === null) {
             return null;
         }
-
-        a.answer = `${this.answerx},${this.answery}`;
 
         // Parse the correct answer coordinates
         const [correctX, correctY] = cq.correctAnswer
@@ -1218,7 +1290,11 @@ class ClickMap extends PageElement {
         const dt = Math.sqrt(dx * dx + dy * dy);
         // this is the pixels to miles ratio
         let miles = Math.round(dt * 3.4);  // Round to nearest whole number
-        a.comment = `${miles} miles off`
+        if (cq.type === "geolocation") {
+            a.comment = `${miles} miles off`;
+        } else {
+            a.comment = `${Math.round(dt)} pixels away`;
+        }
 
         // Calculate maximum possible error from correct point to each corner
         const distanceToCorners = [
@@ -1256,6 +1332,7 @@ class ClickMap extends PageElement {
 
         // Ensure points don't go negative
         if (a.points < 0) a.points = 0;
+        a.answer = `${this.answerx.toFixed(0)} - ${this.answery.toFixed(0)}`;
 
         console.info(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
         return a;
@@ -2695,7 +2772,6 @@ class FreeText extends PageElement {
         if (!this.container) {return true;}
         return false;
     }
-
 
     createImageDiv(container) {
         if (!container) {return;}
