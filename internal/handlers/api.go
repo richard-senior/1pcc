@@ -196,6 +196,8 @@ func handlePlayers(w http.ResponseWriter, r *http.Request) {
 		}
 		logger.Warn(fmt.Sprintf("Messaging player: %s - %s", player.Username, points))
 		game.MessagePlayer(username, points, 20)
+	case "rst":
+		game.ResetPlayerAnswer(username)
 	default:
 		logger.Warn("Invalid action in players handler")
 		return

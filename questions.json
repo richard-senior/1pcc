@@ -1,21 +1,196 @@
 [
     {
+        "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 60,
+        "imageUrl": "/static/images/cross.svg",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
+        ],
+        "correctAnswer": "D",
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Where is this?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 99,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
+        "choices": [
+            {"choice": "Chicago", "imgUrl": "", "answer": "A"},
+            {"choice": "London", "imgUrl": "", "answer": "B"},
+            {"choice": "New York", "imgUrl": "", "answer": "C"},
+            {"choice": "Abu Dhabi", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswer": "C",
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 30,
+        "pointsAvailable": 1
+    },
+    {
+        "question": "What year was the 'Battle Of Hastings'?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 90,
+        "choices": [
+            {"choice": "480 BC", "imgUrl": "", "answer": "A"},
+            {"choice": "871 AD", "imgUrl": "", "answer": "B"},
+            {"choice": "1066 AD", "imgUrl": "", "answer": "C"},
+            {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswer": "C",
+        "hostAnswer": "Thermopyle (Leonidas), Ashdown (Alfred), Hastings (Harold), Crecy (Edward)",
+        "timeLimit": 20,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Click the world map where you think the streetview is. You can zoom and move everything.",
+        "type": "geolocation",
+        "category": "warn up",
+        "percent": 80,
+        "choices": [],
+        "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
+        "correctAnswer": "2454.3,432.4",
+        "penalisationFactor": 13.0,
+        "hostAnswer": "As Fatboy Slim once said, right here.. right now",
+        "timeLimit": 120,
+        "clickImage": "/static/images/worldmap.svg",
+        "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Click on the Howard Donald's nose",
+        "type": "khazakstan",
+        "category": "warm up",
+        "percent": 70,
+        "link": "https://en.wikipedia.org/wiki/Howard_Donald",
+        "correctAnswer": "76.3,16.5",
+        "penalisationFactor": 18.0,
+        "hostAnswer": "I suppose it's a process of elimination",
+        "timeLimit": 60,
+        "clickImage": "/static/images/takethat.svg",
+        "pointsAvailable": 2
+    },
+
+    {
         "question": "What is 4 across?",
         "type": "freetext",
         "category": "numbers and letters",
-        "percent": 100,
+        "percent": 50,
         "imageUrl": "/static/images/crossword_towns.svg",
         "correctAnswer": "Dewsbury",
         "penalisationFactor": 1.0,
-        "hostAnswer": "Super Difficult!",
+        "hostAnswer": "Tricky!",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+
+
+
+
+
+
+
+
+
+
+    {
+        "question": "Which meal is literally the quickest",
+        "type": "multichoice",
+        "category": "cryptic",
+        "choices": [
+            {"choice": "breakfast", "imgUrl": "", "answer": "A"},
+            {"choice": "elevenses", "imgUrl": "", "answer": "B"},
+            {"choice": "dinner", "imgUrl": "", "answer": "C"},
+            {"choice": "tea", "imgUrl": "", "answer": "D"},
+            {"choice": "supper", "imgUrl": "", "answer": "E"}
+        ],
+        "percent": 99,
+        "correctAnswer": "A",
+        "hostAnswer": "Break Fast! init." ,
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "This might take you days!<br/>What letter logically comes next: <br/> SUMOTUWETHFRS_",
+        "type": "multichoice",
+        "category": "cryptic",
+        "choices": [
+            {"choice": "G", "imgUrl": "", "answer": "A"},
+            {"choice": "S", "imgUrl": "", "answer": "B"},
+            {"choice": "A", "imgUrl": "", "answer": "C"},
+            {"choice": "T", "imgUrl": "", "answer": "D"}
+        ],
+        "percent": 40,
+        "correctAnswer": "C",
+        "hostAnswer": "Days of the week init." ,
         "timeLimit": 40,
-        "pointsAvailable": 1
+        "pointsAvailable": 2
+    },
+    {
+        "question": "1) Across : Being there, have a ball a couple of hours before midnight!",
+        "type": "freetext",
+        "category": "cryptic",
+        "percent": 50,
+        "imageUrl": "/static/images/cryptic.png",
+        "correctAnswer": "attendance",
+        "penalisationFactor": 1.0,
+        "hostAnswer": "At Ten (12 - 2) have a ball (dance)",
+        "timeLimit": 50,
+        "pointsAvailable": 2
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+    {
+        "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 90,
+        "correctAnswer": "ner, ner, ner.. 19",
+        "penalisationFactor": 0.0,
+        "hostAnswer": "As Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "2 + 3 × 10 = ??",
+        "type": "multichoice",
+        "category": "numbers and letters",
+        "percent": 80,
+        "choices": [
+            {"choice": "53", "imgUrl": "", "answer": "A"},
+            {"choice": "50", "imgUrl": "", "answer": "B"},
+            {"choice": "35", "imgUrl": "", "answer": "C"},
+            {"choice": "32", "imgUrl": "", "answer": "D"}
+        ],
+        "imageUrl": "",
+        "correctAnswer": "D",
+        "penalisationFactor": 0.0,
+        "hostAnswer": "BODMAS! Brackets -> division -> multiplication -> Addition -> Subtraction. No if's no buts.",
+        "timeLimit": 25,
+        "pointsAvailable": 2
     },
     {
         "question": "Click on the 'Umlaut'",
         "type": "khazakstan",
         "category": "numbers and letters",
-        "percent": 80,
+        "percent": 70,
         "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
         "correctAnswer": "90.7,43.8",
         "penalisationFactor": 100.0,
@@ -25,117 +200,58 @@
         "pointsAvailable": 2
     },
     {
-        "question": "What is 2 + 3 × 10",
-        "type": "multichoice",
-        "category": "Letters And Numbers",
-        "percent": 80,
-        "choices": [
-            "53",
-            "50",
-            "35",
-            "32"
-        ],
-        "imageUrl": "",
-        "correctAnswer": "32",
-        "penalisationFactor": 0,
-        "hostAnswer": "If you said 50 : BODMAS!",
-        "timeLimit": 25,
-        "pointsAvailable": 2
-    },
-    {
         "question": "Which sequence of punctuation marks is in alphabetical order?",
         "type": "multichoice",
-        "category": "Letters And Numbers",
+        "category": "numbers and letters",
         "percent": 60,
         "choices": [
-            "? : , ! .",
-            ": , ! . ?",
-            ", ! . ? ,",
-            "! . ? , :"
+            {"choice": "? : , ! .", "imgUrl": "", "answer": "A"},
+            {"choice": ": , ! . ?", "imgUrl": "", "answer": "B"},
+            {"choice": ", ! . ? ,", "imgUrl": "", "answer": "C"},
+            {"choice": "! . ? , :", "imgUrl": "", "answer": "D"}
         ],
         "imageUrl": "",
-        "correctAnswer": ": , ! . ?",
+        "correctAnswer": "B",
         "penalisationFactor": 0,
         "hostAnswer": "CoLon, CoMma, Exclamation mark, Full stop (or Period), Question mark",
         "timeLimit": 30,
         "pointsAvailable": 2
     },
     {
-        "question": "Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?",
+        "question": "<p style='font-size: smaller;'> Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?</p>",
         "type": "multichoice",
-        "category": "Letters And Numbers",
-        "percent": 40,
+        "category": "numbers and letters",
+        "percent": 50,
         "choices": [
-            "EG40 LZC",
-            "EDIO EZO",
-            "FDIO LZB",
-            "EDIO UZD"
+            {"choice": "EG40 LZC", "imgUrl": "", "answer": "A"},
+            {"choice": "EDIO EZO", "imgUrl": "", "answer": "B"},
+            {"choice": "FDIO LZB", "imgUrl": "", "answer": "C"},
+            {"choice": "EDIO UZD", "imgUrl": "", "answer": "D"}
         ],
-        "correctAnswer": "EDIO EZO",
+        "correctAnswer": "B",
         "hostAnswer": "L-E, C-O" ,
         "timeLimit": 40,
         "pointsAvailable": 2
     },
     {
-        "question": "Where is this?",
+        "question": "<p style='font-size: smaller;'>Last month was not June or August. Next month is not February, April or December. Neither last month NOR next month is January, May or September. <br/>What month is it?</p><p style='font-size: smaller;'>Use the boxes below to eliminate months if it helps..</p><p style='font-size: 0.5em;'>Jan<input type='checkbox'/>Feb<input type='checkbox'/>Mar<input type='checkbox'/>Apr<input type='checkbox'/>May<input type='checkbox'/>Jun<input type='checkbox'/>Jul<input type='checkbox'/>Aug<input type='checkbox'/>Sep<input type='checkbox'/>Oct<input type='checkbox'/>Nov<input type='checkbox'/>Dec<input type='checkbox'/></p>",
         "type": "freetext",
-        "category": "Places",
-        "percent": 100,
-        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
-        "correctAnswer": "New York",
-        "penalisationFactor": 1.0,
-        "hostAnswer": "I think we all knew that..",
-        "timeLimit": 30,
-        "pointsAvailable": 1
-    },
-    {
-        "question": "Where is this?",
-        "type": "multichoice",
-        "category": "Places",
-        "percent": 100,
-        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
-        "choices": [
-            "Chicago",
-            "London",
-            "New York",
-            "Abu Dhabi"
-        ],
-        "correctAnswer": "New York",
-        "hostAnswer": "I think we all knew that..",
-        "timeLimit": 30,
-        "pointsAvailable": 1
-    },
-    {
-        "question": "MultiChoice (80%): What year was the 'Battle Of Hastings'?",
-        "type": "multichoice",
-        "category": "Events",
-        "percent": 80,
-        "choices": [
-            "480 BC",
-            "871 AD",
-            "1066 AD",
-            "1346 AD"
-        ],
-        "correctAnswer": "1066 AD",
-        "hostAnswer": "battles: Thermopyle (Leonidas), Ashdown (Alfred), Hastings, Crecy",
-        "timeLimit": 20,
+        "category": "numbers and letters",
+        "percent": 20,
+        "correctAnswer": "May",
+        "hostAnswer": "Logic puzzles suck don't they.",
+        "timeLimit": 300,
         "pointsAvailable": 2
     },
-    {
-        "question": "GeoGuessing (100%): Click the world map where you think the streetview is. You can zoom and move everything.",
-        "type": "geolocation",
-        "category": "Places",
-        "percent": 100,
-        "choices": [],
-        "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
-        "correctAnswer": "2454.354565039059,432.38896023854124",
-        "penalisationFactor": 13.0,
-        "hostAnswer": "BCC",
-        "timeLimit": 60,
-        "clickImage": "/static/images/worldmap.svg",
-        "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
-        "pointsAvailable": 8
-    },
+
+
+
+
+
+
+
+
+
     {
         "question": "GeoGuessing (80%): If you get within 50 miles you've done ok",
         "type": "geolocation",
@@ -210,37 +326,5 @@
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740565430239!6m8!1m7!1sNiWl_OSDrsLt5bsJzo1LNw!2m2!1d-43.66293731935104!2d-70.08697737188758!3f150.7486451806517!4f-0.29697066225918434!5f0.7820865974627469",
         "pointsAvailable": 8
-    },
-    {
-        "question": "What is the capital of France?",
-        "type": "multichoice",
-        "category": "Places",
-        "percent": 100,
-        "choices": [
-            "London",
-            "Paris",
-            "Berlin",
-            "Madrid"
-        ],
-        "correctAnswer": "Paris",
-        "hostAnswer": "",
-        "timeLimit": 30,
-        "pointsAvailable": 3
-    },
-    {
-        "question": "Which planet is known as the Red Planet?",
-        "type": "multichoice",
-        "category": "Science",
-        "percent": 100,
-        "choices": [
-            "Venus",
-            "Mars",
-            "Jupiter",
-            "Saturn"
-        ],
-        "correctAnswer": "Mars",
-        "hostAnswer": "",
-        "timeLimit": 25,
-        "pointsAvailable": 3
     }
 ]

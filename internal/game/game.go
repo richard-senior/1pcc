@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"slices"
+
 	"github.com/richard-senior/1pcc/internal/logger"
 )
 
@@ -34,6 +36,12 @@ type Player struct {
 	MessageTime int     `json:"messageTime"`
 }
 
+type Choice struct {
+	Choice string `json:"choice"`
+	ImgUrl string `json:"imgUrl"`
+	Answer string `json:"answer"`
+}
+
 type Question struct {
 	Answers            []Answer  `json:"answers"`                      // as users answer, they'll be added to this list
 	Question           string    `json:"question"`                     // the actual question text to show the users
@@ -43,7 +51,7 @@ type Question struct {
 	ImageUrl           string    `json:"imageUrl,omitempty"`           // if there's an image this should be the local path or remote url
 	Link               string    `json:"link,omitempty"`               // this is for showing info about the correct answer
 	Type               string    `json:"type"`                         // "multiple_choice" or "text"
-	Choices            []string  `json:"choices,omitempty"`            // if this is multichoice, then these are the choices
+	Choices            []Choice  `json:"choices,omitempty"`            // if this is multichoice, then these are the choices
 	CorrectAnswer      string    `json:"correctAnswer"`                // indicates the correct answer, can be anything from coordinates to a name etc.
 	PenalisationFactor float32   `json:"penalisationFactor,omitempty"` // for geoguessing, how harsh to be. The higher the number the harsher
 	HostAnswer         string    `json:"hostAnswer,omitempty"`         // Only included for admin
@@ -419,13 +427,34 @@ func (gs *GameState) GetCurrentQuestion() *Question {
 	return gs.CurrentQuestion
 }
 
+/**
+* resets the current
+ */
+func ResetPlayerAnswer(username string) {
+	gs := GetGame()
+	cq := gs.GetCurrentQuestion()
+	if !PlayerExists(username) {
+		logger.Warn("Player doesn't exist in game state")
+		return
+	}
+	// Find the answer for the given username
+	// and remove it
+	for i, answer := range cq.Answers {
+		if answer.Username == username {
+			// Remove the answer from the slice
+			cq.Answers = slices.Delete(cq.Answers, i, i+1)
+			break
+		}
+	}
+}
+
 // StartGame initializes and starts the game
 func (gs *GameState) StartQuestion() {
 	mu.Lock()
 	defer mu.Unlock()
 	cq := gs.GetCurrentQuestion()
 	// remove any existing answers
-	cq.Answers = []Answer{}
+	// cq.Answers = []Answer{}
 	if cq != nil {
 		cq.TimeStarted = time.Now()
 		cq.TimeLeft = cq.TimeLimit

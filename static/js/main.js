@@ -1,5 +1,9 @@
 /**
  * Singleton class which manages interaction with the server API
+ * Timout without everyone answering prevents question table from showing`
+ * Make sure users cannot re-submit questions or re-select anything
+ * Flags games
+ * Connecting wall
  */
 class GameAPI {
 
@@ -366,23 +370,37 @@ class GameAPI {
         if (!answers) {return false;}
         return answers.length > 0;
     }
+
     /**
-     * @returns bool true if the current user has answered the current question
+     * returns the answer object submitted by the current player for the current questions
+     * @returns {object} the answer object submitted by the current player for the current questions
      */
-    hasAnswered() {
+    getCurrentAnswer() {
         //return true if the current user has answered the current question
         let cq = this.getCurrentQuestion();
-        if (!cq) {return false;}
+        if (!cq) {return null;}
         let answers = cq.answers;
-        if (!answers) {return false;}
+        if (!answers) {return null;}
         let currentUser = this.getCurrentPlayer();
-        if (!currentUser) {return false;}
+        if (!currentUser) {return null;}
         let username = currentUser.username;
-        if (!username) {return false;}
+        if (!username) {return null;}
         for (let a of answers) {
-            if (a.username === username) {return true;}
+            if (a.username === username) {
+                return a;
+            }
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * returns true if the current user has answered the current question
+     * @returns {boolean} true if the current user has answered the current question
+     */
+    hasAnswered() {
+        let a = this.getCurrentAnswer()
+        if (!a) {return false;}
+        return true;
     }
 
     startPolling(interval = 2000) { // Poll every 2 seconds by default
@@ -607,6 +625,7 @@ class PageElement {
         // event bindings
         this.boundOnNewQuestion = null;
         this.boundOnQuestionTimeout = null;
+        this.boundOnAnswerSubmitted = null;
         // general
         this.classname = this.constructor.name;
         this.element = null;
@@ -621,16 +640,114 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
+        this.initialisedHasRun = false;
+        this.selectedAnswer = null;
+        this.answerSubmitted = false;
     }
+
     /**
-     * TODO decide if we need these events
+     * called during 'update' after complete construction of both
+     * this page element and the game API itself.
+     * Safe to use as a kind of secondary constructor which won't cause
+     * stack overflows etc.
+     * @param {*} api
+     * @returns null
      */
-    initialise() {
-        this.boundOnNewQuestion = (event) => {};
-        this.boundOnQuestionTimeout = (event) => {};
+    doInitialise(api) {
+        if (this.initialisedHasRun) {return;}
+        let ca = api.getCurrentAnswer();
+        if (ca) {
+            this.selectedAnswer = ca;
+        }
+        this.initialise(api);
+        this.initialisedHasRun = true;
+    }
+
+    /**
+     * Should be overriden to init anything in page elements that requires a
+     * fully instantiated game state
+     * @param {*} api the game state api
+     */
+    initialise(api) {
+        // initialiseEvents
+    }
+
+    /**
+     * Init various event handlers
+     */
+    initialiseEvents() {
+
+        this.boundOnAnswerSubmitted = async (event) => {
+            try {
+                await this.onAnswerSubmitted(event);
+            } catch (error) {
+                console.warn(`Error in onAnswerSubmitted for ${this.constructor.name}:`, error);
+            }
+        };
+
+        this.boundOnNewQuestion = async (event) => {
+            try {
+                await this.onNewQuestion(event);
+            } catch (error) {
+                console.warn(`Error in onNewQuestion for ${this.constructor.name}:`, error);
+            }
+        };
+
+        this.boundOnQuestionTimeout = async (event) => {
+            try {
+                await this.onQuestionEnd(event);
+            } catch (error) {
+                console.warn(`Error in onQuestionEnd for ${this.constructor.name}:`, error);
+            }
+        };
+
+        // Add event listeners
+        window.addEventListener('answerSubmitted', this.boundOnAnswerSubmitted);
         window.addEventListener('questionChanged', this.boundOnNewQuestion);
         window.addEventListener('questionTimedOut', this.boundOnQuestionTimeout);
     }
+
+    async onAnswerSubmitted(event) {
+        // Base implementation does nothing
+        return Promise.resolve();
+    }
+
+    /**
+     * Base method for handling new question events
+     * Extending classes should override this method using async/await pattern
+     * @param {CustomEvent} event The question changed event
+     */
+    async onNewQuestion(event) {
+        // Base implementation does nothing
+        return Promise.resolve();
+    }
+
+    /**
+     * Base method for handling question end events
+     * Extending classes should override this method using async/await pattern
+     * @param {CustomEvent} event The question timeout event
+     */
+    async onQuestionEnd(event) {
+        // Base implementation does nothing
+        return Promise.resolve();
+    }
+
+    /**
+     * returns true if the question has been answered or if the answer
+     * has been recently submitted
+     * @returns {boolean} true if the current question has been answered
+     */
+    hasAnswered() {
+        if (this.selectedAnswer && this.answerSubmitted) {return true;}
+        const g = this.getApi();
+        if (g.hasAnswered()) {
+            this.answerSubmitted = true;
+            return true;
+        }
+        this.answerSubmitted = false;
+        return false;
+    }
+
     /**
      * Finds the dom element managed by this object in the current
      * dom model, or creates and inserts it.
@@ -676,6 +793,11 @@ class PageElement {
      * @returns {Question} the current question object
      */
     getCurrentQuestion() {return this.getApi().getCurrentQuestion();}
+    /**
+     * returns whatever answer the user entered for this question or null
+     * @returns {object} the answer object or null
+     */
+    getCurrentAnswer() {return this.getApi().getCurrentAnswer();}
     /**
      * Convenience method for getting response from game state
      * @returns {boolean} the current GameAPI instance isQustionActive respnose
@@ -751,11 +873,11 @@ class PageElement {
      */
     update(api) {
         let cn = this.constructor.name
+        this.doInitialise(api);
         if (!this.doShouldUpdate()) {
             return;
         }
         this.getStyles();
-        //console.log("updating " + cn)
         let o = this.getContent(api)
         this.applyUpdate(o);
     }
@@ -953,6 +1075,7 @@ class ProveAnswerView extends PageElement {
 class QuestionView extends PageElement {
     constructor() {
         super('question-title', ['*'])
+        this.questionNumber = -1;
     }
     createStyles() {
         return `
@@ -978,6 +1101,16 @@ class QuestionView extends PageElement {
             }
         `;
     }
+
+    shouldUpdate() {
+        let cq = this.getCurrentQuestion();
+        if (cq.questionNumber !== this.questionNumber) {
+            this.questionNumber = cq.questionNumber;
+            return true;
+        }
+        return false;
+    }
+
     getContent(gs) {
         let cp = this.getCurrentPlayer();
         if (!cp) {return;}
@@ -1000,7 +1133,7 @@ class QuestionView extends PageElement {
         const questionSpan = document.createElement('span');
         questionSpan.className = 'question-span';
         // ${cq.questionNumber}
-        questionSpan.textContent = `${cq.question}`;
+        questionSpan.innerHTML = `${cq.question}`;
 
         // Add spans to container
         container.appendChild(usernameSpan);
@@ -1025,10 +1158,6 @@ class StreetView extends PageElement {
         this.container = null;
         this.iframe = null;
         this.url = null;
-    }
-
-    update(api) {
-        super.update(api)
     }
 
     /** just speed things up a little */
@@ -1810,14 +1939,8 @@ class CurrentAnswers extends PageElement {
     getContent(gs) {
         // Get GameAPI instance
         const gameAPI = gs || this.getApi();
-        if (!gameAPI) {
-            console.warn('CurrentAnswers: Could not get GameAPI instance');
-            return null;
-        }
-
         // Create container div
         const container = document.createElement('div');
-
         // Create and add title bar
         const titleBar = document.createElement('div');
         titleBar.className = 'table-title-bar';
@@ -1888,6 +2011,51 @@ class CurrentAnswers extends PageElement {
     }
 }
 /**
+ * Class which deals with displaying information about the answer to a question
+ * once the question has ended. This is not automatically shown but requires
+ * the host to enable the display, this allows questions to be re-run before
+ * the answers are shown in case anyone misses the question
+ */
+class AnswerInfo extends PageElement {
+    constructor() {
+        super('answer-info',['*'])
+    }
+
+    shouldShow() {
+        return false;
+    }
+
+    getContent(gs) {
+        // Get GameAPI instance
+        const gameAPI = gs || this.getApi();
+        // Create container div
+        const container = document.createElement('div');
+        // Create and add title bar
+        const titleBar = document.createElement('div');
+        titleBar.className = 'table-title-bar';
+        titleBar.textContent = 'Answer Info';
+        container.appendChild(titleBar);
+        // table header
+        let t = document.createElement('table');
+        let h = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>comment here</td></tr>
+                    <tr><td>link here</td></tr>
+                </tbody>
+            </table>
+        `;
+        t.innerHTML = h;
+        container.appendChild(t);
+        return container;
+    }
+}
+/**
  * Class which deals with displaying the current players
  * and allows for administration of those players
  */
@@ -1903,7 +2071,6 @@ class PlayerAdmin extends PageElement {
         let pts = document.getElementById("player-admin-points");
         let points = 0;
         if (pts) {points = pts.value;}
-        console.log(`/api/players?username=${username}&action=${action}&points=${points}`)
         GameAPI.sendHttpRequest(`/api/players?username=${username}&action=${action}&points=${points}`);
     }
 
@@ -2008,6 +2175,7 @@ class PlayerAdmin extends PageElement {
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','dock')" value="Dock" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','award')" value="Award" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','msg')" value="Message" />
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','rst')" value="Reset" />
                         </td>
                     </tr>
                 `;
@@ -2101,21 +2269,35 @@ class PlayerMessage extends PageElement {
 class Leaderboard extends PageElement {
     constructor() {
         super('leaderboard-div',['*'])
+        this.currentTotalScore = 0;
     }
 
-    createStyles() {}
+    shouldShow() {
+        const gameAPI = this.getApi();
+        // total up the number of points each player has
+        let players = this.getPlayers()
+        if (!players) {return false;}
+        let totalScore = 0;
+        for (const [username, player] of Object.entries(players)) {
+            if (!player.isSpectator && !player.isAdmin) {
+                totalScore += player.score;
+            }
+        }
+        if (this.currentTotalScore === totalScore) {
+            return false;
+        } else {
+            this.currentTotalScore = totalScore;
+            return true;
+        }
+    }
 
     getContent(gs) {
         // Get GameAPI instance if gs is not provided
         const gameAPI = gs || this.getApi();
-        if (!gameAPI) {
-            console.warn('Leaderboard: Could not get GameAPI instance');
-            return null;
-        }
+        // has anything changed?
 
         // Create container div
         const container = document.createElement('div');
-
         // Create and add title bar
         const titleBar = document.createElement('div');
         titleBar.className = 'table-title-bar';
@@ -2136,7 +2318,7 @@ class Leaderboard extends PageElement {
         `;
 
         try {
-            const players = gameAPI.getPlayers();
+            const players = this.getPlayers();
             if (!players) {
                 console.warn('Leaderboard: No players data available');
                 return null;
@@ -2252,13 +2434,12 @@ class AnimatedButton extends PageElement {
         super(elementId, ['*']);
         this.COOLDOWN_TIME = cooldownTime;
         this.originalText = this.getElement()?.textContent || '';
-        this.initialised = false;
         this.disabled = false;
+        this.i = false;
     }
+
     // speeds things up a bit
-    // styles are declared in the buttons section of main.css
-    // because there may be many buttons all with the same css
-    createStyles() {}
+    getStyles() {}
 
     /**
      * Handles the clicking of this button by calling
@@ -2335,10 +2516,11 @@ class AnimatedButton extends PageElement {
             button.title = "no clicky";
             this.disabled = true
         }
+        // mark for re-update somehow?
     }
 
     getContent(gs) {
-        if (!this.initialised) {
+        if (!this.i) {
             const button = this.getElement();
             // Add the btn class
             button.classList.add('btn');
@@ -2347,7 +2529,7 @@ class AnimatedButton extends PageElement {
             // Bind the handler to preserve 'this' context and add the listener
             this.handleClick = this.handleClick.bind(this);
             button.addEventListener('click', this.handleClick);
-            this.initialised = true;
+            this.i = true;
         }
         let ia = this.isEnabled()
         if (ia && this.disabled) {
@@ -2481,6 +2663,25 @@ class StopQuestionButton extends AnimatedButton {
         .catch(error => {return false;});
     }
 }
+
+// Example implementation for Next Question Button
+class ShowAnswerInfo extends AnimatedButton {
+    constructor() {
+        super('show-info-button', 2);
+    }
+
+    async buttonAction() {
+        // toggle the table visibility
+    }
+
+    isEnabled() {
+        let a = this.getApi()
+        let cq =  this.getCurrentQuestion();
+        if (!a.isQuestionActive()) {return true;}
+        return false;
+    }
+}
+
 /**
  * The button used to submit answers on all question types
  */
@@ -2491,14 +2692,23 @@ class AnswerButton extends AnimatedButton {
 
     buttonAction() {
         let a = this.getApi()
-        return a.submitAnswer();
+        let success = a.submitAnswer();
+        if (success) {
+            const event = new CustomEvent('answerSubmitted', {
+                bubbles: true,
+                detail: {
+                    timestamp: Date.now()
+                }
+            });
+            window.dispatchEvent(event);
+        }
+        return success;
     }
 
     isEnabled() {
-        let a = this.getApi()
         let foo = super.isEnabled();
         if (!foo) {return false;}
-        let answered = a.hasAnswered()
+        let answered = this.hasAnswered()
         if (answered) {return false;}
         return true;
     }
@@ -2511,19 +2721,8 @@ class MultiChoice extends PageElement {
     constructor() {
         super('multi-choice-container', ['multichoice']); // ensure lowercase
         this.choices = null;
-        this.selectedChoice = null;
     }
 
-    onNewQuestion() {
-        // clean up some thing so that dom elements get re-instantiated
-        this.choices = null;
-        this.selectedChoice = null;
-    }
-
-    // Override shouldShow to help debug visibility issues
-    doShouldShow() {
-        return super.doShouldShow();
-    }
     /**
      * If this multichoice question has image content then load the image
      * into the main container div
@@ -2569,6 +2768,7 @@ class MultiChoice extends PageElement {
         if (!container) {return;}
         let cq = this.getCurrentQuestion();
         let a = this.getApi();
+        let currentAnswer = this.getCurrentAnswer();
         this.choices = cq.choices;
 
         const pc = document.createElement('div');
@@ -2579,36 +2779,52 @@ class MultiChoice extends PageElement {
 
         // Create a button for each choice
         cq.choices.forEach((choice, index) => {
+            let img = choice.imgUrl;
             const button = document.createElement('button');
+            button.id = choice.answer
+            button.setAttribute('data-choice-index', index);
             button.className = 'multi-choice-button';
-            button.textContent = choice;
+            button.innerHTML = choice.choice;
             button.setAttribute('role', 'radio'); // Accessibility
             button.setAttribute('aria-checked', 'false');
 
-            // If this was previously selected, restore the state
-            if (choice === this.selectedChoice) {
-                button.classList.add('selected');
-                button.setAttribute('aria-checked', 'true');
+            if (img) {
+                const i = document.createElement('img');
+                i.src = img;
+                i.style.height = '2em';
+                i.style.width = 'auto';
+                i.style.marginRight = '8px';
+                button.appendChild(i);
             }
 
-            // Add click handler
-            button.addEventListener('click', () => {
-                // Remove selected class from all buttons
-                container.querySelectorAll('.multi-choice-button').forEach(btn => {
-                    btn.classList.remove('selected');
-                    btn.setAttribute('aria-checked', 'false');
-                });
+            if (currentAnswer) {
+                if (button.id === currentAnswer.answer) {
+                    button.classList.add('selected');
+                    button.setAttribute('aria-checked', 'true');
+                    button.disabled = true;
+                    button.style.cursor = 'default';
+                    button.classList.add('answered');
+                    button.addEventListener('click', () => {});
+                }
+            } else {
+                // Add click handler
+                button.addEventListener('click', (e) => {
+                    // Remove selected class from all buttons
+                    container.querySelectorAll('.multi-choice-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                        btn.setAttribute('aria-checked', 'false');
+                    });
 
-                // Add selected class to clicked button
-                button.classList.add('selected');
-                button.setAttribute('aria-checked', 'true');
-                // create a new answer object and store it locally
-                // getAnswer will find it when the answer button is pushed
-                const answer = a.createAnswerObject();
-                answer.answer = button.textContent;
-                console.log(answer)
-                this.selectedChoice = answer;
-            });
+                    // Add selected class to clicked button
+                    button.classList.add('selected');
+                    button.setAttribute('aria-checked', 'true');
+                    // make the button itself the selected answer
+                    let answer = a.createAnswerObject();
+                    answer.answer = button.innerHTML;
+                    answer.comment = button.id;
+                    this.selectedChoice = answer;
+                });
+            }
             pc.appendChild(button);
         });
         container.appendChild(pc);
@@ -2626,7 +2842,6 @@ class MultiChoice extends PageElement {
             return;
         }
         this.choices = cq.choices;
-
         // Create main container
         const container = document.createElement('div');
         // populate the container
@@ -2731,8 +2946,26 @@ class MultiChoice extends PageElement {
                 background: var(--bccblue);
                 color: white;
             }
+            .multi-choice-button.answered {
+                opacity: 0.7;
+                pointer-events: none;
+                border-color: #ccc;
+            }
+            .multi-choice-button.answered::before {
+                border-color: #ccc;
+            }
         `;
         return ret;
+    }
+
+    disableButtons() {
+        const buttons = document.querySelectorAll('.multi-choice-button');
+        buttons.forEach(button => {
+            button.disabled = true;
+            button.style.cursor = 'default';
+            button.classList.add('answered');
+        });
+        this.isAnswered = true;
     }
 
     getAnswer() {
@@ -2742,16 +2975,15 @@ class MultiChoice extends PageElement {
         //calculate points
         let cq = this.getCurrentQuestion();
         let ca = cq.correctAnswer;
-        if (ca === answer.answer) {
-            console.log("correct answer");
+        // we have to use comment instead of answer field
+        if (ca === answer.comment) {
             answer.points = cq.pointsAvailable;
             answer.comment = "yes";
         } else {
-            console.log("incorrect answer");
             answer.points = 0;
             answer.comment = "no";
         }
-        // now add small penalty for time take
+        // now add small penalty for time taken?
         return answer;
     }
 }
@@ -2761,7 +2993,6 @@ class MultiChoice extends PageElement {
 // ###################################################################
 
 class FreeText extends PageElement {
-
     constructor() {
         super('free-text-container', ['freetext']);
         this.textInput = null;
