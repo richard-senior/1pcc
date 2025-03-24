@@ -232,15 +232,16 @@ func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	// add the answer to the question.Answers array
 	cq.Answers = append(cq.Answers, answer)
-	// order the answers by score
-	tl := cq.TimeLeft
-	//tr := cq.TimeLeft
-	var timeIndication string
-	timeIndication = fmt.Sprintf("answered with %d seconds remaining", tl)
-	game.MessagePlayer(answer.Username, timeIndication, 20)
 
+	if answer.Answer != "..." {
+		tl := cq.TimeLeft
+		timeIndication := fmt.Sprintf("answered with %d seconds remaining", tl)
+		game.MessagePlayer(answer.Username, timeIndication, 20)
+	}
+	// order the anwers by score
 	sort.Slice(cq.Answers, func(i, j int) bool {
 		return cq.Answers[i].Points > cq.Answers[j].Points
 	})

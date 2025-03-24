@@ -1,36 +1,94 @@
 [
     {
-        "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
+        "question": "What comes next?<br/>&nbsp;<br/>Brown, Pink, Blue, ?",
         "type": "multichoice",
-        "category": "warm up",
-        "percent": 60,
-        "imageUrl": "/static/images/cross.svg",
+        "category": "wcn quickfire",
+        "percent": 90,
+        "imageUrl": "",
         "choices": [
-            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
+            {"choice": "orange", "imgUrl": "", "answer": "A"},
+            {"choice": "black", "imgUrl": "", "answer": "B"},
+            {"choice": "indigo", "imgUrl": "", "answer": "C"},
+            {"choice": "violet", "imgUrl": "", "answer": "D"}
         ],
-        "correctAnswer": "D",
-        "hostAnswer": "I think we all knew that..",
-        "timeLimit": 120,
+        "correctAnswers": ["B"],
+        "hostAnswer": "Erm.. snooker joke here",
+        "timeLimit": 60,
         "pointsAvailable": 2
     },
+    {
+        "question": "What score is this?",
+        "type": "multichoice",
+        "category": "wcn quickfire",
+        "percent": 80,
+        "imageUrl": "/static/images/dartboard.svg",
+        "choices": [
+            {"choice": "74", "imgUrl": "", "answer": "A"},
+            {"choice": "68", "imgUrl": "", "answer": "B"},
+            {"choice": "89", "imgUrl": "", "answer": "C"},
+            {"choice": "79", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["D"],
+        "hostAnswer": "Not the best darts player in the world",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What comes next?<br/>&nbsp;<br/>α, β, γ, δ, ?",
+        "type": "multichoice",
+        "category": "wcn quickfire",
+        "percent": 70,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "θ", "imgUrl": "", "answer": "A"},
+            {"choice": "λ", "imgUrl": "", "answer": "B"},
+            {"choice": "ε", "imgUrl": "", "answer": "C"},
+            {"choice": "ω", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["C"],
+        "hostAnswer": "theta, lambda, epsilon, omega",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What comes next?<br/>&nbsp;<br/>Anne Boleyn, Jane Seymour, Ann of Cleeves, ?",
+        "type": "multichoice",
+        "category": "wcn quickfire",
+        "percent": 60,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "Catherine of Aragon", "imgUrl": "", "answer": "A"},
+            {"choice": "Catherine Howard", "imgUrl": "", "answer": "B"},
+            {"choice": "Catherine Parr", "imgUrl": "", "answer": "C"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+
+
+
+
+
+
+
+
     {
         "question": "Where is this?",
         "type": "multichoice",
         "category": "warm up",
         "percent": 99,
-        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu.jpg",
+        "imageUrl": "/static/images/newyork.jpg",
         "choices": [
             {"choice": "Chicago", "imgUrl": "", "answer": "A"},
             {"choice": "London", "imgUrl": "", "answer": "B"},
             {"choice": "New York", "imgUrl": "", "answer": "C"},
             {"choice": "Abu Dhabi", "imgUrl": "", "answer": "D"}
         ],
-        "correctAnswer": "C",
+        "correctAnswers": ["C"],
         "hostAnswer": "I think we all knew that..",
-        "timeLimit": 30,
+        "timeLimit": 60,
         "pointsAvailable": 1
     },
     {
@@ -44,9 +102,9 @@
             {"choice": "1066 AD", "imgUrl": "", "answer": "C"},
             {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
         ],
-        "correctAnswer": "C",
+        "correctAnswers": ["C"],
         "hostAnswer": "Thermopyle (Leonidas), Ashdown (Alfred), Hastings (Harold), Crecy (Edward)",
-        "timeLimit": 20,
+        "timeLimit": 30,
         "pointsAvailable": 2
     },
     {
@@ -56,7 +114,7 @@
         "percent": 80,
         "choices": [],
         "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
-        "correctAnswer": "2454.3,432.4",
+        "correctAnswers": ["2454.3,432.4"],
         "penalisationFactor": 13.0,
         "hostAnswer": "As Fatboy Slim once said, right here.. right now",
         "timeLimit": 120,
@@ -68,25 +126,393 @@
         "question": "Click on the Howard Donald's nose",
         "type": "khazakstan",
         "category": "warm up",
-        "percent": 70,
+        "percent": 60,
         "link": "https://en.wikipedia.org/wiki/Howard_Donald",
-        "correctAnswer": "76.3,16.5",
+        "correctAnswers": ["76.3,16.5"],
         "penalisationFactor": 18.0,
         "hostAnswer": "I suppose it's a process of elimination",
         "timeLimit": 60,
         "clickImage": "/static/images/takethat.svg",
         "pointsAvailable": 2
     },
+    {
+        "question": "What five-letter food appears in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
+        "type": "freetext",
+        "category": "warm up",
+        "percent": 50,
+        "imageUrl": "",
+        "penalisationFactor": 1.0,
+        "correctAnswers": ["bread"],
+        "hostAnswer": "I'm coming off the pill Freddy Bozwell!",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which hand is this dude using to touch his neck?<br/><smaller>It's a mirror by the way.</smaller>",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 40,
+        "imageUrl": "/static/images/mirror.jpg",
+        "choices": [
+            {"choice": "right", "imgUrl": "", "answer": "A"},
+            {"choice": "left", "imgUrl": "", "answer": "B"}
+        ],
+        "correctAnswers": ["A"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "I didn't like doing a question about mirrors, it reflects badly on me.",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "'If you would like to opt-out of the unsubscribing process, don't click yes'<br/><small>Which button do you click to unsubscribe?</small>",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 30,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "yes", "imgUrl": "", "answer": "A"},
+            {"choice": "no", "imgUrl": "", "answer": "B"}
+        ],
+        "correctAnswers": ["A"],
+        "hostAnswer": "This is my life this is..",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Logically, which one of these is the odd one out?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 20,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "Bryan Cranston definitely earns fans", "imgUrl": "", "answer": "A"},
+            {"choice": "Glorious Hugh Jackman is joyous", "imgUrl": "", "answer": "B"},
+            {"choice": "Lionel Messi nutmegs other players", "imgUrl": "", "answer": "C"},
+            {"choice": "Ringo Starr totally unleashes vocally", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "It took a while.. but in the end...",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "I'm not very good at wordle.. can you finish it for me?",
+        "type": "freetext",
+        "category": "warm up",
+        "percent": 10,
+        "imageUrl": "/static/images/wordle.svg",
+        "penalisationFactor": 1.0,
+        "correctAnswers": ["stair", "STAIR", "Stair"],
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 240,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 1,
+        "imageUrl": "/static/images/cross.svg",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
+        ],
+        "correctAnswers": ["D"],
+        "hostAnswer": "Mindbending.. as Bernard Cracknell used to say",
+        "timeLimit": 240,
+        "pointsAvailable": 2
+    },
 
+
+
+    {
+        "question": "Which is the flag of Scotland?",
+        "type": "multichoice",
+        "category": "countries and flags",
+        "percent": 99,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/flags/jm.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/flags/sco.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/flags/spc.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/flags/ker.svg", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "Och aye the noo... Jamaica, Scotland, St Patrick's cross, Cornwall",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which country's flag is this?",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 90,
+        "imageUrl": "/static/images/flags/ch.svg",
+        "correctAnswers": ["Switzerland", "Swiss", "Switserland"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Switzerland have a lovely flag, which is a big plus.",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "How many stars appear on the flag of the USA?",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 80,
+        "imageUrl": "",
+        "correctAnswers": ["50"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "All eyes on Greenland!",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Name a country who's name starts and ends with the same VOWEL?<br/><small>I'm awarding bonus points for the less common answers</small>",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 70,
+        "imageUrl": "",
+        "correctAnswers": ["Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "You went with Austria or Australia didn't you? :)",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "How many stars appear on the flag of Australia!?",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 60,
+        "imageUrl": "",
+        "correctAnswers": ["6"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "The sourthern cross and the 'Commonwealth' star",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What flag comes next: <br/><img src='static/images/flags/gb.svg' width='8%' title='UK'/>&nbsp;<img src='static/images/flags/nl.svg' width='8%' title='Netherlands'/>&nbsp;<img src='static/images/flags/de.svg' width='8%' title='Germany'/>&nbsp;<img src='static/images/flags/pl.svg' width='8%' title='Poland'/>&nbsp;<img src='static/images/flags/by.svg' width='8%' title='Belarus'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/kz.svg' width='8%' title='Kazakhstan'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/us.svg' width='8%' title='USA'/>&nbsp; ??",
+        "type": "multichoice",
+        "category": "countries and flags",
+        "percent": 50,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/flags/ie.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/flags/ca.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/flags/dk.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "D"}
+        ],
+        "correctAnswers": ["C"],
+        "hostAnswer": "",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What is the Japanese word for Japan?",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 40,
+        "imageUrl": "",
+        "correctAnswers": ["Nippon", "Nihon", "Nipon"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "日本 -  ni-hon - sun origin - land of the rising sun",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which flag is missing:<br/><img src='static/images/flags/at.svg' title='Austria' width='6%'/>&nbsp;<img src='static/images/flags/be.svg' title='Belgium' width='6%'/>&nbsp;<img src='static/images/flags/bg.svg' title='Bulgaria' width='6%'/>&nbsp;<img src='static/images/flags/hr.svg' title='Croatia' width='6%'/>&nbsp;<img src='static/images/flags/cy.svg' title='Cyprus' width='6%'/>&nbsp;<img src='static/images/flags/cz.svg' title='Czech Republic' width='6%'/>&nbsp;<img src='static/images/flags/dk.svg' title='Denmark' width='6%'/>&nbsp;<img src='static/images/flags/ee.svg' title='Estonia' width='6%'/>&nbsp;<img src='static/images/flags/fi.svg' title='Finland' width='6%'/>&nbsp;<img src='static/images/flags/fr.svg' title='France' width='6%'/>&nbsp;<img src='static/images/flags/de.svg' title='Germany' width='6%'/>&nbsp;<img src='static/images/flags/gr.svg' title='Greece' width='6%'/>&nbsp;<img src='static/images/flags/hu.svg' title='Hungary' width='6%'/>&nbsp;<img src='static/images/flags/it.svg' title='Italy' width='6%'/>&nbsp;<img src='static/images/flags/lv.svg' title='Latvia' width='6%'/>&nbsp;<img src='static/images/flags/lt.svg' title='Lithuania' width='6%'/>&nbsp;<img src='static/images/flags/lu.svg' title='Luxembourg' width='6%'/>&nbsp;<img src='static/images/flags/mt.svg' title='Malta' width='6%'/>&nbsp;<img src='static/images/flags/nl.svg' title='Netherlands' width='6%'/>&nbsp;<img src='static/images/flags/pl.svg' title='Poland' width='6%'/>&nbsp;<img src='static/images/flags/pt.svg' title='Portugal' width='6%'/>&nbsp;<img src='static/images/flags/ro.svg' title='Romania' width='6%'/>&nbsp;<img src='static/images/flags/sk.svg' title='Slovakia' width='6%'/>&nbsp;<img src='static/images/flags/sl.svg' title='Slovenia' width='6%'/>&nbsp;<img src='static/images/flags/es.svg' title='Spain' width='6%'/>&nbsp;<img src='static/images/flags/se.svg' title='Sweden' width='6%'/>&nbsp;",
+        "type": "multichoice",
+        "category": "countries and flags",
+        "percent": 30,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/flags/ie.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/flags/ru.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/flags/no.svg", "answer": "D"}
+        ],
+        "correctAnswers": ["A"],
+        "hostAnswer": "A bit of politics there... :)",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Click on Bangladesh",
+        "type": "khazakstan",
+        "category": "countries and flags",
+        "percent": 20,
+        "correctAnswers": ["3815.52,973.34"],
+        "penalisationFactor": 18.0,
+        "hostAnswer": "I suppose it's a process of elimination",
+        "timeLimit": 60,
+        "clickImage": "/static/images/worldmap.svg",
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Name a country who's name starts and ends with the same CONSONANT?<br/><small>No countries begin with the word 'The'!</small>",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 10,
+        "imageUrl": "",
+        "correctAnswers": ["Central African Republic", "CAR", "St Kitts", "Saint Kitts and Nevis", "Saint Vincent and the Grenadines", "Seychelles", "Sayshells", "Solomon Islands", "South Georgia and the South Sandwich Islands" ],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Pretty hard!",
+        "timeLimit": 180,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which country's flag is this?",
+        "type": "freetext",
+        "category": "countries and flags",
+        "percent": 1,
+        "imageUrl": "/static/images/flags/lols_nice_try.svg",
+        "correctAnswers": ["Kiribati"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Capital: South Tarawa · Population: 121,300 · Area: 811 sq km",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+
+
+
+
+
+
+
+
+
+    {
+        "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 90,
+        "correctAnswers": ["19"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "Ner ner ner 19! or as Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "2 + 3 × 10 = ??",
+        "type": "multichoice",
+        "category": "numbers and letters",
+        "percent": 80,
+        "choices": [
+            {"choice": "53", "imgUrl": "", "answer": "A"},
+            {"choice": "50", "imgUrl": "", "answer": "B"},
+            {"choice": "35", "imgUrl": "", "answer": "C"},
+            {"choice": "32", "imgUrl": "", "answer": "D"}
+        ],
+        "imageUrl": "",
+        "correctAnswers": ["D"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "BODMAS! Brackets -> division -> multiplication -> Addition -> Subtraction. No if's no buts.",
+        "timeLimit": 25,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Click on the 'Umlaut'",
+        "type": "khazakstan",
+        "category": "numbers and letters",
+        "percent": 70,
+        "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
+        "correctAnswers": ["90.7,43.8"],
+        "penalisationFactor": 100.0,
+        "hostAnswer": "Jä!",
+        "timeLimit": 30,
+        "clickImage": "/static/images/umlaut.svg",
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which sequence of punctuation marks is in alphabetical order?",
+        "type": "multichoice",
+        "category": "numbers and letters",
+        "percent": 60,
+        "choices": [
+            {"choice": "? : , ! .", "imgUrl": "", "answer": "A"},
+            {"choice": ": , ! . ?", "imgUrl": "", "answer": "B"},
+            {"choice": ", ! . ? ,", "imgUrl": "", "answer": "C"},
+            {"choice": "! . ? , :", "imgUrl": "", "answer": "D"}
+        ],
+        "imageUrl": "",
+        "correctAnswers": ["B"],
+        "penalisationFactor": 0,
+        "hostAnswer": "CoLon, CoMma, Exclamation mark, Full stop (or Period), Question mark",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
     {
         "question": "What is 4 across?",
         "type": "freetext",
         "category": "numbers and letters",
         "percent": 50,
         "imageUrl": "/static/images/crossword_towns.svg",
-        "correctAnswer": "Dewsbury",
+        "correctAnswers": ["Dewsbury"],
         "penalisationFactor": 1.0,
         "hostAnswer": "Tricky!",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "<p style='font-size: smaller;'> Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?</p>",
+        "type": "multichoice",
+        "category": "numbers and letters",
+        "percent": 40,
+        "choices": [
+            {"choice": "EG40 LZC", "imgUrl": "", "answer": "A"},
+            {"choice": "EDIO EZO", "imgUrl": "", "answer": "B"},
+            {"choice": "FDIO LZB", "imgUrl": "", "answer": "C"},
+            {"choice": "EDIO UZD", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "L-E, C-O" ,
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What is the only letter that doesn't appear in any U.S. state name?",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 30,
+        "imageUrl": "",
+        "correctAnswers": ["Q"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "Qualabama, ought to be a state.",
+        "timeLimit": 45,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "<p style='font-size: smaller;'>Last month was not June or August. Next month is not February, April or December. Neither last month NOR next month is January, May or September. <br/>What month is it?</p><p style='font-size: smaller;'>Use the boxes below to eliminate months if it helps..</p><br/>&nbsp;<br/><p style='font-size: 0.5em;'>Jan<input type='checkbox'/>Feb<input type='checkbox'/>Mar<input type='checkbox'/>Apr<input type='checkbox'/>May<input type='checkbox'/>Jun<input type='checkbox'/>Jul<input type='checkbox'/>Aug<input type='checkbox'/>Sep<input type='checkbox'/>Oct<input type='checkbox'/>Nov<input type='checkbox'/>Dec<input type='checkbox'/></p>",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 20,
+        "penalisationFactor": 0.0,
+        "correctAnswers": ["May", "may"],
+        "hostAnswer": "Logic puzzles suck don't they.",
+        "timeLimit": 300,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What is the only number between 1 and 100 that, when written out in English, has all its letters in alphabetical order?",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 10,
+        "penalisationFactor": 0.0,
+        "correctAnswers": ["Forty"],
+        "hostAnswer": "That one was pretty tough I think.",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Name an english word that contains all 5 vowels exactly once and in alphabetical order..<br/><small>ie. 'Education' contains all vowels once but they're not in order..</small>",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 1,
+        "penalisationFactor": 1.0,
+        "correctAnswers": ["abstemious", "abstemiously", "abstenious", "abstentious", "acedious", "acerbitous", "acheilous", "acheirous", "adecticous", "aerious", "affectious", "anemious", "annelidous", "anteriour", "anteriourly", "arsenious", "avenious", "caesious", "facetious", "facetiously", "fracedinous", "larcenious", "materious", "placentious", "tragedious", "transtendinous", "travertinous"],
+        "hostAnswer": "I knew you'd all get that.. or am I being facetious?",
         "timeLimit": 120,
         "pointsAvailable": 2
     },
@@ -111,9 +537,9 @@
             {"choice": "tea", "imgUrl": "", "answer": "D"},
             {"choice": "supper", "imgUrl": "", "answer": "E"}
         ],
-        "percent": 99,
-        "correctAnswer": "A",
-        "hostAnswer": "Break Fast! init." ,
+        "percent": 60,
+        "correctAnswers": ["A"],
+        "hostAnswer": "Break Fast! init.",
         "timeLimit": 30,
         "pointsAvailable": 2
     },
@@ -127,122 +553,28 @@
             {"choice": "A", "imgUrl": "", "answer": "C"},
             {"choice": "T", "imgUrl": "", "answer": "D"}
         ],
-        "percent": 40,
-        "correctAnswer": "C",
+        "percent": 30,
+        "correctAnswers": ["C"],
         "hostAnswer": "Days of the week init." ,
-        "timeLimit": 40,
+        "timeLimit": 120,
         "pointsAvailable": 2
     },
     {
-        "question": "1) Across : Being there, have a ball a couple of hours before midnight!",
+        "question": "1) Across : Being there... have a ball a couple of hours before midnight!",
         "type": "freetext",
         "category": "cryptic",
-        "percent": 50,
+        "percent": 10,
         "imageUrl": "/static/images/cryptic.png",
-        "correctAnswer": "attendance",
+        "correctAnswers": ["Attendance"],
         "penalisationFactor": 1.0,
         "hostAnswer": "At Ten (12 - 2) have a ball (dance)",
-        "timeLimit": 50,
+        "timeLimit": 120,
         "pointsAvailable": 2
     },
 
 
 
 
-
-
-
-
-
-
-
-
-    {
-        "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
-        "type": "freetext",
-        "category": "numbers and letters",
-        "percent": 90,
-        "correctAnswer": "ner, ner, ner.. 19",
-        "penalisationFactor": 0.0,
-        "hostAnswer": "As Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
-        "timeLimit": 40,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "2 + 3 × 10 = ??",
-        "type": "multichoice",
-        "category": "numbers and letters",
-        "percent": 80,
-        "choices": [
-            {"choice": "53", "imgUrl": "", "answer": "A"},
-            {"choice": "50", "imgUrl": "", "answer": "B"},
-            {"choice": "35", "imgUrl": "", "answer": "C"},
-            {"choice": "32", "imgUrl": "", "answer": "D"}
-        ],
-        "imageUrl": "",
-        "correctAnswer": "D",
-        "penalisationFactor": 0.0,
-        "hostAnswer": "BODMAS! Brackets -> division -> multiplication -> Addition -> Subtraction. No if's no buts.",
-        "timeLimit": 25,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Click on the 'Umlaut'",
-        "type": "khazakstan",
-        "category": "numbers and letters",
-        "percent": 70,
-        "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
-        "correctAnswer": "90.7,43.8",
-        "penalisationFactor": 100.0,
-        "hostAnswer": "Jä!",
-        "timeLimit": 30,
-        "clickImage": "/static/images/umlaut.svg",
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Which sequence of punctuation marks is in alphabetical order?",
-        "type": "multichoice",
-        "category": "numbers and letters",
-        "percent": 60,
-        "choices": [
-            {"choice": "? : , ! .", "imgUrl": "", "answer": "A"},
-            {"choice": ": , ! . ?", "imgUrl": "", "answer": "B"},
-            {"choice": ", ! . ? ,", "imgUrl": "", "answer": "C"},
-            {"choice": "! . ? , :", "imgUrl": "", "answer": "D"}
-        ],
-        "imageUrl": "",
-        "correctAnswer": "B",
-        "penalisationFactor": 0,
-        "hostAnswer": "CoLon, CoMma, Exclamation mark, Full stop (or Period), Question mark",
-        "timeLimit": 30,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "<p style='font-size: smaller;'> Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?</p>",
-        "type": "multichoice",
-        "category": "numbers and letters",
-        "percent": 50,
-        "choices": [
-            {"choice": "EG40 LZC", "imgUrl": "", "answer": "A"},
-            {"choice": "EDIO EZO", "imgUrl": "", "answer": "B"},
-            {"choice": "FDIO LZB", "imgUrl": "", "answer": "C"},
-            {"choice": "EDIO UZD", "imgUrl": "", "answer": "D"}
-        ],
-        "correctAnswer": "B",
-        "hostAnswer": "L-E, C-O" ,
-        "timeLimit": 40,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "<p style='font-size: smaller;'>Last month was not June or August. Next month is not February, April or December. Neither last month NOR next month is January, May or September. <br/>What month is it?</p><p style='font-size: smaller;'>Use the boxes below to eliminate months if it helps..</p><p style='font-size: 0.5em;'>Jan<input type='checkbox'/>Feb<input type='checkbox'/>Mar<input type='checkbox'/>Apr<input type='checkbox'/>May<input type='checkbox'/>Jun<input type='checkbox'/>Jul<input type='checkbox'/>Aug<input type='checkbox'/>Sep<input type='checkbox'/>Oct<input type='checkbox'/>Nov<input type='checkbox'/>Dec<input type='checkbox'/></p>",
-        "type": "freetext",
-        "category": "numbers and letters",
-        "percent": 20,
-        "correctAnswer": "May",
-        "hostAnswer": "Logic puzzles suck don't they.",
-        "timeLimit": 300,
-        "pointsAvailable": 2
-    },
 
 
 
@@ -259,7 +591,7 @@
         "percent": 80,
         "choices": [],
         "link": "https://maps.app.goo.gl/j6yqqeJHS67TCAep8",
-        "correctAnswer": "",
+        "correctAnswers": [""],
         "penalisationFactor": 12.0,
         "hostAnswer": "Anmatjere, Northern Territories, Australia",
         "timeLimit": 80,
@@ -274,7 +606,7 @@
         "percent": 60,
         "choices": [],
         "link": "https://maps.app.goo.gl/ga4cwmii8kDdnPn78",
-        "correctAnswer": "4502.620963283039, 753.4690573367145",
+        "correctAnswers": ["4502.620, 753.469"],
         "hostAnswer": "Edogawa, Tokyo",
         "penalisationFactor": 15.0,
         "timeLimit": 100,
@@ -289,7 +621,7 @@
         "percent": 40,
         "choices": [],
         "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
-        "correctAnswer": "2403.579900814714, 296.8883885349561",
+        "correctAnswers": ["2403.579, 296.888"],
         "penalisationFactor": 18.0,
         "hostAnswer": "Lervik, Faroe Islands",
         "timeLimit": 140,
@@ -304,7 +636,7 @@
         "percent": 20,
         "choices": [],
         "link": "https://maps.app.goo.gl/8W7sE3KeA2Hj6nuz5",
-        "correctAnswer": "",
+        "correctAnswers": [""],
         "penalisationFactor": 15.0,
         "hostAnswer": "Novy Zivot, Slovakia",
         "timeLimit": 140,
@@ -319,12 +651,29 @@
         "percent": 1,
         "choices": [],
         "link": "https://maps.app.goo.gl/szsHQWGmnks39rVi8",
-        "correctAnswer": "",
+        "correctAnswers": [""],
         "penalisationFactor": 13.0,
         "hostAnswer": "Chubut Province, Argentina",
         "timeLimit": 160,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740565430239!6m8!1m7!1sNiWl_OSDrsLt5bsJzo1LNw!2m2!1d-43.66293731935104!2d-70.08697737188758!3f150.7486451806517!4f-0.29697066225918434!5f0.7820865974627469",
+        "pointsAvailable": 8
+    },
+
+
+
+
+    {
+        "question": "Click on the location of the world's highest waterfall",
+        "type": "khazakstan",
+        "category": "Where is Khazakstan",
+        "percent": 50,
+        "choices": [],
+        "correctAnswers": ["3089.4,521.2"],
+        "penalisationFactor": 15.0,
+        "hostAnswer": "Angel Falls in Venezuela - dropping 979 meters (3,212 feet)!",
+        "timeLimit": 60,
+        "clickImage": "/static/images/worldmap.svg",
         "pointsAvailable": 8
     }
 ]

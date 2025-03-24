@@ -1,0 +1,361 @@
+{
+    "question": "Complete this lyric: 'Sweet Caroline... '",
+    "type": "multichoice",
+    "category": "music",
+    "percent": 99,
+    "choices": [
+        {"choice": "BAM BAM BAM", "imgUrl": "", "answer": "A"},
+        {"choice": "OH OH OH", "imgUrl": "", "answer": "B"},
+        {"choice": "LA LA LA", "imgUrl": "", "answer": "C"},
+        {"choice": "DUM DUM DUM", "imgUrl": "", "answer": "D"}
+    ],
+    "correctAnswers": ["B"],
+    "hostAnswer": "Good times never seemed so good! (SO GOOD! SO GOOD! SO GOOD!)",
+    "timeLimit": 20,
+    "pointsAvailable": 2
+},
+{
+    "question": "Which band performed 'Bohemian Rhapsody'?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 90,
+    "correctAnswers": ["Queen"],
+    "penalisationFactor": 0.0,
+    "hostAnswer": "Is this the real life? Is this just fantasy?",
+    "timeLimit": 20,
+    "pointsAvailable": 2
+},
+{
+    "question": "What instrument is this?",
+    "type": "multichoice",
+    "category": "music",
+    "percent": 80,
+    "imageUrl": "/static/images/instruments/oboe.jpg",
+    "choices": [
+        {"choice": "Clarinet", "imgUrl": "", "answer": "A"},
+        {"choice": "Flute", "imgUrl": "", "answer": "B"},
+        {"choice": "Oboe", "imgUrl": "", "answer": "C"},
+        {"choice": "Bassoon", "imgUrl": "", "answer": "D"}
+    ],
+    "correctAnswers": ["C"],
+    "hostAnswer": "The oboe - a double-reed woodwind instrument",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "Which of these time signatures is in triple time?",
+    "type": "multichoice",
+    "category": "music",
+    "percent": 70,
+    "choices": [
+        {"choice": "4/4", "imgUrl": "", "answer": "A"},
+        {"choice": "3/4", "imgUrl": "", "answer": "B"},
+        {"choice": "2/4", "imgUrl": "", "answer": "C"},
+        {"choice": "6/8", "imgUrl": "", "answer": "D"}
+    ],
+    "correctAnswers": ["B"],
+    "hostAnswer": "3/4 is waltz time - ONE two three, ONE two three",
+    "timeLimit": 40,
+    "pointsAvailable": 2
+},
+{
+    "question": "What note is this on the treble clef?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 60,
+    "imageUrl": "/static/images/music/middle_c.svg",
+    "correctAnswers": ["C", "Middle C"],
+    "penalisationFactor": 0.0,
+    "hostAnswer": "Middle C - the note that sits between the bass and treble clef",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "What key signature is this?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 50,
+    "imageUrl": "/static/images/music/d_major.svg",
+    "correctAnswers": ["D Major", "D"],
+    "penalisationFactor": 1.0,
+    "hostAnswer": "D Major - with F# and C#",
+    "timeLimit": 45,
+    "pointsAvailable": 2
+},
+{
+    "question": "Which of these is NOT a real musical dynamic marking?",
+    "type": "multichoice",
+    "category": "music",
+    "percent": 40,
+    "choices": [
+        {"choice": "pp", "imgUrl": "", "answer": "A"},
+        {"choice": "mf", "imgUrl": "", "answer": "B"},
+        {"choice": "ml", "imgUrl": "", "answer": "C"},
+        {"choice": "ff", "imgUrl": "", "answer": "D"}
+    ],
+    "correctAnswers": ["C"],
+    "hostAnswer": "'ml' isn't real - pp (pianissimo), mf (mezzo-forte), and ff (fortissimo) are all real dynamics",
+    "timeLimit": 40,
+    "pointsAvailable": 2
+},
+{
+    "question": "What is the Italian musical term for 'gradually getting louder'?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 30,
+    "correctAnswers": ["Crescendo", "crescendo"],
+    "penalisationFactor": 1.0,
+    "hostAnswer": "Crescendo - from the Italian 'crescere' meaning 'to grow'",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "Name this chord progression: I-V-vi-IV",
+    "type": "freetext",
+    "category": "music",
+    "percent": 20,
+    "correctAnswers": ["Four Chord Song", "Four Chord", "4 Chord Song", "Pop Punk Progression"],
+    "penalisationFactor": 1.0,
+    "hostAnswer": "The famous 'Four Chord Song' progression - used in countless pop songs!",
+    "timeLimit": 45,
+    "pointsAvailable": 2
+},
+{
+    "question": "What is the frequency (in Hz) of Concert A?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 10,
+    "correctAnswers": ["440", "440Hz", "440 Hz"],
+    "penalisationFactor": 0.0,
+    "hostAnswer": "A440 or 'Concert A' is the standard pitch reference for musical tuning",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "In Bach's Well-Tempered Clavier Book 1, which prelude uses all 12 notes of the chromatic scale in its first four measures?",
+    "type": "freetext",
+    "category": "music",
+    "percent": 1,
+    "correctAnswers": ["B Minor", "B min", "Bm"],
+    "penalisationFactor": 1.0,
+    "hostAnswer": "The B Minor Prelude - one of the earliest examples of using all 12 chromatic tones in classical music",
+    "timeLimit": 60,
+    "pointsAvailable": 2
+}
+
+
+
+
+
+[
+    {
+        "question": "What is the name of the pub in EastEnders?",
+        "type": "multichoice",
+        "category": "UK TV",
+        "percent": 99,
+        "choices": [
+            {"choice": "The Queen Vic", "imgUrl": "", "answer": "A"},
+            {"choice": "The Rovers Return", "imgUrl": "", "answer": "B"},
+            {"choice": "The Woolpack", "imgUrl": "", "answer": "C"},
+            {"choice": "The Red Lion", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["A"],
+        "hostAnswer": "The Queen Victoria pub, or 'Queen Vic' has been central to EastEnders since 1985",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which TV show features the catchphrase 'I'm a celebrity... Get me out of here!'?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 90,
+        "correctAnswers": ["I'm a celebrity", "I'm a celeb", "Im a celebrity get me out of here"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Started in 2002 and still going strong!",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which channel originally broadcast Doctor Who in 1963?",
+        "type": "multichoice",
+        "category": "UK TV",
+        "percent": 80,
+        "choices": [
+            {"choice": "ITV", "imgUrl": "", "answer": "A"},
+            {"choice": "BBC One", "imgUrl": "", "answer": "B"},
+            {"choice": "BBC Two", "imgUrl": "", "answer": "C"},
+            {"choice": "Channel 4", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "First episode aired on BBC One on 23rd November 1963",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What was the name of Del Boy's company in Only Fools and Horses?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 70,
+        "correctAnswers": ["Trotters Independent Traders", "TROTTERS INDEPENDENT TRADERS", "Trotters Independent Trading", "T.I.T"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Trotters Independent Traders - or T.I.T for short!",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which year did Channel 4 first broadcast in the UK?",
+        "type": "multichoice",
+        "category": "UK TV",
+        "percent": 60,
+        "choices": [
+            {"choice": "1980", "imgUrl": "", "answer": "A"},
+            {"choice": "1982", "imgUrl": "", "answer": "B"},
+            {"choice": "1984", "imgUrl": "", "answer": "C"},
+            {"choice": "1986", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "Channel 4 launched on 2nd November 1982",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What was the first ever UK soap opera to air on British television?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 50,
+        "correctAnswers": ["The Grove Family"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "The Grove Family ran from 1954 to 1957 on the BBC",
+        "timeLimit": 45,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "In which fictional county is the TV show Midsomer Murders set?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 40,
+        "correctAnswers": ["Midsomer"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "The fictional county of Midsomer, though filmed across Buckinghamshire and Oxfordshire",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What was the original title of the UK gameshow 'Countdown' when it first appeared in France?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 30,
+        "correctAnswers": ["Des Chiffres et Des Lettres", "Des Chiffres et des Lettres"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Des Chiffres et Des Lettres (Numbers and Letters)",
+        "timeLimit": 45,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "In which year did BBC Two begin using the first regular colour television service in Europe?",
+        "type": "multichoice",
+        "category": "UK TV",
+        "percent": 20,
+        "choices": [
+            {"choice": "1965", "imgUrl": "", "answer": "A"},
+            {"choice": "1967", "imgUrl": "", "answer": "B"},
+            {"choice": "1969", "imgUrl": "", "answer": "C"},
+            {"choice": "1971", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "BBC Two began colour broadcasts in 1967, followed by BBC One and ITV in 1969",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which British TV show holds the record for the longest-running children's TV show, running from 1958 to 2003?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 10,
+        "correctAnswers": ["Blue Peter"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "Blue Peter - though it's still running, this was its continuous run record before moving channels",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "What was the exact time and date of the first television broadcast by the BBC Television Service from Alexandra Palace?",
+        "type": "freetext",
+        "category": "UK TV",
+        "percent": 1,
+        "correctAnswers": ["2nd November 1936 3pm", "2 November 1936 3pm", "02/11/1936 15:00"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "The first broadcast was at 3pm on 2nd November 1936 - marking the world's first public regular high-definition television service",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    }
+
+
+    {
+        "question": "What comes next in this sequence: OTTFFSS_",
+        "type": "multichoice",
+        "category": "cryptic",
+        "percent": 50,
+        "choices": [
+            {"choice": "E", "imgUrl": "", "answer": "A"},
+            {"choice": "N", "imgUrl": "", "answer": "B"},
+            {"choice": "T", "imgUrl": "", "answer": "C"},
+            {"choice": "S", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["A"],
+        "hostAnswer": "One, Two, Three, Four, Five, Six, Seven, Eight - first letter of each number!",
+        "timeLimit": 45,
+        "pointsAvailable": 2
+    },
+
+    {
+        "question": "What is smallest amount you can take off something?",
+        "type": "multichoice",
+        "category": "quickfire nonsense",
+        "choices": [
+            {"choice": "a chunk", "imgUrl": "", "answer": "A"},
+            {"choice": "a gnats", "imgUrl": "", "answer": "B"},
+            {"choice": "a bit", "imgUrl": "", "answer": "C"},
+            {"choice": "a smidge", "imgUrl": "", "answer": "D"}
+        ],
+        "percent": 40,
+        "correctAnswers": ["B"],
+        "hostAnswer": "The host is always right, it's a gnats, or a cats" ,
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "If you were describing a cat, which is biggest?",
+        "type": "multichoice",
+        "category": "quickfire nonsense",
+        "choices": [
+            {"choice": "chock off", "imgUrl": "", "answer": "A"},
+            {"choice": "huge", "imgUrl": "", "answer": "B"},
+            {"choice": "mahoosive", "imgUrl": "", "answer": "C"},
+            {"choice": "gargantuan", "imgUrl": "", "answer": "D"},
+            {"choice": "big", "imgUrl": "", "answer": "E"}
+        ],
+        "percent": 40,
+        "correctAnswers": ["D"],
+        "hostAnswer": "The host is always right, there's big, and then there's gargantuan" ,
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which is the craziest?",
+        "type": "multichoice",
+        "category": "quickfire nonsense",
+        "choices": [
+            {"choice": "loony", "imgUrl": "", "answer": "A"},
+            {"choice": "oddball", "imgUrl": "", "answer": "B"},
+            {"choice": "rangoon", "imgUrl": "", "answer": "C"},
+            {"choice": "strange", "imgUrl": "", "answer": "D"}
+        ],
+        "percent": 40,
+        "correctAnswers": ["C"],
+        "hostAnswer": "The host is always right, because he's absolutely rangoon." ,
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    }
+
+]

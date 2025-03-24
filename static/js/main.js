@@ -130,7 +130,14 @@ class GameAPI {
      */
     async update() {
         try {
+            // get new game state from the server
             let newState = await this.fetchGameState();
+            // if important things are missing we're not ready yet
+            if (!newState || !newState.currentUser) {
+                console.warn('Failed to get game state or current user');
+                return;
+            }
+            // otherwise update everything
             this.state = newState;
             this.currentUser = newState.currentUser;
             window.gameState = newState;
@@ -274,6 +281,18 @@ class GameAPI {
     getTimeLeft() {
         if (!this.timeLeft || this.timeLeft < 0) {this.timeLeft = 0;}
         return this.timeLeft;
+    }
+    /**
+     * the percentage of time currently used by the user without submitting an
+     * answer. Used to add penalisation to points scored etc.
+     * @returns {float} the percentage of time the user has used so far
+     */
+    getPercentageTimeUsed() {
+        let tl = this.getTimeLeft();
+        if (!tl || tl <= 0) {return 100.0;}
+        let cq = this.getCurrentQuestion();
+        let ret = (tl / cq.timeLimit) * 100.0;
+        return ret;
     }
     /**
      * A map of the currently signed in players
@@ -433,13 +452,51 @@ class GameAPI {
         return answer;
     }
     /**
+     * Handles the user pressing the white flag button
+     * @returns {null}
+     */
+    async surrender() {
+        if (!this.isQuestionActive()) {return;}
+        let answer = this.createAnswerObject();
+        answer.answer = "..."
+        answer.comment = "forfeit"
+        answer.points = 0;
+
+        try {
+            let s = JSON.stringify(answer);
+            const response = await fetch('/api/submit-answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: s
+            });
+            if (!response.ok) {
+                console.warn('Server returned error when submitting answer:', response.status);
+                return;
+            }
+            const event = new CustomEvent('answerSubmitted', {
+                bubbles: true,
+                detail: {
+                    timestamp: Date.now()
+                }
+            });
+            window.dispatchEvent(event);
+            this.update();
+        } catch (error) {
+            console.warn('Failed to submit answer:', error);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Submits the answer object to the server
      * @returns {boolean} true if the answer was accepted, false otherwise
      */
     async submitAnswer() {
         let cq = this.getCurrentQuestion()
         if (!this.isQuestionActive()) {
-            console.log('Question is not active, cannot submit answer');
             return false;
         }
 
@@ -467,7 +524,7 @@ class GameAPI {
             return false;
         }
 
-        let answer = answerComponent.getAnswer();
+        let answer = answerComponent.doGetAnswer();
 
         if (!answer || answer === "") {
             this.sendSelfMessage("you must submit choose an answer", 10);
@@ -487,6 +544,13 @@ class GameAPI {
                 console.warn('Server returned error when submitting answer:', response.status);
                 return false;
             }
+            const event = new CustomEvent('answerSubmitted', {
+                bubbles: true,
+                detail: {
+                    timestamp: Date.now()
+                }
+            });
+            window.dispatchEvent(event);
             this.update();
         } catch (error) {
             console.warn('Failed to submit answer:', error);
@@ -661,6 +725,7 @@ class PageElement {
         }
         this.initialise(api);
         this.initialisedHasRun = true;
+        //this.initialiseEvents();
     }
 
     /**
@@ -668,9 +733,7 @@ class PageElement {
      * fully instantiated game state
      * @param {*} api the game state api
      */
-    initialise(api) {
-        // initialiseEvents
-    }
+    initialise(api) {}
 
     /**
      * Init various event handlers
@@ -730,22 +793,6 @@ class PageElement {
     async onQuestionEnd(event) {
         // Base implementation does nothing
         return Promise.resolve();
-    }
-
-    /**
-     * returns true if the question has been answered or if the answer
-     * has been recently submitted
-     * @returns {boolean} true if the current question has been answered
-     */
-    hasAnswered() {
-        if (this.selectedAnswer && this.answerSubmitted) {return true;}
-        const g = this.getApi();
-        if (g.hasAnswered()) {
-            this.answerSubmitted = true;
-            return true;
-        }
-        this.answerSubmitted = false;
-        return false;
     }
 
     /**
@@ -829,9 +876,14 @@ class PageElement {
      * By default will return true if the current question is
      * counting down. False otherwise.
      * May be overriden to provide different hueristics.
+     * Used almost exclusively by AnimatedButton objects which extend this
+     * class but has been placed here in case other page elements need it
      * @returns {boolean} true if this page element is enabled
      */
-    isEnabled() {return this.isQuestionActive();}
+    isEnabled() {
+        let ret = this.isQuestionActive();
+        return ret;
+    }
     /**
      * returns true if the dom element that this object manages should be
      * updated. First checks
@@ -843,9 +895,6 @@ class PageElement {
      */
     doShouldUpdate() {
         if (!this.getElement()) {
-            return false;
-        }
-        if (!this.getCurrentQuestion()) {
             return false;
         }
         if (!this.doShouldShow()) {
@@ -1004,9 +1053,7 @@ class PageElement {
     doShouldShow() {
         if (!this.getElement()) {return false;}
         let cq = this.getCurrentQuestion();
-        if (!this.isCompatibleWithQuestion(cq)) {
-            return false;
-        }
+        if (!this.isCompatibleWithQuestion(cq)) {return false;}
         // let the extending class have the final say
         let ss = this.shouldShow();
         if (ss) {
@@ -1017,6 +1064,45 @@ class PageElement {
             return false;
         }
     }
+
+    /**
+    * returns true if the question has been answered or if the answer
+    * has been recently submitted
+    * @returns {boolean} true if the current question has been answered
+    */
+    hasAnswered() {
+        if (this.selectedAnswer && this.answerSubmitted) {return true;}
+        const g = this.getApi();
+        if (g.hasAnswered()) {
+            this.answerSubmitted = true;
+            return true;
+        }
+        this.answerSubmitted = false;
+        return false;
+    }
+
+    /**
+     * @returns {Answer}
+     */
+    doGetAnswer() {
+        if (this.selectedAnswer) {return this.selectedAnswer;}
+        this.selectedAnswer = this.getAnswer();
+        if (this.selectedAnswer) {
+            this.answerSubmitted = true;
+        }
+        if (this.selectedAnswer.points && this.selectedAnswer.points>0) {
+            // now add small penalty for time taken?
+            let ptu = this.getApi().getPercentageTimeUsed()
+            let timeMultiplier = 1 - (0.1 * (1 - Math.exp(-3 * (ptu / 100))));
+            // Calculate original points and penalty
+            let originalPoints = this.selectedAnswer.points;
+            let penalizedPoints = Math.round(originalPoints * timeMultiplier);
+            // Apply the penalty
+            this.selectedAnswer.points = penalizedPoints;
+        }
+        return this.selectedAnswer;
+    }
+
     /**
      * Should be overriden to return the answer to the current question
      * as submitted by the user
@@ -1077,30 +1163,6 @@ class QuestionView extends PageElement {
         super('question-title', ['*'])
         this.questionNumber = -1;
     }
-    createStyles() {
-        return `
-            .question-title-container {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                padding: 0px;
-            }
-            .username-span {
-                color: var(--bcclightgold);
-                font-size: 1.2emem;
-                font-weight: bold;
-            }
-            .percent-span {
-                color: var(--bccdarkgold);
-                font-size: 1.4em;
-                font-weight: bold;
-            }
-            .question-span {
-                color: white;
-                font-size: 1.8em;
-            }
-        `;
-    }
 
     shouldUpdate() {
         let cq = this.getCurrentQuestion();
@@ -1111,37 +1173,122 @@ class QuestionView extends PageElement {
         return false;
     }
 
+    createStyles() {
+        return `
+            .question-title-container {
+                width: 100%;
+                border-collapse: collapse;
+                background: transparent;
+                border: 0;
+                position: relative;
+            }
+            .question-title-container tr,
+            .question-title-container td {
+                background: transparent;
+                border: 0;
+                padding: 0;
+                text-align: center;
+            }
+            .corner-image {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 3em;
+                height: 3em;
+                z-index: 1000;  /* Increased z-index to ensure it's above other elements */
+                cursor: pointer;
+                transition: opacity 0.3s ease;  /* Smooth transition for opacity change */
+                opacity: 0.6;  /* Initial state slightly transparent */
+                pointer-events: auto;  /* Ensure the image receives mouse events */
+            }
+            .corner-image:hover {
+                opacity: 1;  /* Full opacity on hover */
+            }
+            .username-row {
+                color: var(--bcclightgold);
+                font-size: 1.2em;
+                font-weight: bold;
+                position: relative;
+                z-index: 2;
+            }
+            .percent-row {
+                color: var(--bccdarkgold);
+                font-size: 1.4em;
+                font-weight: bold;
+                position: relative;
+                z-index: 2;
+            }
+            .question-row {
+                color: white;
+                font-size: 1.8em;
+                position: relative;
+                z-index: 2;
+            }
+        `;
+    }
+
+    handleGiveUp() {
+        this.getApi().surrender();
+    }
+
     getContent(gs) {
         let cp = this.getCurrentPlayer();
         if (!cp) {return;}
         let cq = this.getCurrentQuestion();
         if (!cq) {return;}
 
-        // Create container div
         const container = document.createElement('div');
-        container.className = 'question-title-container';
+        container.style.position = 'relative';
 
-        // Create username span
-        const usernameSpan = document.createElement('span');
-        usernameSpan.className = 'username-span';
-        usernameSpan.textContent = cp.username;
-        // Create percent span
-        const percentSpan = document.createElement('span');
-        percentSpan.className = 'percent-span';
-        percentSpan.textContent = cq.percent.toString() + "% - " + cq.category;
-        // Create question span
-        const questionSpan = document.createElement('span');
-        questionSpan.className = 'question-span';
-        // ${cq.questionNumber}
-        questionSpan.innerHTML = `${cq.question}`;
+        // Create the corner image
+        const cornerImage = document.createElement('img');
+        cornerImage.src = '/static/images/giveup.svg';
+        cornerImage.title = "I give up!";
+        cornerImage.className = 'corner-image';
 
-        // Add spans to container
-        container.appendChild(usernameSpan);
-        container.appendChild(percentSpan);
-        container.appendChild(questionSpan);
+        // Add click event listener
+        cornerImage.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleGiveUp();
+        });
+
+        container.appendChild(cornerImage);
+
+        // Create table
+        const table = document.createElement('table');
+        table.className = 'question-title-container';
+
+        // Create username row
+        const usernameRow = document.createElement('tr');
+        const usernameCell = document.createElement('td');
+        usernameCell.className = 'username-row';
+        usernameCell.textContent = cp.username;
+        usernameRow.appendChild(usernameCell);
+
+        // Create percent row
+        const percentRow = document.createElement('tr');
+        const percentCell = document.createElement('td');
+        percentCell.className = 'percent-row';
+        percentCell.textContent = cq.percent.toString() + "% - " + cq.category;
+        percentRow.appendChild(percentCell);
+
+        // Create question row
+        const questionRow = document.createElement('tr');
+        const questionCell = document.createElement('td');
+        questionCell.className = 'question-row';
+        questionCell.innerHTML = `${cq.question}`;
+        questionRow.appendChild(questionCell);
+
+        // Add rows to table
+        table.appendChild(usernameRow);
+        table.appendChild(percentRow);
+        table.appendChild(questionRow);
+
+        container.appendChild(table);
 
         return container;
     }
+
 }
 
 // ###################################################################
@@ -1339,7 +1486,6 @@ class ClickMap extends PageElement {
                           (viewBoxValues ? viewBoxValues[3] : 600); // default height
 
         this.markerSize = Math.round(this.imageWidth / 50);
-        console.log("Marker size is : "+ this.markerSize)
         // Copy the original SVG
         this.svg = originalSvg;
 
@@ -1408,7 +1554,7 @@ class ClickMap extends PageElement {
         }
 
         // Parse the correct answer coordinates
-        const [correctX, correctY] = cq.correctAnswer
+        const [correctX, correctY] = cq.correctAnswers[0]
             .replace(/\s+/g, '')
             .split(',')
             .map(num => parseFloat(num));
@@ -1457,10 +1603,10 @@ class ClickMap extends PageElement {
         let pf = 5.0;
         if (cq.penalisationFactor) {pf = cq.penalisationFactor;}
         const accuracy = Math.exp(-10.0 * dt / maxError);
-        a.points = Math.round(ap * accuracy);
+        a.points = Math.round(ap * accuracy * 10) / 10;
 
         // Ensure points don't go negative
-        if (a.points < 0) a.points = 0;
+        if (a.points < 0) a.points = 0.0;
         a.answer = `${this.answerx.toFixed(0)} - ${this.answery.toFixed(0)}`;
 
         console.info(`Distance: ${dt}, Max Error: ${maxError}, Points: ${a.points}`);
@@ -2361,11 +2507,6 @@ class Timer extends PageElement {
         return a;
     }
 
-    doShouldUpdate() {
-        let u = super.doShouldUpdate()
-        return u;
-    }
-
     createStyles() {
         const css = `
             #timer {
@@ -2434,8 +2575,11 @@ class AnimatedButton extends PageElement {
         super(elementId, ['*']);
         this.COOLDOWN_TIME = cooldownTime;
         this.originalText = this.getElement()?.textContent || '';
-        this.disabled = false;
-        this.i = false;
+    }
+
+    isEnabled() {
+        let ret = super.isEnabled()
+        return ret;
     }
 
     // speeds things up a bit
@@ -2450,7 +2594,7 @@ class AnimatedButton extends PageElement {
     handleClick(e) {
         const button = this.getElement();
         // Don't allow clicking if the button is disabled
-        if (this.disabled || button.classList.contains('button-cooldown')) {
+        if (button.classList.contains('button-cooldown')) {
             button.title = this.originalText;
             return;
         }
@@ -2506,38 +2650,29 @@ class AnimatedButton extends PageElement {
 
     setEnabled(enabled) {
         let button = this.getElement();
-        if (enabled) {
-            button.classList.remove('button-disabled');
-            button.title = ''; // Remove any tooltip
-            button.textContent = this.originalText;
-            this.disabled = false
-        } else {
-            button.classList.add('button-disabled');
-            button.title = "no clicky";
-            this.disabled = true
+        if (button) {
+            if (enabled) {
+                button.classList.remove('button-disabled');
+                button.title = ''; // Remove any tooltip
+                button.textContent = this.originalText;
+            } else {
+                button.classList.add('button-disabled');
+                button.title = "no clicky";
+            }
         }
-        // mark for re-update somehow?
     }
 
     getContent(gs) {
-        if (!this.i) {
-            const button = this.getElement();
-            // Add the btn class
-            button.classList.add('btn');
-            // Remove any existing click listeners to prevent duplicates
-            button.removeEventListener('click', this.handleClick);
-            // Bind the handler to preserve 'this' context and add the listener
-            this.handleClick = this.handleClick.bind(this);
-            button.addEventListener('click', this.handleClick);
-            this.i = true;
+        const button = this.getElement();
+        button.classList.add('btn');
+        // Only bind once and store the bound handler
+        if (!this.boundHandleClick) {
+            this.boundHandleClick = this.handleClick.bind(this);
         }
+        let cn = this.classname;
+        button.addEventListener('click', this.boundHandleClick);
         let ia = this.isEnabled()
-        if (ia && this.disabled) {
-            this.setEnabled(true);
-        } else if (!ia && !this.disabled) {
-            this.setEnabled(false);
-        }
-        return null;
+        this.setEnabled(ia);
     }
 
     /**
@@ -2569,9 +2704,8 @@ class NextQuestionButton extends AnimatedButton {
     }
 
     isEnabled() {
-        let a = this.getApi()
-        if (!a.isQuestionActive()) {return true;}
-        return false;
+        let a = super.isQuestionActive()
+        return !a;
     }
 }
 
@@ -2593,9 +2727,8 @@ class PreviousQuestionButton extends AnimatedButton {
     }
 
     isEnabled() {
-        let a = this.getApi()
-        if (!a.isQuestionActive()) {return true;}
-        return false;
+        let a = super.isQuestionActive()
+        return !a;
     }
 }
 
@@ -2622,9 +2755,8 @@ class StartQuestionButton extends AnimatedButton {
     }
 
     isEnabled() {
-        let a = this.getApi()
-        if (!a.isQuestionActive()) {return true;}
-        return false;
+        let a = super.isQuestionActive()
+        return !a;
     }
 }
 
@@ -2674,12 +2806,6 @@ class ShowAnswerInfo extends AnimatedButton {
         // toggle the table visibility
     }
 
-    isEnabled() {
-        let a = this.getApi()
-        let cq =  this.getCurrentQuestion();
-        if (!a.isQuestionActive()) {return true;}
-        return false;
-    }
 }
 
 /**
@@ -2693,16 +2819,12 @@ class AnswerButton extends AnimatedButton {
     buttonAction() {
         let a = this.getApi()
         let success = a.submitAnswer();
-        if (success) {
-            const event = new CustomEvent('answerSubmitted', {
-                bubbles: true,
-                detail: {
-                    timestamp: Date.now()
-                }
-            });
-            window.dispatchEvent(event);
-        }
         return success;
+    }
+
+    doShouldShow() {
+        let ret = super.doShouldShow();
+        return ret;
     }
 
     isEnabled() {
@@ -2721,6 +2843,7 @@ class MultiChoice extends PageElement {
     constructor() {
         super('multi-choice-container', ['multichoice']); // ensure lowercase
         this.choices = null;
+        this.selectedChoice = null;
     }
 
     /**
@@ -2922,12 +3045,12 @@ class MultiChoice extends PageElement {
 
             .multi-choice-button.selected {
                 background: var(--bccblue);
-                color: white;
+                color: var(--bccstone);
             }
 
             .multi-choice-button.selected::before {
-                background: white;
-                border-color: white;
+                background: var(--bccstone);
+                border-color: var(--bccstone);
             }
 
             .multi-choice-button.selected::after {
@@ -2969,12 +3092,11 @@ class MultiChoice extends PageElement {
     }
 
     getAnswer() {
-        const a = this.getApi();
         let answer = this.selectedChoice;
         if (!answer) {return null;}
         //calculate points
         let cq = this.getCurrentQuestion();
-        let ca = cq.correctAnswer;
+        let ca = cq.correctAnswers[0];
         // we have to use comment instead of answer field
         if (ca === answer.comment) {
             answer.points = cq.pointsAvailable;
@@ -2983,7 +3105,7 @@ class MultiChoice extends PageElement {
             answer.points = 0;
             answer.comment = "no";
         }
-        // now add small penalty for time taken?
+        this.disableButtons();
         return answer;
     }
 }
@@ -3170,6 +3292,7 @@ class FreeText extends PageElement {
 
         return matrix[len1][len2];
     }
+
     /**
      * Uses fuzzy logic to determine if the user has answered
      * the question adequately.
@@ -3194,7 +3317,7 @@ class FreeText extends PageElement {
 
         // Get the current question to access the correct answer
         const currentQuestion = gs.getCurrentQuestion();
-        if (!currentQuestion || !currentQuestion.correctAnswer || !currentQuestion.penalisationFactor) {
+        if (!currentQuestion || !currentQuestion.correctAnswers || !currentQuestion.penalisationFactor) {
             console.warn('FreeText: No correct answer available or missing penalisationFactor');
             return null;
         }
@@ -3204,30 +3327,32 @@ class FreeText extends PageElement {
             return null;
         }
         if (maxDistance == 0) {
-            if (currentQuestion.correctAnswer === textInput) {
+            if (currentQuestion.correctAnswers.includes(textInput)) {
                 answer.points = currentQuestion.pointsAvailable;
             } else {
                 answer.points = 0;
             }
             return answer;
         }
-        // Calculate the Levenshtein distance between user input and correct answer
-        const distance = this.fuzzyMatch(
-            textValue.toLowerCase(),
-            currentQuestion.correctAnswer.toLowerCase()
-        );
-        // console.info(`Levenshtein distance: ${distance}`);
-        const maxLength = Math.max(textValue.length, currentQuestion.correctAnswer.length);
-        const similarity = 1 - (distance / maxLength);
-        answer.comment = `Similarity: ${Math.round(similarity * 100)}%`;
-        if (distance > maxDistance) {
-            console.info(`wrong answer.. pf = ${maxDistance} actual distance ${distance}`);
-            answer.points = 0
-            answer.answer = textValue
-        } else {
-            console.info(`right answer.. pf = ${maxDistance} actual distance ${distance}`);
-            answer.points = currentQuestion.pointsAvailable;
-            answer.answer = currentQuestion.correctAnswer;
+        for (const ca of currentQuestion.correctAnswers) {
+            // Calculate the Levenshtein distance between user input and correct answer
+            const distance = this.fuzzyMatch(
+                textValue.toLowerCase(),
+                ca.toLowerCase()
+            );
+            // console.info(`Levenshtein distance: ${distance}`);
+            const maxLength = Math.max(textValue.length, ca.length);
+            const similarity = 1 - (distance / maxLength);
+            answer.comment = `Similarity: ${Math.round(similarity * 100)}%`;
+            if (distance <= maxDistance) {
+                console.info(`right answer.. pf = ${maxDistance} actual distance ${distance}`);
+                answer.points = currentQuestion.pointsAvailable;
+                answer.answer = ca;
+                break;
+            } else {
+                answer.points = 0
+                answer.answer = ca
+            }
         }
         return answer;
     }

@@ -54,15 +54,18 @@ function buildAndroid {
     export GOOS=android
     export GOARCH=arm64
     export GOARM=7
+    export CGO_ENABLED=0
     go build -o 1pcc-android-arm64 -ldflags="-s -w" -trimpath ./cmd/main.go
     # Build for 32-bit arm (older devices)
     export GOOS=android
     export GOARCH=arm
     export GOARM=7
+    export CGO_ENABLED=0
     go build -o 1pcc-android-arm -ldflags="-s -w" -trimpath ./cmd/main.go
     # Build for x86_64 (emulators and some devices)
     export GOOS=android
     export GOARCH=amd64
+    export CGO_ENABLED=0
     go build -o 1pcc-android-x86_64 -ldflags="-s -w" -trimpath ./cmd/main.go
 }
 
@@ -79,5 +82,5 @@ echo "$pw" | sudo -S rm /usr/local/bin/1pcc
 # go clean -cache
 go mod tidy
 # go mod init 1pcc
+#buildAndroid
 buildMac
-
