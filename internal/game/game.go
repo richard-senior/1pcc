@@ -122,7 +122,7 @@ func curatePlayers(gs *GameState) {
 	for _, player := range gs.Players {
 		mt := player.MessageTime
 		if mt > 0 {
-			logger.Info(fmt.Sprintf("message time is %d", mt))
+			// logger.Info(fmt.Sprintf("message time is %d", mt))
 			mt = mt - 1
 			player.MessageTime = mt
 		} else {
@@ -171,12 +171,12 @@ func decorateGameState(gs *GameState) {
 			cq.TimeLeft = 0
 			cq.IsTimedOut = true
 			cq.IsTimedOut = true
-			logger.Info("Timed out in loop")
+			//logger.Info("Timed out in loop")
 			onQuestionEnded(gs)
 		} else {
 			cq.TimeLeft = remainingInt
 			cq.IsTimedOut = false
-			logger.Info(fmt.Sprintf("countdown : %d", cq.TimeLeft))
+			//logger.Info(fmt.Sprintf("countdown : %d", cq.TimeLeft))
 		}
 	}
 }
@@ -210,7 +210,7 @@ func MessagePlayer(player string, message string, duration int) {
 	}
 
 	gs := GetGame()
-	logger.Info("sending message to player")
+	//logger.Info("sending message to player")
 	if player, exists := gs.Players[player]; exists {
 		player.Message = message
 		player.MessageTime = duration
@@ -425,6 +425,57 @@ func (gs *GameState) GetCurrentQuestion() *Question {
 		gs.CurrentQuestion = &instance.AllQuestions[0]
 	}
 	return gs.CurrentQuestion
+}
+
+func CreateAnswer(username string) Answer {
+	gs := GetGame()
+	cq := gs.GetCurrentQuestion()
+	if !PlayerExists(username) {
+		logger.Warn("Player doesn't exist in game state")
+		return Answer{}
+	}
+	ret := Answer{
+		Username:       username,
+		Answer:         "...",
+		QuestionNumber: cq.QuestionNumber,
+		Comment:        "forfeit",
+		Points:         0,
+	}
+
+	return ret
+}
+
+// Allows for the host to time out a particular user
+// who perhaps has lost concentration or interet in the game
+// temporarily and is holding up the game
+func Surrender(username string) {
+	if !PlayerExists(username) {
+		logger.Warn("Player doesn't exist in game state")
+		return
+	}
+	answer := CreateAnswer(username)
+	GetGame().SubmitAnswer(answer)
+}
+
+func (gs *GameState) SubmitAnswer(answer Answer) {
+	cq := gs.GetCurrentQuestion()
+	// dont add another answer if one already exists
+	for _, a := range cq.Answers {
+		if a.Username == answer.Username {
+			return
+		}
+	}
+	// add the answer to the question.Answers array
+	cq.Answers = append(cq.Answers, answer)
+	if answer.Answer != "..." {
+		tl := cq.TimeLeft
+		timeIndication := fmt.Sprintf("answered with %d seconds remaining", tl)
+		MessagePlayer(answer.Username, timeIndication, 20)
+	}
+	// order the anwers by score
+	sort.Slice(cq.Answers, func(i, j int) bool {
+		return cq.Answers[i].Points > cq.Answers[j].Points
+	})
 }
 
 /**

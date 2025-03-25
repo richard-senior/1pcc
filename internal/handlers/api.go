@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -198,6 +197,8 @@ func handlePlayers(w http.ResponseWriter, r *http.Request) {
 		game.MessagePlayer(username, points, 20)
 	case "rst":
 		game.ResetPlayerAnswer(username)
+	case "surrender":
+		game.Surrender(username)
 	default:
 		logger.Warn("Invalid action in players handler")
 		return
@@ -212,9 +213,6 @@ We add that answer to the question.Answers array so that we can
 retrospectively calculate scores etc.
 */
 func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
-	logger.Info("Handling submit answer request")
-	cg := game.GetGame()
-	cq := cg.GetCurrentQuestion()
 	// parse the json game.Answer object in the form post
 	decoder := json.NewDecoder(r.Body)
 	// decode the json into a game.Answer object
@@ -226,23 +224,5 @@ func handleSubmitAnswer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode answer", http.StatusInternalServerError)
 		return
 	}
-	// dont add another answer if one already exists
-	for _, a := range cq.Answers {
-		if a.Username == answer.Username {
-			return
-		}
-	}
-
-	// add the answer to the question.Answers array
-	cq.Answers = append(cq.Answers, answer)
-
-	if answer.Answer != "..." {
-		tl := cq.TimeLeft
-		timeIndication := fmt.Sprintf("answered with %d seconds remaining", tl)
-		game.MessagePlayer(answer.Username, timeIndication, 20)
-	}
-	// order the anwers by score
-	sort.Slice(cq.Answers, func(i, j int) bool {
-		return cq.Answers[i].Points > cq.Answers[j].Points
-	})
+	game.GetGame().SubmitAnswer(answer)
 }

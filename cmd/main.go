@@ -120,6 +120,7 @@ func main() {
 	mux.HandleFunc("/play", handlers.PlayHandler)
 	mux.HandleFunc("/host", handlers.HostHandler)
 	mux.HandleFunc("/observe", handlers.ObserveHandler)
+	mux.HandleFunc("/scoreboard", handlers.ScoreboardHandler)
 	mux.HandleFunc("/qr", handlers.QRCodeHandler)
 	mux.HandleFunc("/api/", handlers.HandleAPI) // Note the trailing slash
 

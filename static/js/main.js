@@ -12,6 +12,7 @@ class GameAPI {
         this.timeLeft = 0;
         this.previousTimeLeft = 0;
         this.state = null;
+        this.leaderboard = null; // the current leaderboard (a map of player objects)
         this.currentQuestion = null;
         this.currentUser = null;
         this.pollInterval = null;
@@ -88,6 +89,30 @@ class GameAPI {
     static getGameState() {
         return GameAPI.getInstance().state;
     }
+
+    /**
+     * Fetches the current leaderboard data from the server
+     * @returns {object|null} Leaderboard data or null if the request fails
+     */
+    async fetchLeaderboard() {
+        try {
+            const response = await fetch('/api/get-leaderboard', {
+                method: 'GET',
+                credentials: 'include' // Include cookies for session handling
+            });
+            if (!response.ok) {return null;}
+            const leaderboardData = await response.json();
+            if (!leaderboardData) {
+                console.log("failed to get leaderboard data");
+                return null;
+            }
+            return this.leaderboard = leaderboardData;
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            return null;
+        }
+    }
+
 
     /**
      * gets the current game state from the server api
@@ -269,7 +294,7 @@ class GameAPI {
             }
         } else {
             this.timeLeft = t;
-            console.info(`Timer : ${this.timeLeft}`);
+            //console.info(`Timer : ${this.timeLeft}`);
         }
         this.previousTimeLeft = this.timeLeft;
     }
@@ -281,18 +306,6 @@ class GameAPI {
     getTimeLeft() {
         if (!this.timeLeft || this.timeLeft < 0) {this.timeLeft = 0;}
         return this.timeLeft;
-    }
-    /**
-     * the percentage of time currently used by the user without submitting an
-     * answer. Used to add penalisation to points scored etc.
-     * @returns {float} the percentage of time the user has used so far
-     */
-    getPercentageTimeUsed() {
-        let tl = this.getTimeLeft();
-        if (!tl || tl <= 0) {return 100.0;}
-        let cq = this.getCurrentQuestion();
-        let ret = (tl / cq.timeLimit) * 100.0;
-        return ret;
     }
     /**
      * A map of the currently signed in players
@@ -445,9 +458,9 @@ class GameAPI {
         let answer = {
             "questionNumber": cq.questionNumber,
             "username": this.getCurrentPlayer()?.username ?? null,
-            "answer": null,
-            "comment": null,
-            "points": null,
+            "answer": "...",
+            "comment": "timeout",
+            "points": 0,
         };
         return answer;
     }
@@ -456,25 +469,11 @@ class GameAPI {
      * @returns {null}
      */
     async surrender() {
-        if (!this.isQuestionActive()) {return;}
-        let answer = this.createAnswerObject();
-        answer.answer = "..."
-        answer.comment = "forfeit"
-        answer.points = 0;
-
         try {
-            let s = JSON.stringify(answer);
-            const response = await fetch('/api/submit-answer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: s
-            });
-            if (!response.ok) {
-                console.warn('Server returned error when submitting answer:', response.status);
-                return;
-            }
+            let points = 0;
+            let username = this.getCurrentPlayer()?.username ?? null;
+            GameAPI.sendHttpRequest(`/api/players?username=${username}&action=surrender&points=${points}`);
+
             const event = new CustomEvent('answerSubmitted', {
                 bubbles: true,
                 detail: {
@@ -487,7 +486,6 @@ class GameAPI {
             console.warn('Failed to submit answer:', error);
             return false;
         }
-        return true;
     }
 
     /**
@@ -1087,16 +1085,18 @@ class PageElement {
     doGetAnswer() {
         if (this.selectedAnswer) {return this.selectedAnswer;}
         this.selectedAnswer = this.getAnswer();
-        if (this.selectedAnswer) {
-            this.answerSubmitted = true;
-        }
-        if (this.selectedAnswer.points && this.selectedAnswer.points>0) {
-            // now add small penalty for time taken?
-            let ptu = this.getApi().getPercentageTimeUsed()
-            let timeMultiplier = 1 - (0.1 * (1 - Math.exp(-3 * (ptu / 100))));
-            // Calculate original points and penalty
+        if (!this.selectedAnswer) {return null;}
+        this.answerSubmitted = true;
+        if (this.selectedAnswer.points && this.selectedAnswer.points > 0) {
+            let cq = this.getCurrentQuestion();
+            // only apply the penalty to 5% of the available points
+            let pa = 0.05 * cq.pointsAvailable;
+            let tl = this.getTimeLeft();
+            if (!tl || tl <= 0) {return 1;}
+            let ptu = 1.0 - (tl / cq.timeLimit);
+            let penalty = ptu * pa;
             let originalPoints = this.selectedAnswer.points;
-            let penalizedPoints = Math.round(originalPoints * timeMultiplier);
+            let penalizedPoints = originalPoints - penalty;
             // Apply the penalty
             this.selectedAnswer.points = penalizedPoints;
         }
@@ -1673,6 +1673,7 @@ class ClickMap extends PageElement {
 
     initializeEvents() {
         const container = this.getElement();
+        if (!container) return;
         container.style.cursor = 'default';
 
         // Feature detection for passive support
@@ -2096,7 +2097,6 @@ class CurrentAnswers extends PageElement {
         // Check if anyone has answered
         const hasAnswers = gameAPI.hasAnyoneAnswered();
         if (!hasAnswers) {
-            console.debug('CurrentAnswers: No answers yet');
             return null;
         }
 
@@ -2133,12 +2133,16 @@ class CurrentAnswers extends PageElement {
                 }
 
                 const playerAnswer = currentQuestion.answers.find(a => a.username === username);
+                let pts = 0;
+                if (playerAnswer && playerAnswer.points) {
+                    pts = parseFloat(playerAnswer.points).toFixed(1);
+                }
                 answersHtml += `
                     <tr ${rowStyle}>
                         <td>${username}</td>
                         <td>${playerAnswer ? playerAnswer.answer : '...'}</td>
-                        <td>${playerAnswer ? playerAnswer.points : '0'}</td>
-                        <td>${playerAnswer ? playerAnswer.comment : ''}</td>
+                        <td>${pts ? pts : '0'}</td>
+                        <td>${playerAnswer ? playerAnswer.comment : 'timeout'}</td>
                     </tr>
                 `;
             }
@@ -2316,6 +2320,7 @@ class PlayerAdmin extends PageElement {
                         <td>${username}</td>
                         <td>${player.score}</td>
                         <td>
+                            <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','surrender')" value="Surrender" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','kick')" value="Kick" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','ban')" value="Ban" />
                             <input type="button" class="small-button" onclick="PlayerAdmin.click('${username}','dock')" value="Dock" />
@@ -2415,33 +2420,13 @@ class PlayerMessage extends PageElement {
 class Leaderboard extends PageElement {
     constructor() {
         super('leaderboard-div',['*'])
-        this.currentTotalScore = 0;
-    }
-
-    shouldShow() {
-        const gameAPI = this.getApi();
-        // total up the number of points each player has
-        let players = this.getPlayers()
-        if (!players) {return false;}
-        let totalScore = 0;
-        for (const [username, player] of Object.entries(players)) {
-            if (!player.isSpectator && !player.isAdmin) {
-                totalScore += player.score;
-            }
-        }
-        if (this.currentTotalScore === totalScore) {
-            return false;
-        } else {
-            this.currentTotalScore = totalScore;
-            return true;
-        }
     }
 
     getContent(gs) {
-        // Get GameAPI instance if gs is not provided
-        const gameAPI = gs || this.getApi();
-        // has anything changed?
-
+        let api = this.getApi();
+        api.fetchLeaderboard()
+        if (!api.leaderboard) {return;}
+        //console.log(api.leaderboard);
         // Create container div
         const container = document.createElement('div');
         // Create and add title bar
@@ -2457,14 +2442,15 @@ class Leaderboard extends PageElement {
                 <thead>
                     <tr>
                         <th>Player</th>
-                        <th>Percent</th>
+                        <th>Rating</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
         try {
-            const players = this.getPlayers();
+            const players = api.leaderboard;
             if (!players) {
                 console.warn('Leaderboard: No players data available');
                 return null;
@@ -2473,10 +2459,15 @@ class Leaderboard extends PageElement {
             for (const [username, player] of Object.entries(players)) {
                 // Skip spectators and admin users
                 if (player.isSpectator || player.isAdmin) continue;
+                let pts = 0;
+                if (player.score) {
+                    pts = parseFloat(player.score).toFixed(1);
+                }
                 h += `
                     <tr>
-                        <td>${username}</td>
-                        <td>${player.percent}</td>
+                        <td>${player.username}</td>
+                        <td>${player.percent}%</td>
+                        <td>${pts}</td>
                     </tr>
                 `;
             }

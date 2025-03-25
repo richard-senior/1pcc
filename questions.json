@@ -2,7 +2,7 @@
     {
         "question": "What comes next?<br/>&nbsp;<br/>Brown, Pink, Blue, ?",
         "type": "multichoice",
-        "category": "wcn quickfire",
+        "category": "quickfire",
         "percent": 90,
         "imageUrl": "",
         "choices": [
@@ -19,7 +19,7 @@
     {
         "question": "What score is this?",
         "type": "multichoice",
-        "category": "wcn quickfire",
+        "category": "quickfire",
         "percent": 80,
         "imageUrl": "/static/images/dartboard.svg",
         "choices": [
@@ -36,7 +36,7 @@
     {
         "question": "What comes next?<br/>&nbsp;<br/>α, β, γ, δ, ?",
         "type": "multichoice",
-        "category": "wcn quickfire",
+        "category": "quickfire",
         "percent": 70,
         "imageUrl": "",
         "choices": [
@@ -53,7 +53,7 @@
     {
         "question": "What comes next?<br/>&nbsp;<br/>Anne Boleyn, Jane Seymour, Ann of Cleeves, ?",
         "type": "multichoice",
-        "category": "wcn quickfire",
+        "category": "quickfire",
         "percent": 60,
         "imageUrl": "",
         "choices": [
@@ -62,11 +62,26 @@
             {"choice": "Catherine Parr", "imgUrl": "", "answer": "C"}
         ],
         "correctAnswers": ["B"],
-        "hostAnswer": "",
+        "hostAnswer": "Divorced beheaded died, divorced BEHEADED survived",
         "timeLimit": 60,
         "pointsAvailable": 2
     },
-
+    {
+        "question": "Which of these goes bang?<br/>A <img src='static/images/plugl.svg' height='11%' title='A'/><br/>B <img src='static/images/plugw.svg' height='11%' title='B'/><br/>C <img src='static/images/plugr.svg' height='11%' title='C'/>",
+        "type": "multichoice",
+        "category": "quickfire",
+        "percent": 50,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "A", "imgUrl": "", "answer": "A"},
+            {"choice": "B", "imgUrl": "", "answer": "B"},
+            {"choice": "C", "imgUrl": "", "answer": "C"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "The green one isn't important. If you can't find anywhere for it to go just coil it up and leave it at the back somewhere. Be reyt.",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
 
 
 
