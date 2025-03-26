@@ -1,21 +1,38 @@
-// internal/logger/logger.go
 package logger
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
 
+// ********************************************************
+// ********* LOGGING **************************************
+// ********************************************************
+
+var showDateTime bool
+var defaultLogger *Logger
+
 type LogLevel int
+
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	colorOrange = "\033[38;5;208m"
+)
 
 const (
 	DEBUG LogLevel = iota
 	INFO
 	WARN
 	ERROR
+	FATAL
 )
 
 type Logger struct {
@@ -24,16 +41,39 @@ type Logger struct {
 	level       LogLevel
 }
 
-var defaultLogger *Logger
-
 func init() {
 	defaultLogger = NewLogger(INFO)
+	showDateTime = false
+}
+
+// Add this helper function
+func updateLoggerFlags(l *Logger) {
+	var flags int
+	if showDateTime {
+		flags = log.Ldate | log.Ltime
+	} else {
+		flags = 0
+	}
+	l.infoLogger.SetFlags(flags)
+	l.errorLogger.SetFlags(flags)
+}
+
+func SetShowDateTime(value bool) {
+	showDateTime = value
+	updateLoggerFlags(defaultLogger)
 }
 
 func NewLogger(level LogLevel) *Logger {
+	var flags int
+	if showDateTime {
+		flags = log.Ldate | log.Ltime
+	} else {
+		flags = 0
+	}
+
 	return &Logger{
-		infoLogger:  log.New(os.Stdout, "", log.Ldate|log.Ltime),
-		errorLogger: log.New(os.Stderr, "", log.Ldate|log.Ltime),
+		infoLogger:  log.New(os.Stdout, "", flags),
+		errorLogger: log.New(os.Stderr, "", flags),
 		level:       level,
 	}
 }
@@ -50,6 +90,9 @@ func (l *Logger) log(level LogLevel, format string, v ...any) {
 		line = 0
 	}
 
+	// Get just the base filename instead of full path
+	file = filepath.Base(file)
+
 	// Format message with any additional arguments
 	var msg string
 	if len(v) > 0 {
@@ -58,7 +101,34 @@ func (l *Logger) log(level LogLevel, format string, v ...any) {
 		msg = format
 	}
 
-	logMsg := fmt.Sprintf("[%s] %s:%d: %s", level.String(), file, line, msg)
+	// Get color based on log level
+	var colorCode string
+	switch level {
+	case DEBUG:
+		colorCode = colorBlue
+	case INFO:
+		colorCode = colorGreen
+	case WARN:
+		colorCode = colorYellow
+	case ERROR:
+		colorCode = colorOrange
+	case FATAL:
+		colorCode = colorRed
+	default:
+		colorCode = colorReset
+	}
+
+	// Format with metadata in white and message in color
+	logMsg := fmt.Sprintf("[%s] %s:%d: %s%s%s",
+		level.String(),
+		file,
+		line,
+		colorCode,
+		msg,
+		colorReset)
+
+	// if the gui is running log to teh
+	//gui.GetInstance().AppendLog(msg)
 
 	// Write to appropriate output
 	if level >= ERROR {
@@ -78,6 +148,8 @@ func (l LogLevel) String() string {
 		return "WARN"
 	case ERROR:
 		return "ERROR"
+	case FATAL:
+		return "FATAL"
 	default:
 		return "UNKNOWN"
 	}
@@ -125,4 +197,9 @@ func Warn(format string, v ...any) {
 
 func Error(format string, v ...any) {
 	defaultLogger.log(ERROR, format, v...)
+}
+
+func Fatal(format string, v ...any) {
+	defaultLogger.log(FATAL, format, v...)
+	os.Exit(1)
 }

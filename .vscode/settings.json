@@ -9,12 +9,13 @@
     //"go.validateOnSave": "package",
     //"go.lintOnSave": "package",
     //"go.lintTool": "golangci-lint",
-    "workbench.editor.enablePreview": false,
-    "workbench.editor.enablePreviewFromQuickOpen": false,
-    "workbench.editor.showTabs": false,
     "eslint.enable": false,
     "eslint.validate": [
         "javascript",
         "javascriptreact"
-    ]
+    ],
+    "go.gopath": "/usr/local/go",
+    "go.alternateTools": {
+        "go": "/usr/local/go"
+    }
 }

@@ -15,6 +15,11 @@ type RegisterResponse struct {
 }
 
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
+	// is this user banned for starters?
+	if session.IsBanned("", r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	ip := session.GetIPAddress(r)
 	if r.Method == "POST" {
 		w.Header().Set("Content-Type", "application/json")

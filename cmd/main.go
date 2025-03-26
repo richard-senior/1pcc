@@ -99,9 +99,7 @@ func main() {
 	//apiHandler := handlers.NewAPIHandler(game.GetGame())
 
 	// Load configuration
-	if err := config.Load(); err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
+	config.Load()
 	// Get server port from config
 	serverPort := config.GetPortString()
 

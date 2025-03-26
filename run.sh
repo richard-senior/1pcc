@@ -38,10 +38,14 @@ function buildMac {
     export GOOS=darwin
     export GOARCH=arm64
     go build -o 1pcc -ldflags="-s -w" -trimpath ./cmd/main.go
+    if [ $? -ne 0 ]; then
+        echo "failed to build"
+        return
+    fi
     chmod 777 1pcc
     echo "$pw" | sudo -S cp 1pcc /usr/local/bin/1pcc
     #open -na "Google Chrome" "http://localhost:8080/join"
-    1pcc
+    1pcc --1pcc-port 8080
 }
 
 function buildWindows {
@@ -76,9 +80,9 @@ function buildAndroid {
 # http.Handle("/static/", http.FileServer(http.FS(staticFiles)))
 tree >> ./dir_structure.txt
 echo "building 1pcc.."
-rm ./1pcc
+rm -f ./1pcc
 export pw="$(read_properties 'LAPTOP')"
-echo "$pw" | sudo -S rm /usr/local/bin/1pcc
+echo "$pw" | sudo -S rm -f /usr/local/bin/1pcc
 # go clean -cache
 go mod tidy
 # go mod init 1pcc
