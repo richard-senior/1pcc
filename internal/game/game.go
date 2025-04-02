@@ -52,6 +52,7 @@ type Question struct {
 	Link               string    `json:"link,omitempty"`               // this is for showing info about the correct answer
 	Type               string    `json:"type"`                         // "multiple_choice" or "text"
 	Choices            []Choice  `json:"choices,omitempty"`            // if this is multichoice, then these are the choices
+	Grid               []int     `json:"grid,omitempty"`               // For grid image rounds, how to divide up the image
 	CorrectAnswers     []string  `json:"correctAnswers"`               // An array of answers any one of which can be correct
 	PenalisationFactor float32   `json:"penalisationFactor,omitempty"` // for geoguessing, how harsh to be. The higher the number the harsher
 	HostAnswer         string    `json:"hostAnswer,omitempty"`         // Only included for admin

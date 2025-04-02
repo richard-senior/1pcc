@@ -19,17 +19,22 @@ var defaultLogger *Logger
 type LogLevel int
 
 const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorBlue   = "\033[34m"
-	colorOrange = "\033[38;5;208m"
+	colorReset   = "\033[0m"
+	colorRed     = "\033[31m"
+	colorGreen   = "\033[32m"
+	colorYellow  = "\033[33m"
+	colorBlue    = "\033[34m"
+	colorMagenta = "\033[35m"
+	colorCyan    = "\033[36m"
+	colorWhite   = "\033[37m"
+	colorOrange  = "\033[38;5;208m"
 )
 
 const (
 	DEBUG LogLevel = iota
 	INFO
+	INFORM
+	HIGHLIGHT
 	WARN
 	ERROR
 	FATAL
@@ -108,6 +113,10 @@ func (l *Logger) log(level LogLevel, format string, v ...any) {
 		colorCode = colorBlue
 	case INFO:
 		colorCode = colorGreen
+	case INFORM:
+		colorCode = colorMagenta
+	case HIGHLIGHT:
+		colorCode = colorCyan
 	case WARN:
 		colorCode = colorYellow
 	case ERROR:
@@ -144,6 +153,10 @@ func (l LogLevel) String() string {
 		return "DEBUG"
 	case INFO:
 		return "INFO"
+	case INFORM:
+		return "INFORM"
+	case HIGHLIGHT:
+		return "HIGHLIGHT"
 	case WARN:
 		return "WARN"
 	case ERROR:
@@ -189,6 +202,14 @@ func Debug(format string, v ...any) {
 
 func Info(format string, v ...any) {
 	defaultLogger.log(INFO, format, v...)
+}
+
+func Inform(format string, v ...any) {
+	defaultLogger.log(INFORM, format, v...)
+}
+
+func Highlight(format string, v ...any) {
+	defaultLogger.log(HIGHLIGHT, format, v...)
 }
 
 func Warn(format string, v ...any) {

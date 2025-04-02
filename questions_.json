@@ -1,4 +1,39 @@
 {
+    "question": "Please drag the names onto the correct famous Scotts!",
+    "type": "gridimage",
+    "category": "quickfire",
+    "percent": 40,
+    "imageUrl": "/static/images/famous_scotts.png",
+    "choices": [
+        {"choice": "Miss Jean Brodie", "imgUrl": "", "answer": "A"},
+        {"choice": "Oor Wullie", "imgUrl": "", "answer": "B"},
+        {"choice": "Fat B*stard", "imgUrl": "", "answer": "C"},
+        {"choice": "Amy Pond", "imgUrl": "", "answer": "D"},
+        {"choice": "Super Gran", "imgUrl": "", "answer": "C"},
+        {"choice": "Connor Macleod", "imgUrl": "", "answer": "C"},
+        {"choice": "Katie Morag", "imgUrl": "", "answer": "C"},
+        {"choice": "Taggart", "imgUrl": "", "answer": "C"},
+        {"choice": "The Broons", "imgUrl": "", "answer": "C"},
+        {"choice": "Mr McGregor", "imgUrl": "", "answer": "C"},
+        {"choice": "Minerva McGonagall", "imgUrl": "", "answer": "C"},
+        {"choice": "James Bond", "imgUrl": "", "answer": "C"},
+        {"choice": "Malcolm Tucker", "imgUrl": "", "answer": "C"},
+        {"choice": "Mr Mackay", "imgUrl": "", "answer": "C"},
+        {"choice": "Groundskeeper Willie", "imgUrl": "", "answer": "C"},
+        {"choice": "Scottie", "imgUrl": "", "answer": "C"},
+        {"choice": "Private James Frazer", "imgUrl": "", "answer": "C"},
+        {"choice": "Scrooge McDuck", "imgUrl": "", "answer": "C"},
+        {"choice": "Richard Hannay", "imgUrl": "", "answer": "C"},
+        {"choice": "Rab C Nesbitt", "imgUrl": "", "answer": "C"}
+    ],
+    "correctAnswers": ["B"],
+    "hostAnswer": "Och aye the nooo. Again.",
+    "timeLimit": 300,
+    "pointsAvailable": 20
+},
+
+
+{
     "question": "Complete this lyric: 'Sweet Caroline... '",
     "type": "multichoice",
     "category": "music",
