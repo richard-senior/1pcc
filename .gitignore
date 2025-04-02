@@ -3,7 +3,7 @@
 
 # Binaries for programs and plugins
 1pcc
-1pcc-android*
+1pcc-*
 *.exe
 *.exe~
 *.dll

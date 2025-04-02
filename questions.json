@@ -1,5 +1,34 @@
 [
     {
+        "question": "Please drag the correct names onto these comedians",
+        "type": "gridimage",
+        "category": "quickfire",
+        "percent": 80,
+        "imageUrl": "/static/images/fussballers.png",
+        "grid": [5, 3],
+        "choices": [
+            {"choice": "Mario Balotelli", "imgUrl": "", "answer": "A"},
+            {"choice": "Eric Cantona", "imgUrl": "", "answer": "B"},
+            {"choice": "Thierry Henry", "imgUrl": "", "answer": "C"},
+            {"choice": "Paul Gascoigne", "imgUrl": "", "answer": "D"},
+            {"choice": "Dennis Bergkamp", "imgUrl": "", "answer": "E"},
+            {"choice": "Lucas Radebe", "imgUrl": "", "answer": "F"},
+            {"choice": "Faustino Asprilla", "imgUrl": "", "answer": "G"},
+            {"choice": "Ole Gunnar Solskjær", "imgUrl": "", "answer": "H"},
+            {"choice": "Kenny Dalglish", "imgUrl": "", "answer": "I"},
+            {"choice": "Didier Drogba", "imgUrl": "", "answer": "J"},
+            {"choice": "George Best", "imgUrl": "", "answer": "K"},
+            {"choice": "Alan Shearer", "imgUrl": "", "answer": "L"},
+            {"choice": "Petr Čech", "imgUrl": "", "answer": "M"},
+            {"choice": "Erling Haaland", "imgUrl": "", "answer": "N"},
+            {"choice": "Neville Southall", "imgUrl": "", "answer": "O"}
+        ],
+        "correctAnswers": ["B","D","G","F","C","H","J","I","E","N","M","L","O","K","A"],
+        "hostAnswer": "A tiger walks into a laundrette..",
+        "timeLimit": 300,
+        "pointsAvailable": 15
+    },
+    {
         "question": "Please drag the names onto the football kickists",
         "type": "gridimage",
         "category": "quickfire",
@@ -29,7 +58,7 @@
         "pointsAvailable": 15
     },
     {
-        "question": "Please drag the names onto the correct famous Scotts!",
+        "question": "Please drag the names onto the famous Scotts",
         "type": "gridimage",
         "category": "quickfire",
         "percent": 40,
