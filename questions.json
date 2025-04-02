@@ -1,38 +1,57 @@
 [
     {
-        "question": "Please drag the correct names onto these comedians",
-        "type": "gridimage",
-        "category": "quickfire",
-        "percent": 80,
-        "imageUrl": "/static/images/fussballers.png",
-        "grid": [5, 3],
+        "question": "Where is this?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 99,
+        "imageUrl": "/static/images/newyork.jpg",
         "choices": [
-            {"choice": "Mario Balotelli", "imgUrl": "", "answer": "A"},
-            {"choice": "Eric Cantona", "imgUrl": "", "answer": "B"},
-            {"choice": "Thierry Henry", "imgUrl": "", "answer": "C"},
-            {"choice": "Paul Gascoigne", "imgUrl": "", "answer": "D"},
-            {"choice": "Dennis Bergkamp", "imgUrl": "", "answer": "E"},
-            {"choice": "Lucas Radebe", "imgUrl": "", "answer": "F"},
-            {"choice": "Faustino Asprilla", "imgUrl": "", "answer": "G"},
-            {"choice": "Ole Gunnar Solskjær", "imgUrl": "", "answer": "H"},
-            {"choice": "Kenny Dalglish", "imgUrl": "", "answer": "I"},
-            {"choice": "Didier Drogba", "imgUrl": "", "answer": "J"},
-            {"choice": "George Best", "imgUrl": "", "answer": "K"},
-            {"choice": "Alan Shearer", "imgUrl": "", "answer": "L"},
-            {"choice": "Petr Čech", "imgUrl": "", "answer": "M"},
-            {"choice": "Erling Haaland", "imgUrl": "", "answer": "N"},
-            {"choice": "Neville Southall", "imgUrl": "", "answer": "O"}
+            {"choice": "Chicago", "imgUrl": "", "answer": "A"},
+            {"choice": "London", "imgUrl": "", "answer": "B"},
+            {"choice": "New York", "imgUrl": "", "answer": "C"},
+            {"choice": "Abu Dhabi", "imgUrl": "", "answer": "D"}
         ],
-        "correctAnswers": ["B","D","G","F","C","H","J","I","E","N","M","L","O","K","A"],
-        "hostAnswer": "A tiger walks into a laundrette..",
-        "timeLimit": 300,
-        "pointsAvailable": 15
+        "correctAnswers": ["C"],
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 60,
+        "pointsAvailable": 1
+    },
+    {
+        "question": "What year was the 'Battle Of Hastings'?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 90,
+        "choices": [
+            {"choice": "480 BC", "imgUrl": "", "answer": "A"},
+            {"choice": "871 AD", "imgUrl": "", "answer": "B"},
+            {"choice": "1066 AD", "imgUrl": "", "answer": "C"},
+            {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["C"],
+        "hostAnswer": "Thermopyle (Leonidas), Ashdown (Alfred), Hastings (Harold), Crecy (Edward)",
+        "timeLimit": 30,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Click the world map where you think the streetview is. You can zoom and move everything.",
+        "type": "geolocation",
+        "category": "warn up",
+        "percent": 80,
+        "choices": [],
+        "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
+        "correctAnswers": ["2454.3,432.4"],
+        "penalisationFactor": 13.0,
+        "hostAnswer": "As Fatboy Slim once said, right here.. right now",
+        "timeLimit": 120,
+        "clickImage": "/static/images/worldmap.svg",
+        "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
+        "pointsAvailable": 2
     },
     {
         "question": "Please drag the names onto the football kickists",
         "type": "gridimage",
-        "category": "quickfire",
-        "percent": 80,
+        "category": "warm up",
+        "percent": 70,
         "imageUrl": "/static/images/fussballers.png",
         "grid": [5, 3],
         "choices": [
@@ -58,39 +77,113 @@
         "pointsAvailable": 15
     },
     {
-        "question": "Please drag the names onto the famous Scotts",
-        "type": "gridimage",
-        "category": "quickfire",
-        "percent": 40,
-        "imageUrl": "/static/images/famous_scotts.png",
-        "grid": [5, 4],
-        "choices": [
-            {"choice": "Miss Jean Brodie", "imgUrl": "", "answer": "A"},
-            {"choice": "Oor Wullie", "imgUrl": "", "answer": "B"},
-            {"choice": "Private James Frazer", "imgUrl": "", "answer": "C"},
-            {"choice": "Fat B*stard", "imgUrl": "", "answer": "D"},
-            {"choice": "Amy Pond", "imgUrl": "", "answer": "E"},
-            {"choice": "Scottie", "imgUrl": "", "answer": "F"},
-            {"choice": "Super Gran", "imgUrl": "", "answer": "G"},
-            {"choice": "Connor Macleod", "imgUrl": "", "answer": "H"},
-            {"choice": "Katie Morag", "imgUrl": "", "answer": "I"},
-            {"choice": "Rab C Nesbitt", "imgUrl": "", "answer": "J"},
-            {"choice": "Taggart", "imgUrl": "", "answer": "K"},
-            {"choice": "Groundskeeper Willie", "imgUrl": "", "answer": "L"},
-            {"choice": "The Broons", "imgUrl": "", "answer": "M"},
-            {"choice": "Mr McGregor", "imgUrl": "", "answer": "N"},
-            {"choice": "Minerva McGonagall", "imgUrl": "", "answer": "O"},
-            {"choice": "James Bond", "imgUrl": "", "answer": "P"},
-            {"choice": "Malcolm Tucker", "imgUrl": "", "answer": "Q"},
-            {"choice": "Mr Mackay", "imgUrl": "", "answer": "R"},
-            {"choice": "Scrooge McDuck", "imgUrl": "", "answer": "S"},
-            {"choice": "Richard Hannay", "imgUrl": "", "answer": "T"}
-        ],
-        "correctAnswers": ["Q","E","M","A","B","P","D","H","G","I","K","N","O","R","L","F","C","S","T","J"],
-        "hostAnswer": "Bay City Rollers, deep fried mars bars, nessie, rain..",
-        "timeLimit": 300,
-        "pointsAvailable": 20
+        "question": "Click on the Howard Donald's nose",
+        "type": "khazakstan",
+        "category": "warm up",
+        "percent": 60,
+        "link": "https://en.wikipedia.org/wiki/Howard_Donald",
+        "correctAnswers": ["76.3,16.5"],
+        "penalisationFactor": 18.0,
+        "hostAnswer": "I suppose it's a process of elimination",
+        "timeLimit": 60,
+        "clickImage": "/static/images/takethat.svg",
+        "pointsAvailable": 2
     },
+    {
+        "question": "What five-letter food appears in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
+        "type": "freetext",
+        "category": "warm up",
+        "percent": 50,
+        "imageUrl": "",
+        "penalisationFactor": 1.0,
+        "correctAnswers": ["bread"],
+        "hostAnswer": "I'm coming off the pill Freddy Bozwell!",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Which hand is this dude using to touch his neck?<br/><smaller>It's a mirror by the way.</smaller>",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 40,
+        "imageUrl": "/static/images/mirror.jpg",
+        "choices": [
+            {"choice": "right", "imgUrl": "", "answer": "A"},
+            {"choice": "left", "imgUrl": "", "answer": "B"}
+        ],
+        "correctAnswers": ["A"],
+        "penalisationFactor": 1.0,
+        "hostAnswer": "I didn't like doing a question about mirrors, it reflects badly on me.",
+        "timeLimit": 60,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "'If you would like to opt-out of the unsubscribing process, don't click yes'<br/><small>Which button do you click to unsubscribe?</small>",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 30,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "yes", "imgUrl": "", "answer": "A"},
+            {"choice": "no", "imgUrl": "", "answer": "B"}
+        ],
+        "correctAnswers": ["A"],
+        "hostAnswer": "This is my life this is..",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Logically, which one of these is the odd one out?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 20,
+        "imageUrl": "",
+        "choices": [
+            {"choice": "Bryan Cranston definitely earns fans", "imgUrl": "", "answer": "A"},
+            {"choice": "Glorious Hugh Jackman is joyous", "imgUrl": "", "answer": "B"},
+            {"choice": "Lionel Messi nutmegs other players", "imgUrl": "", "answer": "C"},
+            {"choice": "Ringo Starr totally unleashes vocally", "imgUrl": "", "answer": "D"}
+        ],
+        "correctAnswers": ["B"],
+        "hostAnswer": "It took a while.. but in the end...",
+        "timeLimit": 120,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "I'm not very good at wordle.. can you finish it for me? Look hard at it.",
+        "type": "freetext",
+        "category": "warm up",
+        "percent": 10,
+        "imageUrl": "/static/images/wordle.svg",
+        "penalisationFactor": 1.0,
+        "correctAnswers": ["stair", "STAIR", "Stair"],
+        "hostAnswer": "I think we all knew that..",
+        "timeLimit": 240,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
+        "type": "multichoice",
+        "category": "warm up",
+        "percent": 1,
+        "imageUrl": "/static/images/cross.svg",
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
+        ],
+        "correctAnswers": ["D"],
+        "hostAnswer": "Mindbending.. as Bernard Cracknell used to say",
+        "timeLimit": 240,
+        "pointsAvailable": 2
+    },
+
+
+
+
+
+
     {
         "question": "What comes next?<br/>&nbsp;<br/>Brown, Pink, Blue, ?",
         "type": "multichoice",
@@ -174,165 +267,40 @@
         "timeLimit": 60,
         "pointsAvailable": 2
     },
-
-
-
-
-
-
-
     {
-        "question": "Where is this?",
-        "type": "multichoice",
-        "category": "warm up",
-        "percent": 99,
-        "imageUrl": "/static/images/newyork.jpg",
-        "choices": [
-            {"choice": "Chicago", "imgUrl": "", "answer": "A"},
-            {"choice": "London", "imgUrl": "", "answer": "B"},
-            {"choice": "New York", "imgUrl": "", "answer": "C"},
-            {"choice": "Abu Dhabi", "imgUrl": "", "answer": "D"}
-        ],
-        "correctAnswers": ["C"],
-        "hostAnswer": "I think we all knew that..",
-        "timeLimit": 60,
-        "pointsAvailable": 1
-    },
-    {
-        "question": "What year was the 'Battle Of Hastings'?",
-        "type": "multichoice",
-        "category": "warm up",
-        "percent": 90,
-        "choices": [
-            {"choice": "480 BC", "imgUrl": "", "answer": "A"},
-            {"choice": "871 AD", "imgUrl": "", "answer": "B"},
-            {"choice": "1066 AD", "imgUrl": "", "answer": "C"},
-            {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
-        ],
-        "correctAnswers": ["C"],
-        "hostAnswer": "Thermopyle (Leonidas), Ashdown (Alfred), Hastings (Harold), Crecy (Edward)",
-        "timeLimit": 30,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Click the world map where you think the streetview is. You can zoom and move everything.",
-        "type": "geolocation",
-        "category": "warn up",
-        "percent": 80,
-        "choices": [],
-        "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
-        "correctAnswers": ["2454.3,432.4"],
-        "penalisationFactor": 13.0,
-        "hostAnswer": "As Fatboy Slim once said, right here.. right now",
-        "timeLimit": 120,
-        "clickImage": "/static/images/worldmap.svg",
-        "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Click on the Howard Donald's nose",
-        "type": "khazakstan",
-        "category": "warm up",
-        "percent": 60,
-        "link": "https://en.wikipedia.org/wiki/Howard_Donald",
-        "correctAnswers": ["76.3,16.5"],
-        "penalisationFactor": 18.0,
-        "hostAnswer": "I suppose it's a process of elimination",
-        "timeLimit": 60,
-        "clickImage": "/static/images/takethat.svg",
-        "pointsAvailable": 2
-    },
-    {
-        "question": "What five-letter food appears in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
-        "type": "freetext",
-        "category": "warm up",
-        "percent": 50,
-        "imageUrl": "",
-        "penalisationFactor": 1.0,
-        "correctAnswers": ["bread"],
-        "hostAnswer": "I'm coming off the pill Freddy Bozwell!",
-        "timeLimit": 60,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Which hand is this dude using to touch his neck?<br/><smaller>It's a mirror by the way.</smaller>",
-        "type": "multichoice",
-        "category": "warm up",
+        "question": "Please drag the correct names onto these comedians",
+        "type": "gridimage",
+        "category": "quickfire",
         "percent": 40,
-        "imageUrl": "/static/images/mirror.jpg",
+        "imageUrl": "/static/images/comedians.png",
+        "grid": [5, 4],
         "choices": [
-            {"choice": "right", "imgUrl": "", "answer": "A"},
-            {"choice": "left", "imgUrl": "", "answer": "B"}
+            {"choice": "Kenneth Williams", "imgUrl": "", "answer": "A"},
+            {"choice": "Diane Morgan", "imgUrl": "", "answer": "B"},
+            {"choice": "Terry-Thomas", "imgUrl": "", "answer": "C"},
+            {"choice": "Peter Kaye", "imgUrl": "", "answer": "D"},
+            {"choice": "Les Dawson", "imgUrl": "", "answer": "E"},
+            {"choice": "Bill Hicks", "imgUrl": "", "answer": "F"},
+            {"choice": "Al Murray", "imgUrl": "", "answer": "G"},
+            {"choice": "Kevin Bridges", "imgUrl": "", "answer": "H"},
+            {"choice": "Richard Pryor", "imgUrl": "", "answer": "I"},
+            {"choice": "Billy Connolly", "imgUrl": "", "answer": "J"},
+            {"choice": "Eric Morecambe", "imgUrl": "", "answer": "K"},
+            {"choice": "Sarah Millican", "imgUrl": "", "answer": "L"},
+            {"choice": "Bill Bailey", "imgUrl": "", "answer": "M"},
+            {"choice": "Victoria Wood", "imgUrl": "", "answer": "N"},
+            {"choice": "Dylan Moran", "imgUrl": "", "answer": "O"},
+            {"choice": "Sean Lock", "imgUrl": "", "answer": "P"},
+            {"choice": "Richard Ayoade", "imgUrl": "", "answer": "Q"},
+            {"choice": "Noel Fielding", "imgUrl": "", "answer": "R"},
+            {"choice": "Lee Evans", "imgUrl": "", "answer": "S"},
+            {"choice": "Caroline Aherne", "imgUrl": "", "answer": "T"}
         ],
-        "correctAnswers": ["A"],
-        "penalisationFactor": 1.0,
-        "hostAnswer": "I didn't like doing a question about mirrors, it reflects badly on me.",
-        "timeLimit": 60,
-        "pointsAvailable": 2
+        "correctAnswers": [],
+        "hostAnswer": "This tiger walks into a laundrette..",
+        "timeLimit": 300,
+        "pointsAvailable": 20
     },
-    {
-        "question": "'If you would like to opt-out of the unsubscribing process, don't click yes'<br/><small>Which button do you click to unsubscribe?</small>",
-        "type": "multichoice",
-        "category": "warm up",
-        "percent": 30,
-        "imageUrl": "",
-        "choices": [
-            {"choice": "yes", "imgUrl": "", "answer": "A"},
-            {"choice": "no", "imgUrl": "", "answer": "B"}
-        ],
-        "correctAnswers": ["A"],
-        "hostAnswer": "This is my life this is..",
-        "timeLimit": 120,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Logically, which one of these is the odd one out?",
-        "type": "multichoice",
-        "category": "warm up",
-        "percent": 20,
-        "imageUrl": "",
-        "choices": [
-            {"choice": "Bryan Cranston definitely earns fans", "imgUrl": "", "answer": "A"},
-            {"choice": "Glorious Hugh Jackman is joyous", "imgUrl": "", "answer": "B"},
-            {"choice": "Lionel Messi nutmegs other players", "imgUrl": "", "answer": "C"},
-            {"choice": "Ringo Starr totally unleashes vocally", "imgUrl": "", "answer": "D"}
-        ],
-        "correctAnswers": ["B"],
-        "hostAnswer": "It took a while.. but in the end...",
-        "timeLimit": 120,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "I'm not very good at wordle.. can you finish it for me?",
-        "type": "freetext",
-        "category": "warm up",
-        "percent": 10,
-        "imageUrl": "/static/images/wordle.svg",
-        "penalisationFactor": 1.0,
-        "correctAnswers": ["stair", "STAIR", "Stair"],
-        "hostAnswer": "I think we all knew that..",
-        "timeLimit": 240,
-        "pointsAvailable": 2
-    },
-    {
-        "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
-        "type": "multichoice",
-        "category": "warm up",
-        "percent": 1,
-        "imageUrl": "/static/images/cross.svg",
-        "choices": [
-            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
-        ],
-        "correctAnswers": ["D"],
-        "hostAnswer": "Mindbending.. as Bernard Cracknell used to say",
-        "timeLimit": 240,
-        "pointsAvailable": 2
-    },
-
-
 
     {
         "question": "Which is the flag of Scotland?",
