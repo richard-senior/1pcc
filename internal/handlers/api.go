@@ -55,6 +55,8 @@ func HandleAPI(w http.ResponseWriter, r *http.Request) {
 		handlePauseQuestion(w, r)
 	case "/api/stop-question":
 		handleStopQuestion(w, r)
+	case "/api/show-answer":
+		handleShowAnswer(w, r)
 	case "/api/players":
 		handlePlayers(w, r)
 	case "/api/session":
@@ -140,6 +142,9 @@ func handlePauseQuestion(w http.ResponseWriter, r *http.Request) {
 }
 func handleStopQuestion(w http.ResponseWriter, r *http.Request) {
 	game.GetGame().StopQuestion()
+}
+func handleShowAnswer(w http.ResponseWriter, r *http.Request) {
+	game.GetGame().ShowAnswer()
 }
 func handleSession(w http.ResponseWriter, r *http.Request) {
 	type SessionResponse struct {

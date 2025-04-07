@@ -63,9 +63,11 @@ type Question struct {
 	//IsPaused           bool      `json:"isPaused,omitempty"`       // New field to track pause state
 	//PausedAt           time.Time `json:"pausedAt,omitempty"`       // When the question was paused
 	//TimeElapsed        float64   `json:"timeElapsed,omitempty"`    // Total time elapsed before pausing
-	IsTimedOut bool   `json:"isTimedOut"`           // has the question been run and finished?
-	ClickImage string `json:"clickImage,omitempty"` // if this is a click question then the local path to the image we're clicking on
-	StreetView string `json:"streetView,omitempty"` // if this is a geoguesser then the specific info required for streetview
+	IsTimedOut  bool   `json:"isTimedOut"`            // has the question been run and finished?
+	ClickImage  string `json:"clickImage,omitempty"`  // if this is a click question then the local path to the image we're clicking on
+	AnswerImage string `json:"answerImage,omitempty"` // For khazakstan style games, this image is shown to demonstrate the actual answer to the players
+	ShowAnswer  bool   `json:"showAnswer,omitempty"`  // True if the current question element should be showing the answer
+	StreetView  string `json:"streetView,omitempty"`  // if this is a geoguesser then the specific info required for streetview
 }
 
 type Answer struct {
@@ -418,6 +420,7 @@ func (gs *GameState) PreviousQuestion() {
 	// Set previous question (using 0-based array index)
 	gs.CurrentQuestion = &instance.AllQuestions[prevNum-1]
 	gs.CurrentQuestion.IsTimedOut = false // Reset the flag for the new question
+	gs.CurrentQuestion.ShowAnswer = false
 }
 
 // GetCurrentQuestion returns the current question
@@ -470,6 +473,7 @@ func (gs *GameState) SubmitAnswer(answer Answer) {
 	cq.Answers = append(cq.Answers, answer)
 	if answer.Answer != "..." {
 		tl := cq.TimeLeft
+
 		timeIndication := fmt.Sprintf("answered with %d seconds remaining", tl)
 		MessagePlayer(answer.Username, timeIndication, 20)
 	}
@@ -547,6 +551,20 @@ func (gs *GameState) StopQuestion() {
 		cq.TimeLeft = 0
 		onQuestionEnded(gs)
 	}
+}
+
+func (gs *GameState) ShowAnswer() {
+	mu.Lock()
+	defer mu.Unlock()
+	cq := gs.GetCurrentQuestion()
+	if cq == nil {
+		return
+	}
+	if !gs.CurrentQuestion.IsTimedOut {
+		return
+	}
+	cq.ShowAnswer = true
+	logger.Info("showing answer...")
 }
 
 // NewGameState creates a new GameState with initialized maps and questions

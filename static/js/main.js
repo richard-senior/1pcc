@@ -60,6 +60,7 @@ class GameAPI {
         this.allPageElements.push(new StartQuestionButton());
         this.allPageElements.push(new StopQuestionButton());
         this.allPageElements.push(new PauseQuestionButton());
+        this.allPageElements.push(new ShowAnswerButton());
         // Initialize the timer
         this.allPageElements.push(new Timer());
         // observer
@@ -332,6 +333,15 @@ class GameAPI {
         if (!s.currentUser) {return null;}
         return s.currentUser;
     }
+
+    /**
+     * @returns {boolean} True if the currently logged in player has Host status
+     */
+    isHost() {
+        let cp = this.getCurrentPlayer();
+        if (!cp) {return false;}
+        return cp.isAdmin;
+    }
     /**
      * caches the question passed in the memeber varables of this object
      * if the question number differs from that of the previous cached value
@@ -490,19 +500,22 @@ class GameAPI {
     }
 
     /**
-     * Submits the answer object to the server
-     * @returns {boolean} true if the answer was accepted, false otherwise
+     * @param {PageElement} el
+     * @returns {boolean} true if the passed page element is a playable element
      */
-    async submitAnswer() {
-        let cq = this.getCurrentQuestion()
-        if (!this.isQuestionActive()) {
-            return false;
-        }
+    isAnswerComponent(el) {
+        if (el == null) {return false;}
+        if (element instanceof ClickMap) {return true;}
+        if (element instanceof MultiChoice) {return true;}
+        if (element instanceof FreeText) {return true;}
+        if (element instanceof GridImage) {return true;}
+    }
 
+    getAnswerComponent() {
+        let cq = this.getCurrentQuestion()
         // work out what and where the answer is based on
         // what the current question is
         let questionType = cq?.type ?? 'unknown';
-
         // Find the appropriate page element for this question type
         let answerComponent = this.allPageElements.find(element => {
             switch(questionType) {
@@ -516,9 +529,25 @@ class GameAPI {
                 case 'gridimage':
                     return element instanceof GridImage;
                 default:
-                    return false;
+                    return null;
             }
         });
+        return answerComponent;
+    }
+
+
+    /**
+     * Submits the answer object to the server
+     * @returns {boolean} true if the answer was accepted, false otherwise
+     */
+    async submitAnswer() {
+        let cq = this.getCurrentQuestion()
+        if (!this.isQuestionActive()) {
+            return false;
+        }
+
+        // Find the appropriate page element for this question type
+        let answerComponent = this.getAnswerComponent();
 
         if (!answerComponent) {
             console.warn("Could not find appropriate component for question type:", questionType);
@@ -863,6 +892,12 @@ class PageElement {
         let a = this.getApi()
         return a.isQuestionActive()
     }
+
+    isPlayableComponent() {
+        let a = this.getApi();
+        return a.isPlayableComponent(this);
+    }
+
     /**
      * Returns the current countdown time
      * which is the time remaining to answer the question
@@ -922,6 +957,11 @@ class PageElement {
         if (!this.doShouldShow()) {
             return false;
         }
+        // if we should show the answer then blur the game component
+        if (this.getCurrentQuestion().showAnswer && this.getApi().isHost() && this.isPlayableComponent()) {
+            console.log("blurring to show answer");
+            this.setBlurred();
+        }
         if (this.isBlurred()) {
             return true;
         }
@@ -953,8 +993,14 @@ class PageElement {
         if (!this.doShouldUpdate()) {
             return;
         }
+        // TODO determine if we should be showing question or answer content
         this.getStyles();
-        let o = this.getContent(api)
+        let o = null;
+        if (api.getCurrentQuestion().showAnswer && api.isHost() && this.isPlayableComponent()) {
+            o = this.getAnswerContent(api)
+        } else {
+            o = this.getContent(api)
+        }
         this.applyUpdate(o);
         this.updateHasRun = true;
     }
@@ -986,10 +1032,31 @@ class PageElement {
      * inside the main dom element managed by this object
      * Can be ignored if applyUpdate is overriden and performs page manipulation
      * directly
-     * @param {GameAPI} gameState the current GameAPI
+     * @param {GameAPI} api the current GameAPI
      * @returns {Document.Object} a dom object or objects to be placed into the managed page element
      */
     getContent(api) {}
+
+    /**
+     * When the host clicks the 'show answer' button each PageElement should
+     * Reveal some information which demonstrates the answer this content will
+     * replace the current content of the pageelement.
+     * By default this method is implemented to show just some basic content from
+     * the currentQuestion object such as 'hostAnswer' etc. but this method
+     * can be overriden to show more detailed answers
+     * @param {GameAPI} api
+     * @returns {Document.Object}
+     */
+    getAnswerContent(api) {
+        let cq = this.getCurrentQuestion();
+        const container = document.createElement('div');
+        titleBar.textContent = 'Some Answer or other';
+        container.appendChild(titleBar);
+        // populate div with cq.link if it exists
+        // and also cq.hostAnswer if it exists
+        return container
+    }
+
     /**
      * Calls createStyles to create any css styles required
      * buy the dom object managed by this object.
@@ -1180,11 +1247,6 @@ class PageElement {
 // ###################################################################
 // QUESTION
 // ###################################################################
-/**
- * On question ended, shows information about how the player should have answered
- */
-class ProveAnswerView extends PageElement {
-}
 /**
  * PageElement which manages the display of the actual question
  * that is the text or otherwise which prompts the player for a response
@@ -1410,7 +1472,6 @@ class GridImage extends PageElement {
                 cols: cq.grid[1]
             };
         }
-        console.log(this.gridSize);
     }
 
     createStyles() {
@@ -1435,11 +1496,13 @@ class GridImage extends PageElement {
             .grid-cell {
                 background-color: rgba(255, 255, 255, 0.1);
                 min-height: 100px;
+                min-width: 100px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 border: 1px solid var(--bcclightgold);
                 position: relative;
+                padding: 5px;
             }
 
             .answer-pool {
@@ -1449,10 +1512,12 @@ class GridImage extends PageElement {
                 padding: 0.1em;
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid var(--bcclightgold);
+                justify-content: center;
             }
 
-            .draggable-answer {
-                padding: 0.5em;
+            .draggable-answer, .placed-answer {
+                min-width: 150px;
+                padding: 8px;
                 background: var(--bccblue);
                 border: 1px solid var(--bcclightgold);
                 border-radius: 0.4em;
@@ -1460,27 +1525,54 @@ class GridImage extends PageElement {
                 cursor: move;
                 user-select: none;
                 transition: opacity 0.3s;
-                font-size: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .draggable-answer > div, .placed-answer > div {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                gap: 8px;
             }
 
             .draggable-answer.dragging {
                 opacity: 0.4;
                 border-radius: 6px;
-                font-size: 0.5rem;
             }
 
             .placed-answer {
                 opacity: 0.8;
-                padding: 5px;
                 background: var(--bccdarkgold);
-                color: white;
-                border-radius: 6px;
-                text-align: center;
                 width: 90%;
+            }
+
+            .answer-image-container {
+                flex-shrink: 0;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .answer-image-container img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+
+            .draggable-answer span, .placed-answer span {
                 font-size: 0.5rem;
+                text-align: center;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         `;
     }
+
 
     createImageDiv(container) {
         const cq = this.getCurrentQuestion();
@@ -1553,25 +1645,40 @@ class GridImage extends PageElement {
     createDraggableAnswer(choice) {
         const draggable = document.createElement('div');
         draggable.className = 'draggable-answer';
-        draggable.textContent = choice.choice;
         draggable.dataset.answer = choice.answer;
         draggable.draggable = true;
 
-        // Add image if provided in the choice
+        // Create a container for image and text to control layout
+        const contentContainer = document.createElement('div');
+        contentContainer.style.display = 'flex';
+        contentContainer.style.alignItems = 'center';
+        contentContainer.style.gap = '8px';
+
         if (choice.imgUrl) {
+            // Create image container
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'answer-image-container';
             const img = document.createElement('img');
             img.src = choice.imgUrl;
-            img.style.maxHeight = '50px';
-            img.style.marginRight = '5px';
-            draggable.insertBefore(img, draggable.firstChild);
+            img.alt = choice.choice;
+            imgContainer.appendChild(img);
+            contentContainer.appendChild(imgContainer);
         }
+
+        // Add text element
+        const textSpan = document.createElement('span');
+        textSpan.textContent = choice.choice;
+        contentContainer.appendChild(textSpan);
+
+        draggable.appendChild(contentContainer);
 
         draggable.addEventListener('dragstart', (e) => {
             this.draggedElement = draggable;
             draggable.classList.add('dragging');
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 text: choice.choice,
-                answer: choice.answer
+                answer: choice.answer,
+                imgUrl: choice.imgUrl
             }));
         });
 
@@ -1582,7 +1689,6 @@ class GridImage extends PageElement {
 
         return draggable;
     }
-
 
     handleDrop(e, cell) {
         e.preventDefault();
@@ -1595,8 +1701,9 @@ class GridImage extends PageElement {
             // Create a new draggable answer in the pool from the existing answer
             const answerPool = this.container.querySelector('.answer-pool');
             const recycledAnswer = this.createDraggableAnswer({
-                choice: existingAnswer.textContent,
-                answer: existingAnswer.dataset.answer
+                choice: existingAnswer.dataset.choice,
+                answer: existingAnswer.dataset.answer,
+                imgUrl: existingAnswer.dataset.imgUrl
             });
             answerPool.appendChild(recycledAnswer);
         }
@@ -1606,10 +1713,35 @@ class GridImage extends PageElement {
 
         // Create and add the new answer element
         const answerElement = document.createElement('div');
-        answerElement.textContent = data.text;
         answerElement.className = 'placed-answer';
         answerElement.dataset.answer = data.answer;
+        answerElement.dataset.choice = data.text;
+        answerElement.dataset.imgUrl = data.imgUrl || '';
         answerElement.draggable = true;
+
+        // Create container for image and text
+        const contentContainer = document.createElement('div');
+        contentContainer.style.display = 'flex';
+        contentContainer.style.alignItems = 'center';
+        contentContainer.style.gap = '8px';
+
+        if (data.imgUrl) {
+            // Create image container
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'answer-image-container';
+            const img = document.createElement('img');
+            img.src = data.imgUrl;
+            img.alt = data.text;
+            imgContainer.appendChild(img);
+            contentContainer.appendChild(imgContainer);
+        }
+
+        // Add text element
+        const textSpan = document.createElement('span');
+        textSpan.textContent = data.text;
+        contentContainer.appendChild(textSpan);
+
+        answerElement.appendChild(contentContainer);
 
         // Add drag events to placed answer
         answerElement.addEventListener('dragstart', (e) => {
@@ -1617,7 +1749,8 @@ class GridImage extends PageElement {
             answerElement.classList.add('dragging');
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 text: data.text,
-                answer: data.answer
+                answer: data.answer,
+                imgUrl: data.imgUrl
             }));
         });
 
@@ -1629,21 +1762,20 @@ class GridImage extends PageElement {
         cell.appendChild(answerElement);
 
         // Store the answer for this cell
-        this.selectedAnswers.set(parseInt(cellIndex), data.answer);
+        this.selectedAnswers.set(parseInt(cellIndex), {
+            answer: data.answer,
+            choice: data.text
+        });
 
-        // If the dragged element was from a grid cell (not the answer pool), remove it from its original location
+        // Handle removal of original element
         if (this.draggedElement && this.draggedElement.classList.contains('placed-answer')) {
             const originalCell = this.draggedElement.parentElement;
             if (originalCell && originalCell.classList.contains('grid-cell')) {
-                // Remove from the original cell
                 originalCell.textContent = '';
-                // Remove from the selectedAnswers map
                 const originalCellIndex = parseInt(originalCell.dataset.cellIndex);
                 this.selectedAnswers.delete(originalCellIndex);
             }
-        }
-        // If the dragged element was from the answer pool, remove it
-        else if (this.draggedElement && this.draggedElement.parentElement.classList.contains('answer-pool')) {
+        } else if (this.draggedElement && this.draggedElement.parentElement.classList.contains('answer-pool')) {
             this.draggedElement.remove();
         }
     }
@@ -1660,33 +1792,30 @@ class GridImage extends PageElement {
 
         const answer = {
             answers: Array.from(this.selectedAnswers.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([_, entry]) => ({
-                answer: entry.answer,
-                choice: entry.choice
-            }))
+                .sort((a, b) => a[0] - b[0])
+                .map(([_, entry]) => entry.answer)
         };
 
         // Create answer object using the API
         let a = this.getApi().createAnswerObject();
-        a.answer = JSON.stringify(answer);
+        a.answer = JSON.stringify(answer.answers);
+        console.log(a.answer)
+
         let incorrect = [];
         // Calculate points based on correct answers
         const cq = this.getCurrentQuestion();
         if (cq.correctAnswers) {
             let correct = 0;
             answer.answers.forEach((item, index) => {
-                if (cq.correctAnswers[index] === item.answer) {
+                if (cq.correctAnswers[index] === item) {
                     correct++;
-                } else {
-                    incorrect.push(item.choice);
                 }
             });
-
             // Calculate points as a percentage of correct answers
             const percentage = correct / cq.correctAnswers.length;
             a.points = Math.round(cq.pointsAvailable * percentage);
-            a.comment = `${correct} out of ${cq.correctAnswers.length} correct (incorrect were: ${incorrect})`;
+            a.answer = `${correct} out of ${cq.correctAnswers.length}`;
+            a.comment = '';
         }
 
         return a;
@@ -1834,45 +1963,6 @@ class ClickMap extends PageElement {
         }
 
         this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
-
-        return this.svg;
-    }
-
-    brokenGetContent(gs) {
-        if (this.svg) {return this.svg;}
-        let cq = this.getCurrentQuestion();
-        this.imagePath = cq.clickImage;
-
-        // Create the SVG element
-        let svgDoc = document.implementation.createDocument('http://www.w3.org/2000/svg', 'svg', null);
-        this.svg = svgDoc.documentElement;
-
-        // Create SVG image element (not HTML image)
-        const svgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        svgImage.setAttribute("href", this.imagePath);  // Use href instead of src
-        svgImage.setAttribute("width", "100%");
-        svgImage.setAttribute("height", "100%");
-
-        // Set SVG attributes
-        this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
-        this.svg.style.width = "100%";
-        this.svg.style.height = "100%";
-        this.svg.style.display = "block";
-        this.svg.style.visibility = "visible";
-        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-        // Append the SVG image element
-        this.svg.appendChild(svgImage);
-
-        // Load the image to get dimensions
-        const img = new Image();
-        img.onload = () => {
-            this.imageWidth = img.naturalWidth;
-            this.imageHeight = img.naturalHeight;
-            // Update viewBox with actual dimensions
-            this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
-        };
-        img.src = this.imagePath;
 
         return this.svg;
     }
@@ -2495,51 +2585,6 @@ class CurrentAnswers extends PageElement {
     }
 }
 /**
- * Class which deals with displaying information about the answer to a question
- * once the question has ended. This is not automatically shown but requires
- * the host to enable the display, this allows questions to be re-run before
- * the answers are shown in case anyone misses the question
- */
-class AnswerInfo extends PageElement {
-    constructor() {
-        super('answer-info',['*'])
-    }
-
-    shouldShow() {
-        return false;
-    }
-
-    getContent(gs) {
-        // Get GameAPI instance
-        const gameAPI = gs || this.getApi();
-        // Create container div
-        const container = document.createElement('div');
-        // Create and add title bar
-        const titleBar = document.createElement('div');
-        titleBar.className = 'table-title-bar';
-        titleBar.textContent = 'Answer Info';
-        container.appendChild(titleBar);
-        // table header
-        let t = document.createElement('table');
-        let h = `
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Info</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>comment here</td></tr>
-                    <tr><td>link here</td></tr>
-                </tbody>
-            </table>
-        `;
-        t.innerHTML = h;
-        container.appendChild(t);
-        return container;
-    }
-}
-/**
  * Class which deals with displaying the current players
  * and allows for administration of those players
  */
@@ -3121,16 +3166,27 @@ class StopQuestionButton extends AnimatedButton {
     }
 }
 
-// Example implementation for Next Question Button
-class ShowAnswerInfo extends AnimatedButton {
+class ShowAnswerButton extends AnimatedButton {
     constructor() {
-        super('show-info-button', 2);
+        super('show-answer-button', 2);
     }
 
     async buttonAction() {
-        // toggle the table visibility
+        await fetch('/api/show-answer')
+            .then(response => {
+                if (!response.ok) {
+                    return false;
+                }
+                return true
+            })
+            .catch(error => {return false;});
     }
 
+    isEnabled() {
+        let cq = this.getCurrentQuestion()
+        if (!cq) {return false;}
+        return cq.isTimedOut;
+    }
 }
 
 /**
@@ -3145,11 +3201,6 @@ class AnswerButton extends AnimatedButton {
         let a = this.getApi()
         let success = a.submitAnswer();
         return success;
-    }
-
-    doShouldShow() {
-        let ret = super.doShouldShow();
-        return ret;
     }
 
     isEnabled() {

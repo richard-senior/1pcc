@@ -1,5 +1,19 @@
 [
     {
+        "question": "Click where you think the CENTRE of the ball should be",
+        "type": "khazakstan",
+        "category": "spot the ball",
+        "percent": 60,
+        "link": "",
+        "correctAnswers": ["33.4,79.5"],
+        "penalisationFactor": 25.0,
+        "hostAnswer": "Fairly easy I think",
+        "timeLimit": 60,
+        "clickImage": "/static/images/gruev_corner.svg",
+        "answerImage": "/static/images/gruev_corner_with_ball.svg",
+        "pointsAvailable": 3
+    },
+    {
         "question": "Where is this?",
         "type": "multichoice",
         "category": "warm up",
@@ -84,13 +98,13 @@
         "link": "https://en.wikipedia.org/wiki/Howard_Donald",
         "correctAnswers": ["76.3,16.5"],
         "penalisationFactor": 18.0,
-        "hostAnswer": "I suppose it's a process of elimination",
+        "hostAnswer": "Robbie Williams, Mark Owen, Gary Barlow, Jason Orange, Howard Donald",
         "timeLimit": 60,
         "clickImage": "/static/images/takethat.svg",
         "pointsAvailable": 2
     },
     {
-        "question": "What five-letter food appears in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
+        "question": "Ignoring spaces between words, what five-letter food appears somewhere in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
         "type": "freetext",
         "category": "warm up",
         "percent": 50,
@@ -113,7 +127,7 @@
         ],
         "correctAnswers": ["A"],
         "penalisationFactor": 1.0,
-        "hostAnswer": "I didn't like doing a question about mirrors, it reflects badly on me.",
+        "hostAnswer": "I think this question reflects badly on me.",
         "timeLimit": 60,
         "pointsAvailable": 2
     },
@@ -128,7 +142,7 @@
             {"choice": "no", "imgUrl": "", "answer": "B"}
         ],
         "correctAnswers": ["A"],
-        "hostAnswer": "This is my life this is..",
+        "hostAnswer": "The key here being 'opt-out'",
         "timeLimit": 120,
         "pointsAvailable": 2
     },
@@ -145,19 +159,19 @@
             {"choice": "Ringo Starr totally unleashes vocally", "imgUrl": "", "answer": "D"}
         ],
         "correctAnswers": ["B"],
-        "hostAnswer": "It took a while.. but in the end...",
+        "hostAnswer": "Alphabetical order init",
         "timeLimit": 120,
         "pointsAvailable": 2
     },
     {
-        "question": "I'm not very good at wordle.. can you finish it for me? Look hard at it.",
+        "question": "I'm not very good at wordle.. can you finish it for me? Look really hard at it.",
         "type": "freetext",
         "category": "warm up",
         "percent": 10,
         "imageUrl": "/static/images/wordle.svg",
         "penalisationFactor": 1.0,
         "correctAnswers": ["stair", "STAIR", "Stair"],
-        "hostAnswer": "I think we all knew that..",
+        "hostAnswer": "Stair at it! My clues are awsome.",
         "timeLimit": 240,
         "pointsAvailable": 2
     },
@@ -197,7 +211,7 @@
             {"choice": "violet", "imgUrl": "", "answer": "D"}
         ],
         "correctAnswers": ["B"],
-        "hostAnswer": "Erm.. snooker joke here",
+        "hostAnswer": "Erm.. insert snooker joke here",
         "timeLimit": 60,
         "pointsAvailable": 2
     },
@@ -214,7 +228,7 @@
             {"choice": "79", "imgUrl": "", "answer": "D"}
         ],
         "correctAnswers": ["D"],
-        "hostAnswer": "Not the best darts player in the world",
+        "hostAnswer": "That'd be one of my best scores",
         "timeLimit": 60,
         "pointsAvailable": 2
     },
@@ -302,6 +316,13 @@
         "pointsAvailable": 20
     },
 
+
+
+
+
+
+
+
     {
         "question": "Which is the flag of Scotland?",
         "type": "multichoice",
@@ -339,7 +360,7 @@
         "imageUrl": "",
         "correctAnswers": ["50"],
         "penalisationFactor": 0.0,
-        "hostAnswer": "All eyes on Greenland!",
+        "hostAnswer": "Greenland would bigly make a star",
         "timeLimit": 40,
         "pointsAvailable": 2
     },
@@ -368,7 +389,7 @@
         "pointsAvailable": 2
     },
     {
-        "question": "What flag comes next: <br/><img src='static/images/flags/gb.svg' width='8%' title='UK'/>&nbsp;<img src='static/images/flags/nl.svg' width='8%' title='Netherlands'/>&nbsp;<img src='static/images/flags/de.svg' width='8%' title='Germany'/>&nbsp;<img src='static/images/flags/pl.svg' width='8%' title='Poland'/>&nbsp;<img src='static/images/flags/by.svg' width='8%' title='Belarus'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/kz.svg' width='8%' title='Kazakhstan'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/us.svg' width='8%' title='USA'/>&nbsp; ??",
+        "question": "Travelling due east from Leeds, What flag comes at the end of this sequence: <br/><img src='static/images/flags/gb.svg' width='8%' title='UK'/>&nbsp;<img src='static/images/flags/nl.svg' width='8%' title='Netherlands'/>&nbsp;<img src='static/images/flags/de.svg' width='8%' title='Germany'/>&nbsp;<img src='static/images/flags/pl.svg' width='8%' title='Poland'/>&nbsp;<img src='static/images/flags/by.svg' width='8%' title='Belarus'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/kz.svg' width='8%' title='Kazakhstan'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/us.svg' width='8%' title='USA'/>&nbsp; ??",
         "type": "multichoice",
         "category": "countries and flags",
         "percent": 50,
@@ -380,21 +401,35 @@
             {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "D"}
         ],
         "correctAnswers": ["C"],
-        "hostAnswer": "",
+        "hostAnswer": "The US flag here is Alaska, and no part of Alaska is above or below Canada",
         "timeLimit": 30,
         "pointsAvailable": 2
     },
     {
-        "question": "What is the Japanese word for Japan?",
-        "type": "freetext",
-        "category": "countries and flags",
+        "question": "Drag the flags onto the cars (the countries that manufacture them)",
+        "type": "gridimage",
+        "category": "warm up",
         "percent": 40,
-        "imageUrl": "",
-        "correctAnswers": ["Nippon", "Nihon", "Nipon"],
-        "penalisationFactor": 0.0,
-        "hostAnswer": "日本 -  ni-hon - sun origin - land of the rising sun",
-        "timeLimit": 40,
-        "pointsAvailable": 2
+        "imageUrl": "/static/images/cars.png",
+        "grid": [4, 3],
+        "choices": [
+            {"choice": "", "imgUrl": "/static/images/flags/jp.svg", "answer": "A"},
+            {"choice": "", "imgUrl": "/static/images/flags/esg.svg", "answer": "B"},
+            {"choice": "", "imgUrl": "/static/images/flags/fr.svg", "answer": "C"},
+            {"choice": "", "imgUrl": "/static/images/flags/es.svg", "answer": "D"},
+            {"choice": "", "imgUrl": "/static/images/flags/de.svg", "answer": "E"},
+            {"choice": "", "imgUrl": "/static/images/flags/ru.svg", "answer": "F"},
+            {"choice": "", "imgUrl": "/static/images/flags/us.svg", "answer": "G"},
+            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "H"},
+            {"choice": "", "imgUrl": "/static/images/flags/se.svg", "answer": "I"},
+            {"choice": "", "imgUrl": "/static/images/flags/cn.svg", "answer": "J"},
+            {"choice": "", "imgUrl": "/static/images/flags/kr.svg", "answer": "K"},
+            {"choice": "", "imgUrl": "/static/images/flags/it.svg", "answer": "L"}
+        ],
+        "correctAnswers": ["C","L","B","H","E","G","I","F","J","A","K","D"],
+        "hostAnswer": "Citroen (France), Fiat (Italy), Trabant (Old East Germany), Mini (UK), VW (Germany hmmm), Model T (US), Volvo (Sweden), Lada (USSR/Russia), BYD (China), Subaru (Japan), Kia (South Korea), Seat (Spain)",
+        "timeLimit": 300,
+        "pointsAvailable": 12
     },
     {
         "question": "Which flag is missing:<br/><img src='static/images/flags/at.svg' title='Austria' width='6%'/>&nbsp;<img src='static/images/flags/be.svg' title='Belgium' width='6%'/>&nbsp;<img src='static/images/flags/bg.svg' title='Bulgaria' width='6%'/>&nbsp;<img src='static/images/flags/hr.svg' title='Croatia' width='6%'/>&nbsp;<img src='static/images/flags/cy.svg' title='Cyprus' width='6%'/>&nbsp;<img src='static/images/flags/cz.svg' title='Czech Republic' width='6%'/>&nbsp;<img src='static/images/flags/dk.svg' title='Denmark' width='6%'/>&nbsp;<img src='static/images/flags/ee.svg' title='Estonia' width='6%'/>&nbsp;<img src='static/images/flags/fi.svg' title='Finland' width='6%'/>&nbsp;<img src='static/images/flags/fr.svg' title='France' width='6%'/>&nbsp;<img src='static/images/flags/de.svg' title='Germany' width='6%'/>&nbsp;<img src='static/images/flags/gr.svg' title='Greece' width='6%'/>&nbsp;<img src='static/images/flags/hu.svg' title='Hungary' width='6%'/>&nbsp;<img src='static/images/flags/it.svg' title='Italy' width='6%'/>&nbsp;<img src='static/images/flags/lv.svg' title='Latvia' width='6%'/>&nbsp;<img src='static/images/flags/lt.svg' title='Lithuania' width='6%'/>&nbsp;<img src='static/images/flags/lu.svg' title='Luxembourg' width='6%'/>&nbsp;<img src='static/images/flags/mt.svg' title='Malta' width='6%'/>&nbsp;<img src='static/images/flags/nl.svg' title='Netherlands' width='6%'/>&nbsp;<img src='static/images/flags/pl.svg' title='Poland' width='6%'/>&nbsp;<img src='static/images/flags/pt.svg' title='Portugal' width='6%'/>&nbsp;<img src='static/images/flags/ro.svg' title='Romania' width='6%'/>&nbsp;<img src='static/images/flags/sk.svg' title='Slovakia' width='6%'/>&nbsp;<img src='static/images/flags/sl.svg' title='Slovenia' width='6%'/>&nbsp;<img src='static/images/flags/es.svg' title='Spain' width='6%'/>&nbsp;<img src='static/images/flags/se.svg' title='Sweden' width='6%'/>&nbsp;",
@@ -420,7 +455,7 @@
         "percent": 20,
         "correctAnswers": ["3815.52,973.34"],
         "penalisationFactor": 18.0,
-        "hostAnswer": "I suppose it's a process of elimination",
+        "hostAnswer": "I mean it's easy if you know it's just east of Bengal :)",
         "timeLimit": 60,
         "clickImage": "/static/images/worldmap.svg",
         "pointsAvailable": 2
@@ -433,7 +468,7 @@
         "imageUrl": "",
         "correctAnswers": ["Central African Republic", "CAR", "St Kitts", "Saint Kitts and Nevis", "Saint Vincent and the Grenadines", "Seychelles", "Sayshells", "Solomon Islands", "South Georgia and the South Sandwich Islands" ],
         "penalisationFactor": 1.0,
-        "hostAnswer": "Pretty hard!",
+        "hostAnswer": "Central African Republic, St Kitts, Saint Kitts and Nevis, Saint Vincent and the Grenadines, Seychelles, Solomon Islands, South Georgia and the South Sandwich Islands",
         "timeLimit": 180,
         "pointsAvailable": 2
     },
@@ -456,24 +491,29 @@
 
 
 
-
-
     {
-        "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
-        "type": "freetext",
+        "question": "What's 9 plus 10?",
+        "type": "multichoice",
         "category": "numbers and letters",
-        "percent": 90,
-        "correctAnswers": ["19"],
+        "percent": 99,
+        "choices": [
+            {"choice": "21", "imgUrl": "", "answer": "A"},
+            {"choice": "21", "imgUrl": "", "answer": "B"},
+            {"choice": "19", "imgUrl": "", "answer": "C"},
+            {"choice": "21", "imgUrl": "", "answer": "D"}
+        ],
+        "imageUrl": "",
+        "correctAnswers": ["C"],
         "penalisationFactor": 0.0,
-        "hostAnswer": "Ner ner ner 19! or as Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
-        "timeLimit": 40,
+        "hostAnswer": "There's a meme in here somewhere",
+        "timeLimit": 20,
         "pointsAvailable": 2
     },
     {
         "question": "2 + 3 × 10 = ??",
         "type": "multichoice",
         "category": "numbers and letters",
-        "percent": 80,
+        "percent": 90,
         "choices": [
             {"choice": "53", "imgUrl": "", "answer": "A"},
             {"choice": "50", "imgUrl": "", "answer": "B"},
@@ -485,6 +525,17 @@
         "penalisationFactor": 0.0,
         "hostAnswer": "BODMAS! Brackets -> division -> multiplication -> Addition -> Subtraction. No if's no buts.",
         "timeLimit": 25,
+        "pointsAvailable": 2
+    },
+    {
+        "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
+        "type": "freetext",
+        "category": "numbers and letters",
+        "percent": 80,
+        "correctAnswers": ["19"],
+        "penalisationFactor": 0.0,
+        "hostAnswer": "Ner ner ner 19! or as Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
+        "timeLimit": 40,
         "pointsAvailable": 2
     },
     {
@@ -519,15 +570,15 @@
         "pointsAvailable": 2
     },
     {
-        "question": "What is 4 across?",
+        "question": "What is 4 across in this crossword of local towns?",
         "type": "freetext",
         "category": "numbers and letters",
         "percent": 50,
         "imageUrl": "/static/images/crossword_towns.svg",
         "correctAnswers": ["Dewsbury"],
         "penalisationFactor": 1.0,
-        "hostAnswer": "Tricky!",
-        "timeLimit": 120,
+        "hostAnswer": "Dewsbobz",
+        "timeLimit": 60,
         "pointsAvailable": 2
     },
     {
@@ -597,11 +648,8 @@
 
 
 
-
-
-
-
     {
+        "percent": 60,
         "question": "Which meal is literally the quickest",
         "type": "multichoice",
         "category": "cryptic",
@@ -612,7 +660,6 @@
             {"choice": "tea", "imgUrl": "", "answer": "D"},
             {"choice": "supper", "imgUrl": "", "answer": "E"}
         ],
-        "percent": 60,
         "correctAnswers": ["A"],
         "hostAnswer": "Break Fast! init.",
         "timeLimit": 30,
@@ -646,14 +693,6 @@
         "timeLimit": 120,
         "pointsAvailable": 2
     },
-
-
-
-
-
-
-
-
 
 
 
@@ -734,10 +773,6 @@
         "streetview": "!4v1740565430239!6m8!1m7!1sNiWl_OSDrsLt5bsJzo1LNw!2m2!1d-43.66293731935104!2d-70.08697737188758!3f150.7486451806517!4f-0.29697066225918434!5f0.7820865974627469",
         "pointsAvailable": 8
     },
-
-
-
-
     {
         "question": "Click on the location of the world's highest waterfall",
         "type": "khazakstan",
