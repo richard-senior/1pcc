@@ -45,6 +45,79 @@ function buildLinux {
     chmod 777 1pcc-amd-linux
 }
 
+function appendToMainFile {
+    if [ -z "$1" ]; then
+        echo "must pass js filename in first parameter"
+        return 1
+    fi
+    local output_file="./static/js/main.js"
+    local js_dir="./static/js"
+    local file_path="$js_dir/$1"
+    if [ -f "$file_path" ]; then
+        # Print any class declarations found in the file
+        #local foo=`grep "^[[:space:]]*class[[:space:]]\+" "$file_path"`
+        #echo "$foo"
+
+        # Add separator with filename
+        echo -e "\n" >> "$output_file"
+        echo -e "// *******************************************************" >> "$output_file"
+        echo -e "// ***** $ordered_file " >> "$output_file"
+        echo -e "// *******************************************************" >> "$output_file"
+        # Append the contents of the file
+        cat "$file_path" >> "$output_file"
+    else
+        echo "Warning: Ordered file $1 not found"
+    fi
+}
+
+function combineJsFiles {
+    echo "Combining Javascript files"
+    local output_file="./static/js/main.js"
+    local js_dir="./static/js"
+
+    # Define ordered files (add to this array for specific ordering)
+    local top=(
+        "GameAPI.js"
+        "PageElement.js"
+    )
+    local bottom=(
+        "_main.js"
+    )
+
+    # delete and recreate
+    if [ -f "$output_file" ]; then
+        rm "$output_file" 2>/dev/null
+    fi
+    touch "$output_file"
+
+    # Check if directory exists
+    if [ ! -d "$js_dir" ]; then
+        echo "Error: Directory $js_dir does not exist"
+        return 1
+    fi
+
+    # First process the ordered files
+    for ordered_file in "${top[@]}"; do
+        appendToMainFile "$ordered_file"
+    done
+
+    # Then process remaining files
+    for file in "$js_dir"/*.js; do
+        local basename_file=$(basename "$file")
+        # Skip main.js and already processed ordered files
+        if [ "$basename_file" = "main.js" ]; then continue; fi
+        if [[ " ${top[*]} " =~ " ${basename_file} " ]]; then continue; fi
+        if [[ " ${bottom[*]} " =~ " ${basename_file} " ]]; then continue; fi
+        appendToMainFile "$basename_file"
+    done
+
+    # First process the ordered files
+    for foo in "${bottom[@]}"; do
+        appendToMainFile "$foo"
+    done
+    echo "JavaScript files have been combined into $output_file"
+}
+
 function buildMac {
     export GOOS=darwin
     export GOARCH=arm64
@@ -82,8 +155,9 @@ function buildAndroid {
 }
 
 function build {
-    #buildMac
-    buildLinux
+    combineJsFiles
+    buildMac
+    #buildLinux
     #buildWindows
 }
 

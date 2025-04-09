@@ -3,5 +3,5 @@
 
 source ./functions.sh
 
-buildMac
+build
 run

@@ -65,7 +65,7 @@ type Question struct {
 	//TimeElapsed        float64   `json:"timeElapsed,omitempty"`    // Total time elapsed before pausing
 	IsTimedOut  bool   `json:"isTimedOut"`            // has the question been run and finished?
 	ClickImage  string `json:"clickImage,omitempty"`  // if this is a click question then the local path to the image we're clicking on
-	AnswerImage string `json:"answerImage,omitempty"` // For khazakstan style games, this image is shown to demonstrate the actual answer to the players
+	AnswerImage string `json:"answerImage,omitempty"` // For kazakhstan style games, this image is shown to demonstrate the actual answer to the players
 	ShowAnswer  bool   `json:"showAnswer,omitempty"`  // True if the current question element should be showing the answer
 	StreetView  string `json:"streetView,omitempty"`  // if this is a geoguesser then the specific info required for streetview
 }
@@ -185,6 +185,8 @@ func decorateGameState(gs *GameState) {
 }
 
 func onQuestionEnded(gs *GameState) {
+	// Ensure all current players have answers to all current questions
+	// ie if a new player has joined, given them zeros for answers that have already been given.
 	logger.Info("Question timed out.. doQuestionTimeout")
 }
 
@@ -401,7 +403,8 @@ func (gs *GameState) NextQuestion() {
 	}
 	// Set the current question to the new question number
 	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
-	gs.CurrentQuestion.IsTimedOut = false // Reset the flag for the new question
+	gs.CurrentQuestion.IsTimedOut = false
+	gs.CurrentQuestion.ShowAnswer = false
 }
 
 func (gs *GameState) PreviousQuestion() {

@@ -1,4 +1,19 @@
 {
+    "question": "Click where you think the CENTRE of the ball should be",
+    "type": "kazakhstan",
+    "category": "spot the ball",
+    "percent": 60,
+    "link": "",
+    "correctAnswers": ["33.4,79.5"],
+    "penalisationFactor": 25.0,
+    "hostAnswer": "Fairly easy I think",
+    "timeLimit": 60,
+    "clickImage": "/static/images/gruev_corner.svg",
+    "answerImage": "/static/images/gruev_corner_with_ball.svg",
+    "pointsAvailable": 3
+},
+
+{
     "question": "Please drag the names onto the correct famous Scotts!",
     "type": "gridimage",
     "category": "quickfire",

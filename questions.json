@@ -1,7 +1,7 @@
 [
     {
         "question": "Click where you think the CENTRE of the ball should be",
-        "type": "khazakstan",
+        "type": "kazakhstan",
         "category": "spot the ball",
         "percent": 60,
         "link": "",
@@ -92,7 +92,7 @@
     },
     {
         "question": "Click on the Howard Donald's nose",
-        "type": "khazakstan",
+        "type": "kazakhstan",
         "category": "warm up",
         "percent": 60,
         "link": "https://en.wikipedia.org/wiki/Howard_Donald",
@@ -101,6 +101,7 @@
         "hostAnswer": "Robbie Williams, Mark Owen, Gary Barlow, Jason Orange, Howard Donald",
         "timeLimit": 60,
         "clickImage": "/static/images/takethat.svg",
+        "answerImage": "/static/images/gruev_corner_with_ball.svg",
         "pointsAvailable": 2
     },
     {
@@ -450,7 +451,7 @@
     },
     {
         "question": "Click on Bangladesh",
-        "type": "khazakstan",
+        "type": "kazakhstan",
         "category": "countries and flags",
         "percent": 20,
         "correctAnswers": ["3815.52,973.34"],
@@ -458,6 +459,7 @@
         "hostAnswer": "I mean it's easy if you know it's just east of Bengal :)",
         "timeLimit": 60,
         "clickImage": "/static/images/worldmap.svg",
+        "answerImage": "/static/images/gruev_corner_with_ball.svg",
         "pointsAvailable": 2
     },
     {
@@ -540,7 +542,7 @@
     },
     {
         "question": "Click on the 'Umlaut'",
-        "type": "khazakstan",
+        "type": "kazakhstan",
         "category": "numbers and letters",
         "percent": 70,
         "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
@@ -549,6 +551,7 @@
         "hostAnswer": "Jä!",
         "timeLimit": 30,
         "clickImage": "/static/images/umlaut.svg",
+        "answerImage": "/static/images/gruev_corner_with_ball.svg",
         "pointsAvailable": 2
     },
     {
@@ -775,8 +778,8 @@
     },
     {
         "question": "Click on the location of the world's highest waterfall",
-        "type": "khazakstan",
-        "category": "Where is Khazakstan",
+        "type": "kazakhstan",
+        "category": "Where is kazakhstan",
         "percent": 50,
         "choices": [],
         "correctAnswers": ["3089.4,521.2"],
@@ -784,6 +787,7 @@
         "hostAnswer": "Angel Falls in Venezuela - dropping 979 meters (3,212 feet)!",
         "timeLimit": 60,
         "clickImage": "/static/images/worldmap.svg",
+        "answerImage": "/static/images/gruev_corner_with_ball.svg",
         "pointsAvailable": 8
     }
 ]
