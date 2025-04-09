@@ -132,7 +132,6 @@ func curatePlayers(gs *GameState) {
 			player.Message = ""
 		}
 	}
-
 }
 
 func decorateGameState(gs *GameState) {

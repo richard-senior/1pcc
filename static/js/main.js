@@ -174,6 +174,7 @@ class GameAPI {
             }
             // otherwise update everything
             this.state = newState;
+            console.log(newState.currentQuestion.showAnswer);
             this.currentUser = newState.currentUser;
             window.gameState = newState;
             // update the local question cache
@@ -365,10 +366,12 @@ class GameAPI {
                 // Reduce the size of the array based on whether page elements exist
                 this.pageElements = this.allPageElements.filter(pe => pe.doShouldShow());
                 window.dispatchEvent(new CustomEvent('questionChanged', {detail: question}));
+                return;
             }
-        } else {
-            this.currentQuestion = question;
         }
+        // make sure we always update the current question in case
+        // some of its fields have been changed at the server end
+        this.currentQuestion = question;
     }
     /**
      * returns the current question if it is set, null otherwise
@@ -1020,10 +1023,7 @@ class PageElement {
     update(api) {
         let cn = this.constructor.name
         this.doInitialise(api);
-        if (!this.doShouldUpdate()) {
-            this.warn("returning because not should update")
-            return;
-        }
+        if (!this.doShouldUpdate()) {return;}
         // TODO determine if we should be showing question or answer content
         this.getStyles();
 
