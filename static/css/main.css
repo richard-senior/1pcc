@@ -416,3 +416,69 @@ input[type=button], input[type=submit], input[type=reset] {
 .choices-container label:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
+/* Answer container styles */
+.answer-container {
+    padding: 20px;
+    background-color: var(--bccstone);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin: 10px 0;
+    max-width: 800px;
+    width: 100%;
+}
+
+.answer-container h2 {
+    color: var(--bccblue);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--bccgold);
+    padding-bottom: 8px;
+}
+
+.correct-answer {
+    margin-bottom: 15px;
+}
+
+.correct-answer strong {
+    color: var(--bccnavy);
+}
+
+.correct-answer span {
+    color: var(--bccdarkgold);
+    font-weight: bold;
+}
+
+.host-answer {
+    background-color: var(--bccbeige);
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--bccgold);
+}
+
+.answer-link {
+    margin-top: 15px;
+}
+
+.answer-link .btn {
+    padding: 8px 12px;
+    margin-left: 10px;
+    background-color: var(--bccblue);
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.answer-link .btn:hover {
+    background-color: var(--bccgold);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.points-info {
+    margin-top: 15px;
+    color: var(--bccslate);
+    font-style: italic;
+}

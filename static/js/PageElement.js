@@ -33,10 +33,13 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
-        this.initialisedHasRun = false;
-        this.updateHasRun = false;
+        const flags = new Map({
+            'updateHasRun':false,
+            'initialisedHasRun': false,
+            'updateAnswerHasRun': false,
+            'answerSubmitted': false,
+        });
         this.selectedAnswer = null;
-        this.answerSubmitted = false;
     }
 
     info(...args) {
@@ -69,13 +72,13 @@ class PageElement {
      * @returns null
      */
     doInitialise(api) {
-        if (this.initialisedHasRun) {return;}
+        if (this.flags.initialisedHasRun) {return;}
         let ca = api.getCurrentAnswer();
         if (ca) {
             this.selectedAnswer = ca;
         }
         this.initialise(api);
-        this.initialisedHasRun = true;
+        this.flags.initialisedHasRun = true;
         //this.initialiseEvents();
     }
 
@@ -253,18 +256,7 @@ class PageElement {
         let ret = this.isQuestionActive();
         return ret;
     }
-    /**
-     * Used to indicate that a PageElement should
-     * re-draw it's dom objects
-     */
-    setBlurred() {this.updateHasRun = false;}
-    /**
-     *
-     * @returns {boolean} true if this page element should re-draw
-     */
-    isBlurred() {
-        return !this.updateHasRun;
-    }
+
     /**
      * returns true if the dom element that this object manages should be
      * updated. First checks
@@ -277,10 +269,11 @@ class PageElement {
     doShouldUpdate() {
         if (!this.getElement()) {return false;}
         if (!this.doShouldShow()) {return false;}
-        // if we should show the answer then blur the game component
-        if (this.isShowAnswer()) {this.setBlurred();}
-        if (this.isBlurred()) {return true;}
-        return this.shouldUpdate();
+        if (this.shouldUpdate) {return true;}
+        // should we be updating to show the answer content?
+        if (this.isShowAnswer() && !this.flags.updateAnswerHasRun)  {return true;}
+        // ok no good reason to update
+        return false;
     }
     /**
      *
@@ -315,7 +308,9 @@ class PageElement {
             o = this.getContent(api)
         }
         this.applyUpdate(o);
-        this.updateHasRun = true;
+        // mark that update has run
+        this.flags.updateHasRun = true;
+        this.flags.updateAnswerHasRun = true;
     }
 
     /**

@@ -4,7 +4,7 @@
         "type": "kazakhstan",
         "category": "spot the ball",
         "percent": 60,
-        "link": "",
+        "link": "https://en.wikipedia.org/wiki/Spot_the_ball",
         "correctAnswers": ["33.4,79.5"],
         "penalisationFactor": 25.0,
         "hostAnswer": "Fairly easy I think",
@@ -19,6 +19,7 @@
         "category": "warm up",
         "percent": 99,
         "imageUrl": "/static/images/newyork.jpg",
+        "link": "https://en.wikipedia.org/wiki/New_York_City",
         "choices": [
             {"choice": "Chicago", "imgUrl": "", "answer": "A"},
             {"choice": "London", "imgUrl": "", "answer": "B"},
@@ -42,7 +43,8 @@
             {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
         ],
         "correctAnswers": ["C"],
-        "hostAnswer": "Thermopyle (Leonidas), Ashdown (Alfred), Hastings (Harold), Crecy (Edward)",
+        "hostAnswer": "<br/>480BC:&nbsp;&nbsp;Thermopyle (Leonidas)<br/>871AD:&nbsp;&nbsp;Ashdown (Alfred)<br/>1066AD:&nbsp;Hastings (Harold)<br/>1346AD:&nbsp;Crecy (Edward)",
+        "link": "https://en.wikipedia.org/wiki/Battle_of_Hastings",
         "timeLimit": 30,
         "pointsAvailable": 2
     },
@@ -110,6 +112,7 @@
         "category": "warm up",
         "percent": 50,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Freetext_search",
         "penalisationFactor": 1.0,
         "correctAnswers": ["bread"],
         "hostAnswer": "I'm coming off the pill Freddy Bozwell!",
@@ -122,6 +125,7 @@
         "category": "warm up",
         "percent": 40,
         "imageUrl": "/static/images/mirror.jpg",
+        "link": "https://en.wikipedia.org/wiki/Mirror_image",
         "choices": [
             {"choice": "right", "imgUrl": "", "answer": "A"},
             {"choice": "left", "imgUrl": "", "answer": "B"}
@@ -138,6 +142,7 @@
         "category": "warm up",
         "percent": 30,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Double_negative",
         "choices": [
             {"choice": "yes", "imgUrl": "", "answer": "A"},
             {"choice": "no", "imgUrl": "", "answer": "B"}
@@ -153,6 +158,7 @@
         "category": "warm up",
         "percent": 20,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Alphabetical_order",
         "choices": [
             {"choice": "Bryan Cranston definitely earns fans", "imgUrl": "", "answer": "A"},
             {"choice": "Glorious Hugh Jackman is joyous", "imgUrl": "", "answer": "B"},
@@ -170,6 +176,7 @@
         "category": "warm up",
         "percent": 10,
         "imageUrl": "/static/images/wordle.svg",
+        "link": "https://en.wikipedia.org/wiki/Wordle",
         "penalisationFactor": 1.0,
         "correctAnswers": ["stair", "STAIR", "Stair"],
         "hostAnswer": "Stair at it! My clues are awsome.",
@@ -182,6 +189,7 @@
         "category": "warm up",
         "percent": 1,
         "imageUrl": "/static/images/cross.svg",
+        "link": "https://en.wikipedia.org/wiki/Net_(polyhedron)",
         "choices": [
             {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
             {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
@@ -205,6 +213,7 @@
         "category": "quickfire",
         "percent": 90,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Snooker",
         "choices": [
             {"choice": "orange", "imgUrl": "", "answer": "A"},
             {"choice": "black", "imgUrl": "", "answer": "B"},
@@ -222,6 +231,7 @@
         "category": "quickfire",
         "percent": 80,
         "imageUrl": "/static/images/dartboard.svg",
+        "link": "https://en.wikipedia.org/wiki/Darts",
         "choices": [
             {"choice": "74", "imgUrl": "", "answer": "A"},
             {"choice": "68", "imgUrl": "", "answer": "B"},
@@ -239,6 +249,7 @@
         "category": "quickfire",
         "percent": 70,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Greek_alphabet",
         "choices": [
             {"choice": "θ", "imgUrl": "", "answer": "A"},
             {"choice": "λ", "imgUrl": "", "answer": "B"},
@@ -256,6 +267,7 @@
         "category": "quickfire",
         "percent": 60,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Wives_of_Henry_VIII",
         "choices": [
             {"choice": "Catherine of Aragon", "imgUrl": "", "answer": "A"},
             {"choice": "Catherine Howard", "imgUrl": "", "answer": "B"},
@@ -272,6 +284,7 @@
         "category": "quickfire",
         "percent": 50,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/AC_power_plugs_and_sockets",
         "choices": [
             {"choice": "A", "imgUrl": "", "answer": "A"},
             {"choice": "B", "imgUrl": "", "answer": "B"},
@@ -288,6 +301,7 @@
         "category": "quickfire",
         "percent": 40,
         "imageUrl": "/static/images/comedians.png",
+        "link": "https://en.wikipedia.org/wiki/List_of_British_comedians",
         "grid": [5, 4],
         "choices": [
             {"choice": "Kenneth Williams", "imgUrl": "", "answer": "A"},
@@ -412,6 +426,7 @@
         "category": "warm up",
         "percent": 40,
         "imageUrl": "/static/images/cars.png",
+        "link": "https://en.wikipedia.org/wiki/Automotive_industry",
         "grid": [4, 3],
         "choices": [
             {"choice": "", "imgUrl": "/static/images/flags/jp.svg", "answer": "A"},
@@ -438,6 +453,7 @@
         "category": "countries and flags",
         "percent": 30,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/European_Union",
         "choices": [
             {"choice": "", "imgUrl": "/static/images/flags/ie.svg", "answer": "A"},
             {"choice": "", "imgUrl": "/static/images/flags/ru.svg", "answer": "B"},
@@ -454,6 +470,7 @@
         "type": "kazakhstan",
         "category": "countries and flags",
         "percent": 20,
+        "link": "https://en.wikipedia.org/wiki/Bangladesh",
         "correctAnswers": ["3815.52,973.34"],
         "penalisationFactor": 18.0,
         "hostAnswer": "I mean it's easy if you know it's just east of Bengal :)",
@@ -468,6 +485,7 @@
         "category": "countries and flags",
         "percent": 10,
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
         "correctAnswers": ["Central African Republic", "CAR", "St Kitts", "Saint Kitts and Nevis", "Saint Vincent and the Grenadines", "Seychelles", "Sayshells", "Solomon Islands", "South Georgia and the South Sandwich Islands" ],
         "penalisationFactor": 1.0,
         "hostAnswer": "Central African Republic, St Kitts, Saint Kitts and Nevis, Saint Vincent and the Grenadines, Seychelles, Solomon Islands, South Georgia and the South Sandwich Islands",
@@ -480,6 +498,7 @@
         "category": "countries and flags",
         "percent": 1,
         "imageUrl": "/static/images/flags/lols_nice_try.svg",
+        "link": "https://en.wikipedia.org/wiki/Kiribati",
         "correctAnswers": ["Kiribati"],
         "penalisationFactor": 1.0,
         "hostAnswer": "Capital: South Tarawa · Population: 121,300 · Area: 811 sq km",
@@ -505,6 +524,7 @@
             {"choice": "21", "imgUrl": "", "answer": "D"}
         ],
         "imageUrl": "",
+        "link": "https://en.wikipedia.org/wiki/Internet_meme",
         "correctAnswers": ["C"],
         "penalisationFactor": 0.0,
         "hostAnswer": "There's a meme in here somewhere",
@@ -656,6 +676,7 @@
         "question": "Which meal is literally the quickest",
         "type": "multichoice",
         "category": "cryptic",
+        "link": "https://en.wikipedia.org/wiki/Etymology",
         "choices": [
             {"choice": "breakfast", "imgUrl": "", "answer": "A"},
             {"choice": "elevenses", "imgUrl": "", "answer": "B"},
@@ -679,6 +700,7 @@
             {"choice": "T", "imgUrl": "", "answer": "D"}
         ],
         "percent": 30,
+        "link": "https://en.wikipedia.org/wiki/Names_of_the_days_of_the_week",
         "correctAnswers": ["C"],
         "hostAnswer": "Days of the week init." ,
         "timeLimit": 120,
@@ -690,6 +712,7 @@
         "category": "cryptic",
         "percent": 10,
         "imageUrl": "/static/images/cryptic.png",
+        "link": "https://en.wikipedia.org/wiki/Cryptic_crossword",
         "correctAnswers": ["Attendance"],
         "penalisationFactor": 1.0,
         "hostAnswer": "At Ten (12 - 2) have a ball (dance)",

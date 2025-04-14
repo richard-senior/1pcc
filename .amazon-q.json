@@ -1,0 +1,42 @@
+{
+  "context_files": [
+    "README.md",
+    "dir_structure.txt",
+    "cmd/main.go",
+    "internal/game/game.go",
+    "static/js/GameAPI.js",
+    "static/js/PageElement.js"
+  ],
+  "code_generation": {
+    "languages": ["javascript", "go"],
+    "default_language": "javascript",
+    "go": {
+      "style": {
+        "indentation": "tabs",
+        "comments": {
+          "function_doc": true,
+          "package_doc": true
+        }
+      },
+      "frameworks": ["net/http"]
+    },
+    "javascript": {
+      "style": {
+        "indentation": "tabs",
+        "quotes": "single",
+        "semicolons": true,
+        "naming": {
+          "constants": "camelCase",
+          "variables": "camelCase",
+          "functions": "camelCase",
+          "classes": "PascalCase"
+        },
+        "comments": {
+          "function_doc": true
+        }
+      },
+      "frameworks": ["vanilla"]
+    }
+  },
+  "timeout": 300
+}

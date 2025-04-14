@@ -370,4 +370,82 @@ class GridImage extends PageElement {
 
         return a;
     }
+
+    getAnswerContent(api) {
+        // First get the base content
+        let container = this.getContent(api);
+        if (!container) {
+            return null;
+        }
+
+        const cq = this.getCurrentQuestion();
+        if (!cq || !cq.correctAnswers || cq.correctAnswers.length === 0) {
+            this.info("No correct answers available");
+            return container;
+        }
+
+        // Find the grid board
+        const gridBoard = container.querySelector('.grid-board');
+        if (!gridBoard) {
+            this.warn("Grid board not found");
+            return container;
+        }
+
+        // Get all grid cells
+        const cells = gridBoard.querySelectorAll('.grid-cell');
+
+        // Add correct answers to the grid
+        cq.correctAnswers.forEach((correctAnswer, index) => {
+            if (index < cells.length) {
+                // Find the matching choice for this answer
+                let matchingChoice = null;
+                if (cq.choices) {
+                    matchingChoice = cq.choices.find(choice => choice.answer === correctAnswer);
+                }
+
+                // Create a correct answer element
+                const correctElement = document.createElement('div');
+                correctElement.className = 'placed-answer';
+                correctElement.style.cssText = `
+                    background-color: rgba(0, 0, 0, 0.8);
+                    border: 1px solid white;
+                    position: relative;
+                `;
+
+                // Create container for content
+                const contentContainer = document.createElement('div');
+
+                // Add image if available
+                if (matchingChoice && matchingChoice.imgUrl) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'answer-image-container';
+                    const img = document.createElement('img');
+                    img.src = matchingChoice.imgUrl;
+                    img.alt = matchingChoice.choice || correctAnswer;
+                    imgContainer.appendChild(img);
+                    contentContainer.appendChild(imgContainer);
+                }
+
+                // Add text
+                const textSpan = document.createElement('span');
+                textSpan.textContent = matchingChoice ? matchingChoice.choice : correctAnswer;
+                textSpan.style.fontWeight = 'bold';
+                contentContainer.appendChild(textSpan);
+
+                correctElement.appendChild(contentContainer);
+
+                // Clear any existing content in the cell
+                cells[index].innerHTML = '';
+                cells[index].appendChild(correctElement);
+            }
+        });
+
+        // Remove the answer pool since we're showing answers
+        const answerPool = container.querySelector('.answer-pool');
+        if (answerPool) {
+            answerPool.remove();
+        }
+
+        return container;
+    }
 }

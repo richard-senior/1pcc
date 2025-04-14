@@ -403,7 +403,7 @@ func (gs *GameState) NextQuestion() {
 	// Set the current question to the new question number
 	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
 	gs.CurrentQuestion.IsTimedOut = false
-	gs.IsShowAnswer = true
+	gs.IsShowAnswer = false
 }
 
 func (gs *GameState) PreviousQuestion() {
@@ -514,6 +514,7 @@ func (gs *GameState) StartQuestion() {
 	// remove any existing answers
 	// cq.Answers = []Answer{}
 	if cq != nil {
+		gs.IsShowAnswer = false
 		cq.TimeStarted = time.Now()
 		cq.TimeLeft = cq.TimeLimit
 		cq.IsTimedOut = false // Reset the flag when starting a question

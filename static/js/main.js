@@ -304,7 +304,7 @@ class GameAPI {
             }
         } else {
             this.timeLeft = t;
-            //console.info(`Timer : ${this.timeLeft}`);
+            console.info(`Timer : ${this.timeLeft}`);
         }
         this.previousTimeLeft = this.timeLeft;
     }
@@ -749,10 +749,13 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
-        this.initialisedHasRun = false;
-        this.updateHasRun = false;
+        const flags = new Map({
+            'updateHasRun':false,
+            'initialisedHasRun': false,
+            'updateAnswerHasRun': false,
+            'answerSubmitted': false,
+        });
         this.selectedAnswer = null;
-        this.answerSubmitted = false;
     }
 
     info(...args) {
@@ -785,13 +788,13 @@ class PageElement {
      * @returns null
      */
     doInitialise(api) {
-        if (this.initialisedHasRun) {return;}
+        if (this.flags.initialisedHasRun) {return;}
         let ca = api.getCurrentAnswer();
         if (ca) {
             this.selectedAnswer = ca;
         }
         this.initialise(api);
-        this.initialisedHasRun = true;
+        this.flags.initialisedHasRun = true;
         //this.initialiseEvents();
     }
 
@@ -969,18 +972,7 @@ class PageElement {
         let ret = this.isQuestionActive();
         return ret;
     }
-    /**
-     * Used to indicate that a PageElement should
-     * re-draw it's dom objects
-     */
-    setBlurred() {this.updateHasRun = false;}
-    /**
-     *
-     * @returns {boolean} true if this page element should re-draw
-     */
-    isBlurred() {
-        return !this.updateHasRun;
-    }
+
     /**
      * returns true if the dom element that this object manages should be
      * updated. First checks
@@ -993,10 +985,11 @@ class PageElement {
     doShouldUpdate() {
         if (!this.getElement()) {return false;}
         if (!this.doShouldShow()) {return false;}
-        // if we should show the answer then blur the game component
-        if (this.isShowAnswer()) {this.setBlurred();}
-        if (this.isBlurred()) {return true;}
-        return this.shouldUpdate();
+        if (this.shouldUpdate) {return true;}
+        // should we be updating to show the answer content?
+        if (this.isShowAnswer() && !this.flags.updateAnswerHasRun)  {return true;}
+        // ok no good reason to update
+        return false;
     }
     /**
      *
@@ -1031,7 +1024,9 @@ class PageElement {
             o = this.getContent(api)
         }
         this.applyUpdate(o);
-        this.updateHasRun = true;
+        // mark that update has run
+        this.flags.updateHasRun = true;
+        this.flags.updateAnswerHasRun = true;
     }
 
     /**
@@ -1434,6 +1429,25 @@ class AnswerButton extends AnimatedButton {
  */
 class ClickMap extends PageElement {
 
+    // Define a set of distinct colors for player markers
+    static colors = [
+        "#FF5733", // Red-Orange
+        "#33FF57", // Green
+        "#3357FF", // Blue
+        "#FF33F5", // Pink
+        "#F5FF33", // Yellow
+        "#33FFF5", // Cyan
+        "#8033FF", // Purple
+        "#FF8033", // Orange
+        "#33FF80", // Mint
+        "#8080FF", // Lavender
+        "#FF8080", // Salmon
+        "#80FF80", // Light Green
+        "#FFFF80", // Light Yellow
+        "#80FFFF", // Light Blue
+        "#FF80FF"  // Light Pink
+    ];
+
     constructor() {
         super('click-container', ['geolocation','kazakhstan'])
         this.isPlayableComponent = true;
@@ -1467,6 +1481,8 @@ class ClickMap extends PageElement {
         this.initialPinchDistance = 0;
         this.initialScale = 1;
         this.lastScale = 1;
+        // Track show answer state to prevent unnecessary updates
+        this.lastShowAnswerState = false;
         // Initialize events after adding to DOM
         this.initializeEvents();
     }
@@ -1494,6 +1510,7 @@ class ClickMap extends PageElement {
         return css;
     }
 
+    /*
     shouldShow() {
         let cq = this.getCurrentQuestion();
         if (!cq || !cq.clickImage) {
@@ -1501,31 +1518,32 @@ class ClickMap extends PageElement {
         }
         return true;
     }
-
-    /*
-    shouldUpdate() {
-        // if we've not been properly instantiated yet
-        if (!this.svg) {return true;}
-        if (!this.imagePath) {return true;}
-        // if we have the relevant quesiton data
-        this.info("in should update in clickmap");
-        if (!cq.clickImage) {return false;}
-        // if this is a new question
-        if (cq.clickImage !== this.imagePath) {
-            return true;
-        }
-        return false;
-    }
     */
+
+    update(api) {
+        this.doInitialise(api);
+        if (!this.doShouldUpdate()) {return;}
+        this.getStyles();
+
+        let o = null;
+        if (this.isShowAnswer()) {
+            o = this.getAnswerContent(api)
+        } else {
+            o = this.getContent(api)
+        }
+        this.applyUpdate(o);
+        this.updateHasRun = true;
+    }
 
     getContent(gs) {
         let cq = this.getCurrentQuestion();
-        // This check is now in getContent, but it's being overridden by getAnswerContent
-        // We'll remove this check from here since it's now handled in getAnswerContent
-        this.imagePath = cq.clickImage;
-        
-        let rawSvg = this.getApi().getFileContent(this.imagePath);
-
+        let rawSvg = null;
+        if (this.isShowAnswer()) {
+            if (Object.hasOwn(cq, "answerImage") && cq.answerImage) {
+                rawSvg = this.getApi().getFileContent(cq.answerImage);
+            }
+        }
+        if (!rawSvg) {rawSvg = this.getApi().getFileContent(cq.clickImage);}
         if (!rawSvg) {
             this.warn('Error: No SVG content loaded');
             return null;
@@ -1570,7 +1588,7 @@ class ClickMap extends PageElement {
             this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
         }
 
-        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Ensures proper scaling
+        this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
         return this.svg;
     }
@@ -1604,143 +1622,37 @@ class ClickMap extends PageElement {
     }
 
     getAnswerContent(api) {
+        // start by repopulating the current svg, the image may have changed
+        this.getContent();
+
         let cq = this.getCurrentQuestion();
-        if (!Object.hasOwn(cq, "answers"))  {
-            this.info("NO answers array");
-            return null;
-        }
-        if (cq.answers.length == 0) {
-            this.info("CQ.answers is zero length");
-            return null;
-        }
+        // First add the correct answer marker at the very beginning (bottom z-order)
+        // This ensures it's drawn first and other elements appear on top
+        if (cq.correctAnswers || cq.correctAnswers.length < 1) {return this.svg;}
 
-        // First get the base SVG content
-        // Temporarily store the original imagePath
-        const originalImagePath = this.imagePath;
-        
-        // Check if we have an answer image
-        if (Object.hasOwn(cq, "answerImage") && cq.answerImage) {
-            // Directly load the answer image instead of using getContent
-            this.info("Loading answer image: " + cq.answerImage);
-            let rawSvg = this.getApi().getFileContent(cq.answerImage);
-            
-            if (!rawSvg) {
-                this.warn('Error: No answer SVG content loaded');
-                // Fall back to the regular image
-                this.imagePath = originalImagePath;
-                rawSvg = this.getApi().getFileContent(cq.clickImage);
-                if (!rawSvg) {
-                    return null;
-                }
-            }
-            
-            const parser = new DOMParser();
-            const svgDoc = parser.parseFromString(rawSvg, 'image/svg+xml');
-            const answerSvg = svgDoc.documentElement;
-            
-            // Validate that we have a valid SVG
-            if (answerSvg.nodeName !== 'svg') {
-                this.warn('Error: Invalid SVG document');
-                return null;
-            }
-            
-            // Set up the SVG with the same properties we'd use in getContent
-            let width = answerSvg.getAttribute('width');
-            let height = answerSvg.getAttribute('height');
-            let viewBox = answerSvg.getAttribute('viewBox');
-            
-            // Parse viewBox if it exists
-            let viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : null;
-            
-            // Set dimensions with fallbacks
-            this.imageWidth = width ? parseFloat(width) :
-                             (viewBoxValues ? viewBoxValues[2] : 800);
-            
-            this.imageHeight = height ? parseFloat(height) :
-                              (viewBoxValues ? viewBoxValues[3] : 600);
-            
-            this.markerSize = Math.round(this.imageWidth / 50);
-            
-            // Copy the SVG
-            this.svg = answerSvg;
-            
-            // Set SVG to fill container completely
-            this.svg.style.width = "100%";
-            this.svg.style.height = "100%";
-            this.svg.style.display = "block";
-            
-            // Ensure viewBox exists
-            if (!viewBox) {
-                this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
-            }
-            
-            this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-            
-            // Use this as our return value
-            let ret = this.svg;
-        } else {
-            // No answer image, use the regular content
-            this.info("No answer image available, using regular image");
-            let ret = this.getContent(api);
-            if (!ret) {
-                return null;
-            }
-        }
-        
-        // Define colors for different answers
-        const colors = [
-            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-            '#FFEEAD', '#D4A5A5', '#9B59B6', '#3498DB'
-        ];
+        // Parse the coordinates for the correct answer
+        let coords = this.parseCoordinates(cq.correctAnswers[0]);
+        const x = coords[0];
+        const y = coords[1];
+        if (isNaN(x) && isNaN(y)) {return this.svg;}
+        // draw the actual answer marker first
+        let pm = this.drawMarker(x, y, "#000000", null);
+        // now add answer markers
+        if (!Object.hasOwn(cq, "answers") || cq.answers.length < 1) {return this.svg;}
 
-        // Add circles for each answer
+        // Add circles for each answer with different colors and 80% opacity
         cq.answers.forEach((answer, index) => {
             let coords = this.parseCoordinates(answer.answer);
             const x = coords[0];
             const y = coords[1];
-            // Validate parsed coordinates
-            if (isNaN(x) || isNaN(y)) {
-                this.warn(`Invalid coordinate values: x=${x}, y=${y}`);
-                return;
-            }
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", x);
-            circle.setAttribute("cy", y);
-            circle.setAttribute("r", "5");
-            circle.setAttribute("fill", colors[index % colors.length]);
-            circle.setAttribute("fill-opacity", "0.6");
-            circle.setAttribute("stroke", "#000000");
-            circle.setAttribute("stroke-width", "1");
-
-            const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            title.textContent = `${answer.username}: ${answer.points} points`;
-            circle.appendChild(title);
-            this.svg.appendChild(circle);
+            // Select a color based on the index, cycling through the colors array
+            const colorIndex = index % ClickMap.colors.length;
+            const color = ClickMap.colors[colorIndex];
+            let tm = this.drawMarker(x, y, color, answer.username);
         });
-        
-        // Add the correct answer marker
-        if (cq.correctAnswers && cq.correctAnswers.length > 0) {
-            let coords = this.parseCoordinates(cq.correctAnswers[0]);
-            const x = coords[0];
-            const y = coords[1];
-            
-            if (!isNaN(x) && !isNaN(y)) {
-                const correctCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                correctCircle.setAttribute("cx", x);
-                correctCircle.setAttribute("cy", y);
-                correctCircle.setAttribute("r", "4");  // Smaller radius (was 8)
-                correctCircle.setAttribute("fill", "#00FF00");  // Green
-                correctCircle.setAttribute("fill-opacity", "0.4");  // More transparent (was 0.7)
-                correctCircle.setAttribute("stroke", "#000000");
-                correctCircle.setAttribute("stroke-width", "1");  // Thinner stroke (was 2)
-                
-                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-                title.textContent = "Correct Answer";
-                correctCircle.appendChild(title);
-                this.svg.appendChild(correctCircle);
-            }
-        }
-        
+        // Always add the correct answer marker if available
+        // We're removing this second marker since we already added it at the beginning
+        // This prevents duplicate markers and ensures the correct z-order
         return this.svg;
     }
 
@@ -1814,63 +1726,49 @@ class ClickMap extends PageElement {
         return a;
     }
 
-    /* Add method to create/update marker
-       the image we are working with can be zoomed or dragged
-       we want to be able to click on the image and have a marker
-       displayed at the click location. the marker not scale with the
-       rest of the image when zooming in and out but should remain the
-       same size relative to the whole screen.
-       Factors at play:
-       * this.scale (the current scaling factor)
-       * this.dragx and this.dragy (The amount by which the image has been dragged)
-       * this.mx, this.my (The current mouse position)
-       *
-       * dragx is more positive when the image is dragged to the right
-       * dragy is more positive when the image is dragged down
-       * mx and my are the current mouse position
-       * scale is the current scaling factor
-       *
-       * we need to calculate the position of the marker relative to the image
-       * and then scale it up to the size of the image.
-    */
-    addMarker() {
-        let screenX = this.mx;
-        let screenY = this.my;
-
-        // Remove existing marker if it exists
-        if (this.currentMarker) {
-            this.currentMarker.remove();
-        }
-
+    drawMarker(x, y, colour, id) {
+        if (!this.svg) {return;}
+        if (!x || !y || !colour) {return;}
+        if (isNaN(x) || isNaN(y)) {return;}
+        let screenX = x;
+        let screenY = y;
         // Get the SVG's current transformation state
         const box = this.svg.viewBox.baseVal;
-
         // Get SVG's bounding rectangle for coordinate conversion
         const svgRect = this.svg.getBoundingClientRect();
-
         // Calculate position using the full viewBox dimensions
         const svgX = ((screenX - svgRect.left) / svgRect.width) * box.width + box.x;
         const svgY = ((screenY - svgRect.top) / svgRect.height) * box.height + box.y;
-
         // Create a circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("cx", svgX);
         circle.setAttribute("cy", svgY);
-        circle.setAttribute("id", "markerId");  // Add ID for easier removal
+        if (id) {circle.setAttribute("id", id);}
         // make a note of where we placed the marker
         this.answerx = svgX;
         this.answery = svgY;
-
-        this.info(`marker X: ${this.answerx}, marker Y: ${this.answery}`);
-
         // Make radius inversely proportional to zoom level
         const zoomAdjustedRadius = this.markerSize / this.scale;
         circle.setAttribute("r", zoomAdjustedRadius);
-
-        circle.setAttribute("fill", "#FFFFFFA0");  // White with 60% opacity
+        // Set fill color with 80% opacity - BLACK with WHITE outline
+        circle.setAttribute("fill", colour);
+        circle.setAttribute("fill-opacity", "0.8");  // 80% opacity
+        circle.setAttribute("stroke", "#FFFFFF");  // White outline
+        circle.setAttribute("stroke-width", "1");
         // Store reference to current marker
         this.currentMarker = circle;
         this.svg.appendChild(circle);
+        return circle;
+    }
+
+    /* Add method to create/update marker when user clicks
+    */
+    addMarker() {
+        let screenX = this.mx;
+        let screenY = this.my;
+        // Remove existing marker if it exists
+        if (this.currentMarker) {this.currentMarker.remove();}
+        this.drawMarker(screenX, screenY, "#000000", "markerId");
     }
 
     initializeEvents() {
@@ -2987,6 +2885,84 @@ class GridImage extends PageElement {
 
         return a;
     }
+
+    getAnswerContent(api) {
+        // First get the base content
+        let container = this.getContent(api);
+        if (!container) {
+            return null;
+        }
+
+        const cq = this.getCurrentQuestion();
+        if (!cq || !cq.correctAnswers || cq.correctAnswers.length === 0) {
+            this.info("No correct answers available");
+            return container;
+        }
+
+        // Find the grid board
+        const gridBoard = container.querySelector('.grid-board');
+        if (!gridBoard) {
+            this.warn("Grid board not found");
+            return container;
+        }
+
+        // Get all grid cells
+        const cells = gridBoard.querySelectorAll('.grid-cell');
+
+        // Add correct answers to the grid
+        cq.correctAnswers.forEach((correctAnswer, index) => {
+            if (index < cells.length) {
+                // Find the matching choice for this answer
+                let matchingChoice = null;
+                if (cq.choices) {
+                    matchingChoice = cq.choices.find(choice => choice.answer === correctAnswer);
+                }
+
+                // Create a correct answer element
+                const correctElement = document.createElement('div');
+                correctElement.className = 'placed-answer';
+                correctElement.style.cssText = `
+                    background-color: rgba(0, 0, 0, 0.8);
+                    border: 1px solid white;
+                    position: relative;
+                `;
+
+                // Create container for content
+                const contentContainer = document.createElement('div');
+
+                // Add image if available
+                if (matchingChoice && matchingChoice.imgUrl) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'answer-image-container';
+                    const img = document.createElement('img');
+                    img.src = matchingChoice.imgUrl;
+                    img.alt = matchingChoice.choice || correctAnswer;
+                    imgContainer.appendChild(img);
+                    contentContainer.appendChild(imgContainer);
+                }
+
+                // Add text
+                const textSpan = document.createElement('span');
+                textSpan.textContent = matchingChoice ? matchingChoice.choice : correctAnswer;
+                textSpan.style.fontWeight = 'bold';
+                contentContainer.appendChild(textSpan);
+
+                correctElement.appendChild(contentContainer);
+
+                // Clear any existing content in the cell
+                cells[index].innerHTML = '';
+                cells[index].appendChild(correctElement);
+            }
+        });
+
+        // Remove the answer pool since we're showing answers
+        const answerPool = container.querySelector('.answer-pool');
+        if (answerPool) {
+            answerPool.remove();
+        }
+
+        return container;
+    }
 }
 
 // *******************************************************
@@ -3975,6 +3951,11 @@ class Timer extends PageElement {
             }
         `;
         return css;
+    }
+
+    shouldUpdate() {
+        // Always update the timer when the question is active
+        return this.isQuestionActive();
     }
 
     getContent(gs) {
