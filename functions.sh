@@ -34,6 +34,21 @@ function read_properties {
     return 1
 }
 
+function deleteFileAndVerify {
+    if [ -z "$1" ]; then
+        echo "Must pass filename in first parameter" >&2
+        return 1
+    fi
+    local file="$1"
+    if [ -f "$file" ]; then
+        rm "$file" 2>/dev/null
+        if [ -f "$file" ]; then
+            echo "Failed to delete $file" >&2
+            exit 1
+        fi
+    fi
+}
+
 function buildLinux {
     export GOOS=linux
     export GOARCH=amd64
@@ -86,7 +101,7 @@ function combineJsFiles {
 
     # delete and recreate
     if [ -f "$output_file" ]; then
-        rm "$output_file" 2>/dev/null
+        deleteFileAndVerify "$output_file"
     fi
     touch "$output_file"
 
@@ -119,23 +134,27 @@ function combineJsFiles {
 }
 
 function buildMac {
+    # if any compiled files exist from the previous build then silently delete them
+    deleteFileAndVerify "./1pcc-silicon-macos"
     export GOOS=darwin
     export GOARCH=arm64
     go build -o 1pcc-silicon-macos -ldflags="-s -w" -trimpath ./cmd/main.go
-    if [ $? -ne 0 ]; then
-        echo "failed to build"
-        return
-    fi
+    if [ $? -ne 0 ]; then return 1; fi
     chmod 777 1pcc-silicon-macos
 }
 
 function buildWindows {
+    # if any compiled files exist from the previous build then silently delete them
+    deleteFileAndVerify "./1pcc.exe"
     export GOOS=windows
     export GOARCH=amd64
     go build -o 1pcc.exe -ldflags="-s -w" -trimpath ./cmd/main.go
+    if [ $? -ne 0 ]; then return 1; fi
 }
 
 function buildAndroid {
+    # if any compiled files exist from the previous build then silently delete them
+    deleteFileAndVerify "./1pcc-android-arm"
     export GOOS=android
     export GOARCH=arm64
     export GOARM=7
@@ -152,11 +171,15 @@ function buildAndroid {
     export GOARCH=amd64
     export CGO_ENABLED=0
     go build -o 1pcc-android-x86_64 -ldflags="-s -w" -trimpath ./cmd/main.go
+    if [ $? -ne 0 ]; then return 1; fi
 }
 
 function build {
+    # if any compiled files exist from the previous build then silently delete them
+    deleteFileAndVerify "./1pcc"
     combineJsFiles
     buildMac
+    if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
     #buildLinux
     #buildWindows
 }

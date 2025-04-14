@@ -169,7 +169,6 @@ class GameAPI {
             }
             // otherwise update everything
             this.state = newState;
-            console.log(newState.currentQuestion.showAnswer);
             this.currentUser = newState.currentUser;
             window.gameState = newState;
             // update the local question cache
@@ -300,7 +299,7 @@ class GameAPI {
             }
         } else {
             this.timeLeft = t;
-            //console.info(`Timer : ${this.timeLeft}`);
+            console.info(`Timer : ${this.timeLeft}`);
         }
         this.previousTimeLeft = this.timeLeft;
     }
@@ -326,6 +325,17 @@ class GameAPI {
         if (!s) {return null;}
         if (!s.players) {return null;}
         return s.players;
+    }
+
+    isShowAnswer() {
+        // first check if we have this member variable
+        let s = GameAPI.getGameState();
+        // try the dom
+        if (!s) {s = window.gameState}
+        // ok error!
+        if (!s) {return null;}
+        if (!s.IsShowAnswer) {return false;}
+        return s.IsShowAnswer
     }
     /**
      * Gets the currently logged in user

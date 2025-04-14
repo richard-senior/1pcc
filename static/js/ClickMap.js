@@ -8,6 +8,7 @@ class ClickMap extends PageElement {
 
     constructor() {
         super('click-container', ['geolocation','kazakhstan'])
+        this.isPlayableComponent = true;
         this.answerx = null;
         this.answery = null;
         this.markerSize = 50;
@@ -91,11 +92,10 @@ class ClickMap extends PageElement {
 
     getContent(gs) {
         let cq = this.getCurrentQuestion();
-        if (cq.showAnswer) {
-            this.imagePath = cq.answerImage;
-        } else {
-            this.imagePath = cq.clickImage;
-        }
+        // This check is now in getContent, but it's being overridden by getAnswerContent
+        // We'll remove this check from here since it's now handled in getAnswerContent
+        this.imagePath = cq.clickImage;
+        
         let rawSvg = this.getApi().getFileContent(this.imagePath);
 
         if (!rawSvg) {
@@ -177,19 +177,88 @@ class ClickMap extends PageElement {
 
     getAnswerContent(api) {
         let cq = this.getCurrentQuestion();
-        if (!Object.hasOwn(cq, "answerImage") || !Object.hasOwn(cq, "answers"))  {
-            this.info("NO answerImage");
+        if (!Object.hasOwn(cq, "answers"))  {
+            this.info("NO answers array");
             return null;
         }
         if (cq.answers.length == 0) {
             this.info("CQ.answers is zero length");
-            return;
+            return null;
         }
 
-        // Get the SVG element from getContent
-        let ret = this.getContent(api);
-        if (!ret) {return;}
-
+        // First get the base SVG content
+        // Temporarily store the original imagePath
+        const originalImagePath = this.imagePath;
+        
+        // Check if we have an answer image
+        if (Object.hasOwn(cq, "answerImage") && cq.answerImage) {
+            // Directly load the answer image instead of using getContent
+            this.info("Loading answer image: " + cq.answerImage);
+            let rawSvg = this.getApi().getFileContent(cq.answerImage);
+            
+            if (!rawSvg) {
+                this.warn('Error: No answer SVG content loaded');
+                // Fall back to the regular image
+                this.imagePath = originalImagePath;
+                rawSvg = this.getApi().getFileContent(cq.clickImage);
+                if (!rawSvg) {
+                    return null;
+                }
+            }
+            
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(rawSvg, 'image/svg+xml');
+            const answerSvg = svgDoc.documentElement;
+            
+            // Validate that we have a valid SVG
+            if (answerSvg.nodeName !== 'svg') {
+                this.warn('Error: Invalid SVG document');
+                return null;
+            }
+            
+            // Set up the SVG with the same properties we'd use in getContent
+            let width = answerSvg.getAttribute('width');
+            let height = answerSvg.getAttribute('height');
+            let viewBox = answerSvg.getAttribute('viewBox');
+            
+            // Parse viewBox if it exists
+            let viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : null;
+            
+            // Set dimensions with fallbacks
+            this.imageWidth = width ? parseFloat(width) :
+                             (viewBoxValues ? viewBoxValues[2] : 800);
+            
+            this.imageHeight = height ? parseFloat(height) :
+                              (viewBoxValues ? viewBoxValues[3] : 600);
+            
+            this.markerSize = Math.round(this.imageWidth / 50);
+            
+            // Copy the SVG
+            this.svg = answerSvg;
+            
+            // Set SVG to fill container completely
+            this.svg.style.width = "100%";
+            this.svg.style.height = "100%";
+            this.svg.style.display = "block";
+            
+            // Ensure viewBox exists
+            if (!viewBox) {
+                this.svg.setAttribute("viewBox", `0 0 ${this.imageWidth} ${this.imageHeight}`);
+            }
+            
+            this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            
+            // Use this as our return value
+            let ret = this.svg;
+        } else {
+            // No answer image, use the regular content
+            this.info("No answer image available, using regular image");
+            let ret = this.getContent(api);
+            if (!ret) {
+                return null;
+            }
+        }
+        
         // Define colors for different answers
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
@@ -218,9 +287,33 @@ class ClickMap extends PageElement {
             const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
             title.textContent = `${answer.username}: ${answer.points} points`;
             circle.appendChild(title);
-            ret.appendChild(circle);
+            this.svg.appendChild(circle);
         });
-        return ret;
+        
+        // Add the correct answer marker
+        if (cq.correctAnswers && cq.correctAnswers.length > 0) {
+            let coords = this.parseCoordinates(cq.correctAnswers[0]);
+            const x = coords[0];
+            const y = coords[1];
+            
+            if (!isNaN(x) && !isNaN(y)) {
+                const correctCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                correctCircle.setAttribute("cx", x);
+                correctCircle.setAttribute("cy", y);
+                correctCircle.setAttribute("r", "4");  // Smaller radius (was 8)
+                correctCircle.setAttribute("fill", "#00FF00");  // Green
+                correctCircle.setAttribute("fill-opacity", "0.4");  // More transparent (was 0.7)
+                correctCircle.setAttribute("stroke", "#000000");
+                correctCircle.setAttribute("stroke-width", "1");  // Thinner stroke (was 2)
+                
+                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                title.textContent = "Correct Answer";
+                correctCircle.appendChild(title);
+                this.svg.appendChild(correctCircle);
+            }
+        }
+        
+        return this.svg;
     }
 
     getAnswer() {
@@ -316,9 +409,9 @@ class ClickMap extends PageElement {
         let screenX = this.mx;
         let screenY = this.my;
 
-        const elementToRemove = document.getElementById('markerId');
-        if (elementToRemove) {
-            elementToRemove.remove();
+        // Remove existing marker if it exists
+        if (this.currentMarker) {
+            this.currentMarker.remove();
         }
 
         // Get the SVG's current transformation state
@@ -335,6 +428,7 @@ class ClickMap extends PageElement {
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("cx", svgX);
         circle.setAttribute("cy", svgY);
+        circle.setAttribute("id", "markerId");  // Add ID for easier removal
         // make a note of where we placed the marker
         this.answerx = svgX;
         this.answery = svgY;
@@ -345,7 +439,7 @@ class ClickMap extends PageElement {
         const zoomAdjustedRadius = this.markerSize / this.scale;
         circle.setAttribute("r", zoomAdjustedRadius);
 
-        circle.setAttribute("fill", "#FFFFFFA0");  // Blue with 50% opacity
+        circle.setAttribute("fill", "#FFFFFFA0");  // White with 60% opacity
         // Store reference to current marker
         this.currentMarker = circle;
         this.svg.appendChild(circle);

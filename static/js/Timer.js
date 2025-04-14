@@ -61,6 +61,11 @@ class Timer extends PageElement {
         return css;
     }
 
+    shouldUpdate() {
+        // Always update the timer when the question is active
+        return this.isQuestionActive();
+    }
+
     getContent(gs) {
         if (!this.isQuestionActive()) {return null;}
         let timeLeft = this.getTimeLeft();

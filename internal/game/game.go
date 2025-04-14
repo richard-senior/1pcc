@@ -23,6 +23,7 @@ type GameState struct {
 	CurrentQuestion *Question          `json:"currentQuestion"`
 	TotalQuestions  int                `json:"totalQuestions"`
 	CurrentUser     *Player            `json:"currentUser"`
+	IsShowAnswer    bool               `json:"isShowAnswer,omitempty"` // True if the current question element should be showing the answer
 }
 
 type Player struct {
@@ -66,7 +67,6 @@ type Question struct {
 	IsTimedOut  bool   `json:"isTimedOut"`            // has the question been run and finished?
 	ClickImage  string `json:"clickImage,omitempty"`  // if this is a click question then the local path to the image we're clicking on
 	AnswerImage string `json:"answerImage,omitempty"` // For kazakhstan style games, this image is shown to demonstrate the actual answer to the players
-	ShowAnswer  bool   `json:"showAnswer,omitempty"`  // True if the current question element should be showing the answer
 	StreetView  string `json:"streetView,omitempty"`  // if this is a geoguesser then the specific info required for streetview
 }
 
@@ -403,7 +403,7 @@ func (gs *GameState) NextQuestion() {
 	// Set the current question to the new question number
 	gs.CurrentQuestion = &instance.AllQuestions[ccn-1]
 	gs.CurrentQuestion.IsTimedOut = false
-	gs.CurrentQuestion.ShowAnswer = false
+	gs.IsShowAnswer = true
 }
 
 func (gs *GameState) PreviousQuestion() {
@@ -422,7 +422,7 @@ func (gs *GameState) PreviousQuestion() {
 	// Set previous question (using 0-based array index)
 	gs.CurrentQuestion = &instance.AllQuestions[prevNum-1]
 	gs.CurrentQuestion.IsTimedOut = false // Reset the flag for the new question
-	gs.CurrentQuestion.ShowAnswer = false
+	gs.IsShowAnswer = false
 }
 
 // GetCurrentQuestion returns the current question
@@ -565,7 +565,7 @@ func (gs *GameState) ShowAnswer() {
 	if !gs.CurrentQuestion.IsTimedOut {
 		return
 	}
-	cq.ShowAnswer = true
+	gs.IsShowAnswer = true
 	logger.Info("showing answer...")
 }
 

@@ -20,7 +20,7 @@ class PageElement {
         this.boundOnAnswerSubmitted = null;
         // general
         this.classname = this.constructor.name;
-        this.isPlayableComponent = "ClickMap MultiChoice FreeText GridImage".includes(this.classname);
+        this.isPlayableComponent = false;
         this.element = null;
         this.styles = null;
         this.name = name;
@@ -212,18 +212,15 @@ class PageElement {
         let a = this.getApi()
         return a.isQuestionActive()
     }
+    /**
+     * Returns true if we should be showing the answer content
+     */
     isShowAnswer() {
-        let cq = this.getCurrentQuestion();
-        if (!cq.hasOwnProperty('showAnswer')) {
-            return false;
-        }
-        if (typeof cq.showAnswer === 'undefined') {
-            this.info("showAnswer is undefined");
-            return false;
-        } else {
-            this.info("showAnswer is " + cq.showAnswer);
-        }
-        return cq.showAnswer === true;
+        let gs = this.getGameState();
+        if (!gs || !gs.isShowAnswer) {return false;}
+        if (!this.isPlayableComponent || this.isPlayableComponent === false) {return false;}
+        if (!this.getApi().isHost()) {return false;}
+        return gs.isShowAnswer;
     }
     /**
      * Returns the current countdown time
@@ -281,17 +278,7 @@ class PageElement {
         if (!this.getElement()) {return false;}
         if (!this.doShouldShow()) {return false;}
         // if we should show the answer then blur the game component
-        if (this.isShowAnswer()) {
-            this.info("SHOW ANSWER");
-            if (this.getApi().isHost()) {
-                if (this.isPlayableComponent) {
-                    this.info("SETTING BLURRED");
-                    this.setBlurred();
-                } else {
-                    this.info("isPlayable is " + this.isPlayableComponent);
-                }
-            }
-        }
+        if (this.isShowAnswer()) {this.setBlurred();}
         if (this.isBlurred()) {return true;}
         return this.shouldUpdate();
     }

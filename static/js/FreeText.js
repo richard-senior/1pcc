@@ -1,6 +1,7 @@
 class FreeText extends PageElement {
     constructor() {
         super('free-text-container', ['freetext']);
+        this.isPlayableComponent = true;
         this.textInput = null;
         this.container = null;
     }

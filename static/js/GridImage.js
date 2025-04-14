@@ -5,6 +5,7 @@
 class GridImage extends PageElement {
     constructor() {
         super('grid-image-container', ['gridimage']);
+        this.isPlayableComponent = true;
         this.gridSize = {
             rows: 5,
             cols: 4

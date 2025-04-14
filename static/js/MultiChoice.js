@@ -1,6 +1,7 @@
 class MultiChoice extends PageElement {
     constructor() {
         super('multi-choice-container', ['multichoice']); // ensure lowercase
+        this.isPlayableComponent = true;
         this.choices = null;
         this.selectedChoice = null;
     }
