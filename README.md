@@ -5,6 +5,9 @@ A Go and JavaScript web application that implements the British TV game show 'Th
 ## Project Overview
 
 This web-based application allows users to host and participate in a game similar to the TV show 'The 1% Club'. Players answer increasingly difficult logic questions that test their lateral thinking rather than general knowledge.
+It is important to note that main.js is produced at build-time by concatenating the other files in ./static/js
+This means that javascript console messages referencing main.js will need further examination to determine which
+.js should be modified to fix the actual error.
 
 ### Key Features
 

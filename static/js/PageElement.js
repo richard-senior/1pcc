@@ -33,12 +33,12 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
-        const flags = new Map({
-            'updateHasRun':false,
-            'initialisedHasRun': false,
-            'updateAnswerHasRun': false,
-            'answerSubmitted': false,
-        });
+        this.flags = new Map([
+            ['updateHasRun', false],
+            ['initialisedHasRun', false],
+            ['updateAnswerHasRun', false],
+            ['answerSubmitted', false],
+        ]);
         this.selectedAnswer = null;
     }
 
@@ -223,6 +223,7 @@ class PageElement {
         if (!gs || !gs.isShowAnswer) {return false;}
         if (!this.isPlayableComponent || this.isPlayableComponent === false) {return false;}
         if (!this.getApi().isHost()) {return false;}
+        if (this.flags.updateAnswerHasRun) {return false;}
         return gs.isShowAnswer;
     }
     /**
@@ -271,7 +272,7 @@ class PageElement {
         if (!this.doShouldShow()) {return false;}
         if (this.shouldUpdate) {return true;}
         // should we be updating to show the answer content?
-        if (this.isShowAnswer() && !this.flags.updateAnswerHasRun)  {return true;}
+        if (this.isShowAnswer()) {return true;}
         // ok no good reason to update
         return false;
     }
