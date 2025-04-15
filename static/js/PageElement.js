@@ -1,7 +1,34 @@
 /**
+ * Class for holding the status of page elements.
+ * Also provides some access methods etc.
+ */
+class PageElementFlags {
+    constructor() {
+        this.updateHasRun = false;
+        this.initialisedHasRun = false;
+        this.updateAnswerHasRun = false;
+        this.answerSubmitted = false;
+    }
+    /**
+     * @returns {bool} Returns true if any flags indicate that the PageElement should refresh
+     */
+    isBlurred() {return !this.updateHasRun || !this.updateAnswerHasRun;}
+    /**
+     * @returns {bool} Returns true if any flags indicate that the PageElement should be initialised
+     */
+    isUninitialised() {return !this.initialisedHasRun;}
+}
+/**
  * The base type of all page elements
- * A pageElement is an object that manages the lifecycle of a DOM element
- * This object should be extended to use this management
+ * A pageElement is an object that manages the lifecycle and content of a html DOM element
+ * Intended to be extended to provide various elements on the page such as buttons or images etc.
+ * In general PageElement methods that begin with the word 'do' are private or internal methods intended to wrap around
+ * methods that are expected to be overriden. For example 'doShouldUpdate' is intended to wrap
+ * the 'shouldUpdate' method. So in general we do not directly call the 'shouldUpdate' method, instead we would call
+ * 'doShouldUpdate' which in turn will call 'shouldUpdate' etc.
+
+ * The exception to this is 'update' (which is the main method (entrypoint) of PageElement and is called on every poll
+ * by the GameAPI). update() has no 'doUpdate()' to wrap it.
  */
 class PageElement {
     /**
@@ -33,15 +60,14 @@ class PageElement {
                 this.questionTypes = [questionTypes];
             }
         }
-        this.flags = new Map([
-            ['updateHasRun', false],
-            ['initialisedHasRun', false],
-            ['updateAnswerHasRun', false],
-            ['answerSubmitted', false],
-        ]);
-        this.selectedAnswer = null;
+        this.flags = new PageElementFlags();
     }
 
+    /**
+     * Logs to console at info level after first checking whether it should do so
+     * Prepends the log line with the name of the class that invoked this method
+     * @param  {...any} args
+     */
     info(...args) {
         switch (GameAPI.loggingType) {
             case 0:
@@ -52,6 +78,11 @@ class PageElement {
         }
         console.info(`${this.classname}:`, ...args);
     }
+    /**
+     * Logs to console at warn level after first checking whether it should do so
+     * Prepends the log line with the name of the class that invoked this method
+     * @param  {...any} args
+     */
     warn(...args) {
         switch (GameAPI.loggingType) {
             case 0:
@@ -88,7 +119,7 @@ class PageElement {
      * This can be used to determine if we should regenerate page elements etc.
      * @returns {boolean} true if this object has been initialised
      */
-    isInitialised() {return this.initialisedHasRun;}
+    isInitialised() {return this.flags.initialisedHasRun;}
 
     /**
      * Should be overriden to init anything in page elements that requires a
@@ -185,7 +216,7 @@ class PageElement {
      * page of the dom model
      * @returns {void}
      */
-    createElement() { return null;}
+    createElement() {return null;}
     /**
      * Convenience method for getting the GameAPI instance
      * @returns {GameAPI} the GameAPI instance
@@ -209,14 +240,18 @@ class PageElement {
     getCurrentAnswer() {return this.getApi().getCurrentAnswer();}
     /**
      * Convenience method for getting response from game state
-     * @returns {boolean} the current GameAPI instance isQustionActive respnose
+     * @returns {boolean} the current GameAPI instance isQustionActive response
      */
     isQuestionActive() {
         let a = this.getApi()
         return a.isQuestionActive()
     }
     /**
-     * Returns true if we should be showing the answer content
+     * We are usually showing the 'question' or 'general' content. But when the
+     * question ends we can show 'answer' content which displays information to the user
+     * about what the answer actually is. This method determines if we should be showing the
+     * answer content
+     * @returns {boolean} True if we should be showing the answer content
      */
     isShowAnswer() {
         let gs = this.getGameState();
@@ -260,19 +295,17 @@ class PageElement {
 
     /**
      * returns true if the dom element that this object manages should be
-     * updated. First checks
-     * 1) dom element exists (returns false if not)
-     * 2) current question exists (returns false if not)
-     * 3) this object should even be shown on the page
-     * finally calls shouldUpdate which can be overriden by the extending class
+     * updated (drawn or redrawn)
      * @returns {boolean} true if this object should update the dom element it manages
      */
     doShouldUpdate() {
         if (!this.getElement()) {return false;}
+        // do some sanity checks
         if (!this.doShouldShow()) {return false;}
-        if (this.shouldUpdate) {return true;}
-        // should we be updating to show the answer content?
-        if (this.isShowAnswer()) {return true;}
+        // check the flags to see if we've already updated
+        if (this.flags.isBlurred()) {return true;}
+        // see what the extending class has to say
+        if (this.shouldUpdate()) {return true;}
         // ok no good reason to update
         return false;
     }
@@ -304,14 +337,17 @@ class PageElement {
 
         let o = null;
         if (this.isShowAnswer()) {
+            // get the answer content
             o = this.getAnswerContent(api)
+            // alter the flags
+            this.flags.updateAnswerHasRun = true;
         } else {
+            // get the general content
             o = this.getContent(api)
+            // alter the flags
+            this.flags.updateHasRun = true;
         }
         this.applyUpdate(o);
-        // mark that update has run
-        this.flags.updateHasRun = true;
-        this.flags.updateAnswerHasRun = true;
     }
 
     /**
@@ -446,12 +482,10 @@ class PageElement {
     }
 
     /**
-     * hides or shows the dom element managed by this object
-     * based on some logic.
-     * 1) The element is present in the dom
-     * 2) the current question is not none
-     * 3) this.shouldShow returns true or false
-     *
+     * Both determines and actual actions whether this page element should be shown or not.
+     * In some situations the htmt page may already contain the DIV or other element managed by this
+     * object, but there may be cause for it to be hidden etc. This method asserts whether
+     * the element is shown or otherwise
      * @returns {boolean} true if the managed element should be shown
      */
     doShouldShow() {
@@ -486,7 +520,12 @@ class PageElement {
     }
 
     /**
-     * @returns {Answer}
+     * Generally the answer will be placed into this.selectedAnswer by some user
+     * interaction such as a button click etc.
+     * However when the GameAPI asks for the answer we may wish to add some global
+     * logic to the answer before returning. For example we may apply a penalty for answering the
+     * question too slowly etc.
+     * @returns {Answer} The Answer object (for this user) with the points and everything else already calculated
      */
     doGetAnswer() {
         if (this.selectedAnswer) {return this.selectedAnswer;}
@@ -520,9 +559,7 @@ class PageElement {
      * be hidden or shown based on some logic. Default true
      * @returns {boolean} true if the dom element should be visible
      */
-    shouldShow() {
-        return true;
-    }
+    shouldShow() {return true;}
 
     /**
      * sets the managed page elements style visibility and

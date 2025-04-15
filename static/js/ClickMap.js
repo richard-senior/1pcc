@@ -58,8 +58,6 @@ class ClickMap extends PageElement {
         this.initialPinchDistance = 0;
         this.initialScale = 1;
         this.lastScale = 1;
-        // Track show answer state to prevent unnecessary updates
-        this.lastShowAnswerState = false;
         // Initialize events after adding to DOM
         this.initializeEvents();
     }
@@ -86,16 +84,6 @@ class ClickMap extends PageElement {
         `;
         return css;
     }
-
-    /*
-    shouldShow() {
-        let cq = this.getCurrentQuestion();
-        if (!cq || !cq.clickImage) {
-            return false;
-        }
-        return true;
-    }
-    */
 
     update(api) {
         this.doInitialise(api);
