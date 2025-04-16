@@ -299,7 +299,7 @@ class GameAPI {
             }
         } else {
             this.timeLeft = t;
-            console.info(`Timer : ${this.timeLeft}`);
+            // console.info(`Timer : ${this.timeLeft}`);
         }
         this.previousTimeLeft = this.timeLeft;
     }

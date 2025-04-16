@@ -85,21 +85,6 @@ class ClickMap extends PageElement {
         return css;
     }
 
-    update(api) {
-        this.doInitialise(api);
-        if (!this.doShouldUpdate()) {return;}
-        this.getStyles();
-
-        let o = null;
-        if (this.isShowAnswer()) {
-            o = this.getAnswerContent(api)
-        } else {
-            o = this.getContent(api)
-        }
-        this.applyUpdate(o);
-        this.updateHasRun = true;
-    }
-
     getContent(gs) {
         let cq = this.getCurrentQuestion();
         let rawSvg = null;
@@ -188,13 +173,13 @@ class ClickMap extends PageElement {
 
     getAnswerContent(api) {
         // start by repopulating the current svg, the image may have changed
+        // this will be stored in this.svg so we can reference it directly
         this.getContent();
-
+        // now get the location of markers from the current question
         let cq = this.getCurrentQuestion();
         // First add the correct answer marker at the very beginning (bottom z-order)
         // This ensures it's drawn first and other elements appear on top
-        if (cq.correctAnswers || cq.correctAnswers.length < 1) {return this.svg;}
-
+        if (!cq.correctAnswers || cq.correctAnswers.length < 1) {return this.svg;}
         // Parse the coordinates for the correct answer
         let coords = this.parseCoordinates(cq.correctAnswers[0]);
         const x = coords[0];
@@ -204,7 +189,6 @@ class ClickMap extends PageElement {
         let pm = this.drawMarker(x, y, "#000000", null);
         // now add answer markers
         if (!Object.hasOwn(cq, "answers") || cq.answers.length < 1) {return this.svg;}
-
         // Add circles for each answer with different colors and 80% opacity
         cq.answers.forEach((answer, index) => {
             let coords = this.parseCoordinates(answer.answer);
@@ -213,11 +197,9 @@ class ClickMap extends PageElement {
             // Select a color based on the index, cycling through the colors array
             const colorIndex = index % ClickMap.colors.length;
             const color = ClickMap.colors[colorIndex];
+            this.info(`Adding answer marker for ${answer.username} at ${x},${y}`);
             let tm = this.drawMarker(x, y, color, answer.username);
         });
-        // Always add the correct answer marker if available
-        // We're removing this second marker since we already added it at the beginning
-        // This prevents duplicate markers and ensures the correct z-order
         return this.svg;
     }
 
@@ -292,37 +274,56 @@ class ClickMap extends PageElement {
     }
 
     drawMarker(x, y, colour, id) {
-        if (!this.svg) {return;}
-        if (!x || !y || !colour) {return;}
-        if (isNaN(x) || isNaN(y)) {return;}
-        let screenX = x;
-        let screenY = y;
+        if (!this.svg) return;
+        if (!x || !y || !colour) return;
+        if (isNaN(x) || isNaN(y)) return;
+
+        this.info(`Drawing marker at ${x}, ${y} with color ${colour}`);
+        // Get the SVG's bounding rectangle for coordinate conversion
+        const svgRect = this.svg.getBoundingClientRect();
         // Get the SVG's current transformation state
         const box = this.svg.viewBox.baseVal;
-        // Get SVG's bounding rectangle for coordinate conversion
-        const svgRect = this.svg.getBoundingClientRect();
-        // Calculate position using the full viewBox dimensions
-        const svgX = ((screenX - svgRect.left) / svgRect.width) * box.width + box.x;
-        const svgY = ((screenY - svgRect.top) / svgRect.height) * box.height + box.y;
+
+        // Calculate position with validation
+        let svgX, svgY;
+        try {
+            svgX = ((x - svgRect.left) / svgRect.width) * box.width + box.x;
+            svgY = ((y - svgRect.top) / svgRect.height) * box.height + box.y;
+
+            // Validate results
+            if (!Number.isFinite(svgX) || !Number.isFinite(svgY)) {
+                this.warn(`Invalid SVG coordinates: x=${svgX}, y=${svgY}`);
+                return;
+            }
+        } catch (error) {
+            this.warn(`Error in drawMarker: ${error.message}`);
+            return;
+        }
+
         // Create a circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("cx", svgX);
         circle.setAttribute("cy", svgY);
-        if (id) {circle.setAttribute("id", id);}
-        // make a note of where we placed the marker
+        if (id) {
+            circle.setAttribute("id", id);
+        }
+
+        // Store coordinates
         this.answerx = svgX;
         this.answery = svgY;
-        // Make radius inversely proportional to zoom level
+
+        // Set radius and styles
         const zoomAdjustedRadius = this.markerSize / this.scale;
         circle.setAttribute("r", zoomAdjustedRadius);
-        // Set fill color with 80% opacity - BLACK with WHITE outline
         circle.setAttribute("fill", colour);
-        circle.setAttribute("fill-opacity", "0.8");  // 80% opacity
-        circle.setAttribute("stroke", "#FFFFFF");  // White outline
+        circle.setAttribute("fill-opacity", "0.8");
+        circle.setAttribute("stroke", "#FFFFFF");
         circle.setAttribute("stroke-width", "1");
-        // Store reference to current marker
+
+        // Store reference and append
         this.currentMarker = circle;
         this.svg.appendChild(circle);
+        this.info(`Marker drawn at ${svgX}, ${svgY}`);
         return circle;
     }
 

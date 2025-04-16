@@ -10,10 +10,6 @@ class PageElementFlags {
         this.answerSubmitted = false;
     }
     /**
-     * @returns {bool} Returns true if any flags indicate that the PageElement should refresh
-     */
-    isBlurred() {return !this.updateHasRun || !this.updateAnswerHasRun;}
-    /**
      * @returns {bool} Returns true if any flags indicate that the PageElement should be initialised
      */
     isUninitialised() {return !this.initialisedHasRun;}
@@ -254,12 +250,12 @@ class PageElement {
      * @returns {boolean} True if we should be showing the answer content
      */
     isShowAnswer() {
+        if (this.flags.updateAnswerHasRun) {return false;}
         let gs = this.getGameState();
         if (!gs || !gs.isShowAnswer) {return false;}
         if (!this.isPlayableComponent || this.isPlayableComponent === false) {return false;}
         if (!this.getApi().isHost()) {return false;}
-        if (this.flags.updateAnswerHasRun) {return false;}
-        return gs.isShowAnswer;
+        return true
     }
     /**
      * Returns the current countdown time
@@ -299,13 +295,14 @@ class PageElement {
      * @returns {boolean} true if this object should update the dom element it manages
      */
     doShouldUpdate() {
-        if (!this.getElement()) {return false;}
         // do some sanity checks
         if (!this.doShouldShow()) {return false;}
-        // check the flags to see if we've already updated
-        if (this.flags.isBlurred()) {return true;}
-        // see what the extending class has to say
+        // Allow extending class to force update
         if (this.shouldUpdate()) {return true;}
+        // If the content hasn't already been shown..
+        if (!this.flags.updateHasRun) {return true;}
+        // If we should be showing the answer content..
+        if (this.isShowAnswer()) {return true;}
         // ok no good reason to update
         return false;
     }

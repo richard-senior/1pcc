@@ -9,7 +9,12 @@ class Leaderboard extends PageElement {
     getContent(gs) {
         let api = this.getApi();
         api.fetchLeaderboard()
-        if (!api.leaderboard) {return;}
+        if (!api.leaderboard) {
+            this.warn('Leaderboard: No leaderboard data available');
+            return;
+        } else {
+            this.info('Leaderboard: Leaderboard data available');
+        }
         //console.log(api.leaderboard);
         // Create container div
         const container = document.createElement('div');
