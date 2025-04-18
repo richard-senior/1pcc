@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/richard-senior/1pcc/internal/config"
 	"github.com/richard-senior/1pcc/internal/game"
 	"github.com/richard-senior/1pcc/internal/logger"
 )
@@ -18,6 +19,7 @@ type Session struct {
 	ID       string
 	Username string
 	IP       string
+	Browser  string
 	Banned   bool
 	Created  time.Time
 	Values   map[string]any // Add this field to store arbitrary values
@@ -38,32 +40,37 @@ var (
 func GetSession(username string, r *http.Request) *Session {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
-	for k, session := range manager.sessions {
-		// if we have a username
-		if username != "" && session.Username == username {
-			if session.Banned {
-				return nil
+
+	// First try to find session by cookie
+	if r != nil {
+		if cookie, err := r.Cookie(cookieName); err == nil {
+			if session, exists := manager.sessions[cookie.Value]; exists {
+				if !session.Banned {
+					return session
+				}
 			}
-			return session
 		}
-		// if we have a request
-		if r != nil {
-			cookie, err := r.Cookie(cookieName)
-			if err == nil && k == cookie.Value {
-				if session.Banned {
-					return nil
-				}
-				return session
-			}
-			ip := GetIPAddress(r)
-			if session.IP == ip {
-				if session.Banned {
-					return nil
-				}
+	}
+
+	// Then try by username if provided
+	if username != "" {
+		for _, session := range manager.sessions {
+			if session.Username == username && !session.Banned {
 				return session
 			}
 		}
 	}
+
+	// Only use IP matching if not in testing mode
+	if !config.GetTestingMode() {
+		ip := GetIPAddress(r)
+		for _, session := range manager.sessions {
+			if session.IP == ip && !session.Banned {
+				return session
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -238,10 +245,11 @@ func SetSessionUser(w http.ResponseWriter, r *http.Request, username string, ip 
 	manager.sessions[sessionID] = &Session{
 		ID:       sessionID,
 		Username: username,
+		Browser:  GetBrowser(r),
 		Banned:   false,
 		IP:       ip,
 		Created:  time.Now(),
-		Values:   make(map[string]interface{}), // Initialize the values map
+		Values:   make(map[string]any), // Initialize the values map
 	}
 	manager.mu.Unlock()
 
@@ -250,9 +258,11 @@ func SetSessionUser(w http.ResponseWriter, r *http.Request, username string, ip 
 		Value:    sessionID,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,                // Change to false for local development
-		SameSite: http.SameSiteLaxMode, // Less restrictive than Strict
+		Secure:   false, // Change to false for local development
+		//SameSite: http.SameSiteLaxMode, // Less restrictive than Strict
+		SameSite: http.SameSiteDefaultMode, // Less restrictive than Strict
 		MaxAge:   3600,
+		Domain:   "", // edge
 	})
 }
 
@@ -302,6 +312,26 @@ func AddPlayer(w http.ResponseWriter, r *http.Request, username string, ip strin
 		// amazonq-ignore-next-line
 		http.Redirect(w, r, "/play", http.StatusSeeOther)
 	}
+}
+
+// Returns the name of the browser as gleaned from the request object
+// can be used to determine if a client is the same client etc.
+func GetBrowser(r *http.Request) string {
+	userAgent := strings.ToLower(r.UserAgent())
+	if strings.Contains(userAgent, "edg") {
+		return "Edge"
+	} else if strings.Contains(userAgent, "chrome") {
+		return "Chrome"
+	} else if strings.Contains(userAgent, "firefox") {
+		return "Firefox"
+	} else if strings.Contains(userAgent, "safari") {
+		return "Safari"
+	} else if strings.Contains(userAgent, "opera") {
+		return "Opera"
+	} else if strings.Contains(userAgent, "ie") || strings.Contains(userAgent, "trident") {
+		return "IE"
+	}
+	return "Unknown"
 }
 
 // GetIPAddress extracts the real IP address from the request

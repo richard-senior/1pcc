@@ -5,24 +5,18 @@
  * Used primarily in geolocation questions in which it displays a world map
  */
 class ClickMap extends PageElement {
-
+    static markerIdPrefix = "playermarker";
     // Define a set of distinct colors for player markers
     static colors = [
-        "#FF5733", // Red-Orange
-        "#33FF57", // Green
-        "#3357FF", // Blue
-        "#FF33F5", // Pink
-        "#F5FF33", // Yellow
-        "#33FFF5", // Cyan
-        "#8033FF", // Purple
-        "#FF8033", // Orange
-        "#33FF80", // Mint
-        "#8080FF", // Lavender
-        "#FF8080", // Salmon
-        "#80FF80", // Light Green
-        "#FFFF80", // Light Yellow
-        "#80FFFF", // Light Blue
-        "#FF80FF"  // Light Pink
+        "#5F6B7A",
+        "#E5E7EA",
+        "#A65D21",
+        "#687A61",
+        "#404756",
+        "#a4abbd",
+        "#f9f871",
+        "#00c6bb",
+        "#fff7d6"
     ];
 
     constructor() {
@@ -109,22 +103,44 @@ class ClickMap extends PageElement {
             return null;
         }
 
-        // Safely get dimensions with fallbacks
+        // Get raw attributes
         let width = originalSvg.getAttribute('width');
         let height = originalSvg.getAttribute('height');
         let viewBox = originalSvg.getAttribute('viewBox');
 
         // Parse viewBox if it exists
-        let viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : null;
+        let viewBoxValues = null;
+        if (viewBox) {
+            // Use parseCoordinates for the viewBox since it's a pair of coordinates
+            const [x, y] = this.parseCoordinates(viewBox.split(' ').slice(0, 2).join(','));
+            // Use parseCoordinate for the dimensions
+            const w = this.parseCoordinate(viewBox.split(' ')[2]);
+            const h = this.parseCoordinate(viewBox.split(' ')[3]);
 
-        // Set dimensions with fallbacks
-        this.imageWidth = width ? parseFloat(width) :
-                         (viewBoxValues ? viewBoxValues[2] : 800); // default width
+            if (x !== null && y !== null && w !== null && h !== null) {
+                viewBoxValues = [x, y, w, h];
+            } else {
+                this.warn('Invalid viewBox format');
+                viewBoxValues = null;
+            }
+        }
 
-        this.imageHeight = height ? parseFloat(height) :
-                          (viewBoxValues ? viewBoxValues[3] : 600); // default height
+        // Set dimensions using parseCoordinate
+        this.imageWidth = this.parseCoordinate(width) ||
+                          (viewBoxValues ? viewBoxValues[2] : 800);
+        this.imageHeight = this.parseCoordinate(height) ||
+                           (viewBoxValues ? viewBoxValues[3] : 600);
+
+        // Validate final dimensions
+        if (!this.imageWidth || !this.imageHeight ||
+            this.imageWidth <= 0 || this.imageHeight <= 0) {
+            this.warn('Invalid image dimensions, using defaults');
+            this.imageWidth = 800;
+            this.imageHeight = 600;
+        }
 
         this.markerSize = Math.round(this.imageWidth / 50);
+
         // Copy the original SVG
         this.svg = originalSvg;
 
@@ -140,7 +156,25 @@ class ClickMap extends PageElement {
 
         this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
+        this.info(`SVG initialized with dimensions ${this.imageWidth} x ${this.imageHeight}`);
         return this.svg;
+    }
+
+    parseCoordinate(value) {
+        if (!value) return null;
+
+        // Handle different types of input
+        if (typeof value === 'number') {
+            return Number.isFinite(value) ? value : null;
+        }
+
+        if (typeof value === 'string') {
+            // Remove any units/characters and convert to number
+            const num = parseFloat(value.toString().replace(/[^\d.-]/g, ''));
+            return Number.isFinite(num) ? num : null;
+        }
+
+        return null;
     }
 
     parseCoordinates(coords) {
@@ -156,8 +190,8 @@ class ClickMap extends PageElement {
                 return [null, null];
             }
 
-            const x = parseFloat(coordinates[0].trim());
-            const y = parseFloat(coordinates[1].trim());
+            const x = this.parseCoordinate(coordinates[0].trim());
+            const y = this.parseCoordinate(coordinates[1].trim());
 
             // Validate parsed coordinates
             if (isNaN(x) || isNaN(y)) {
@@ -186,7 +220,7 @@ class ClickMap extends PageElement {
         const y = coords[1];
         if (isNaN(x) && isNaN(y)) {return this.svg;}
         // draw the actual answer marker first
-        let pm = this.drawMarker(x, y, "#000000", null);
+        let pm = this.drawMarker(x, y, "#FFFFFF", null);
         // now add answer markers
         if (!Object.hasOwn(cq, "answers") || cq.answers.length < 1) {return this.svg;}
         // Add circles for each answer with different colors and 80% opacity
@@ -197,7 +231,6 @@ class ClickMap extends PageElement {
             // Select a color based on the index, cycling through the colors array
             const colorIndex = index % ClickMap.colors.length;
             const color = ClickMap.colors[colorIndex];
-            this.info(`Adding answer marker for ${answer.username} at ${x},${y}`);
             let tm = this.drawMarker(x, y, color, answer.username);
         });
         return this.svg;
@@ -279,62 +312,72 @@ class ClickMap extends PageElement {
         if (isNaN(x) || isNaN(y)) return;
 
         this.info(`Drawing marker at ${x}, ${y} with color ${colour}`);
-        // Get the SVG's bounding rectangle for coordinate conversion
-        const svgRect = this.svg.getBoundingClientRect();
-        // Get the SVG's current transformation state
+
+        // Log the current viewBox values
         const box = this.svg.viewBox.baseVal;
+        this.info(`Current viewBox: x=${box.x}, y=${box.y}, width=${box.width}, height=${box.height}`);
 
-        // Calculate position with validation
-        let svgX, svgY;
-        try {
-            svgX = ((x - svgRect.left) / svgRect.width) * box.width + box.x;
-            svgY = ((y - svgRect.top) / svgRect.height) * box.height + box.y;
-
-            // Validate results
-            if (!Number.isFinite(svgX) || !Number.isFinite(svgY)) {
-                this.warn(`Invalid SVG coordinates: x=${svgX}, y=${svgY}`);
-                return;
-            }
-        } catch (error) {
-            this.warn(`Error in drawMarker: ${error.message}`);
-            return;
-        }
-
-        // Create a circle element
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", svgX);
-        circle.setAttribute("cy", svgY);
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
         if (id) {
             circle.setAttribute("id", id);
         }
 
         // Store coordinates
-        this.answerx = svgX;
-        this.answery = svgY;
+        this.answerx = x;
+        this.answery = y;
 
         // Set radius and styles
         const zoomAdjustedRadius = this.markerSize / this.scale;
+        this.info(`Marker radius: ${zoomAdjustedRadius} (markerSize: ${this.markerSize}, scale: ${this.scale})`);
+
         circle.setAttribute("r", zoomAdjustedRadius);
         circle.setAttribute("fill", colour);
-        circle.setAttribute("fill-opacity", "0.8");
+        circle.setAttribute("opacity", "0.6");
         circle.setAttribute("stroke", "#FFFFFF");
         circle.setAttribute("stroke-width", "1");
 
         // Store reference and append
         this.currentMarker = circle;
         this.svg.appendChild(circle);
-        this.info(`Marker drawn at ${svgX}, ${svgY}`);
+
+        // Log the SVG dimensions
+        const svgRect = this.svg.getBoundingClientRect();
+        this.info(`SVG dimensions: width=${svgRect.width}, height=${svgRect.height}`);
+
         return circle;
     }
 
     /* Add method to create/update marker when user clicks
     */
-    addMarker() {
-        let screenX = this.mx;
-        let screenY = this.my;
-        // Remove existing marker if it exists
-        if (this.currentMarker) {this.currentMarker.remove();}
-        this.drawMarker(screenX, screenY, "#000000", "markerId");
+    addMarker(x, y, colour, id) {
+        if (!this.svg) return;
+
+        // If an id is provided and starts with the marker prefix,
+        // remove any existing marker with that prefix
+        if (id && id.startsWith(ClickMap.markerIdPrefix)) {
+            const existingMarkers = this.svg.querySelectorAll(`circle[id^="${ClickMap.markerIdPrefix}"]`);
+            existingMarkers.forEach(marker => marker.remove());
+        }
+
+        const svgRect = this.svg.getBoundingClientRect();
+        if (!svgRect.width || !svgRect.height) {
+            this.warn('SVG has invalid dimensions');
+            return;
+        }
+
+        const box = this.svg.viewBox.baseVal;
+
+        // Calculate the scale factors between screen and SVG space
+        const scaleX = box.width / svgRect.width;
+        const scaleY = box.height / svgRect.height;
+
+        // Convert screen coordinates to SVG viewBox coordinates
+        const svgX = (x - svgRect.left) * scaleX + box.x;
+        const svgY = (y - svgRect.top) * scaleY + box.y;
+
+        return this.drawMarker(svgX, svgY, colour, id);
     }
 
     initializeEvents() {
@@ -418,7 +461,11 @@ class ClickMap extends PageElement {
                 } else {
                     this.isDragging = false;
                     container.style.cursor = 'default';
-                    this.addMarker();
+                    //let x = this.parseCoordinate(dx)
+                    //let y = this.parseCoordinate(dy)
+                    let x = tx;
+                    let y = ty;
+                    this.addMarker(x, y, "#000000", ClickMap.markerIdPrefix);
                 }
             }, 350);
         }, nonPassiveOpts);

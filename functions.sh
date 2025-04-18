@@ -189,5 +189,5 @@ function run {
     # go clean -cache
     go mod tidy
     mv ./1pcc-silicon-macos ./1pcc
-    ./1pcc --1pcc-port 8080
+    ./1pcc --testing-mode --1pcc-port 8080
 }
