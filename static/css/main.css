@@ -417,68 +417,36 @@ input[type=button], input[type=submit], input[type=reset] {
     background-color: rgba(255, 255, 255, 0.2);
 }
 /* Answer container styles */
-.answer-container {
-    padding: 20px;
-    background-color: var(--bccstone);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin: 10px 0;
-    max-width: 800px;
-    width: 100%;
+.answer-content {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.answer-container h2 {
-    color: var(--bccblue);
-    margin-bottom: 15px;
-    border-bottom: 2px solid var(--bccgold);
-    padding-bottom: 8px;
-}
-
-.correct-answer {
-    margin-bottom: 15px;
-}
-
-.correct-answer strong {
-    color: var(--bccnavy);
-}
-
-.correct-answer span {
-    color: var(--bccdarkgold);
-    font-weight: bold;
-}
-
-.host-answer {
-    background-color: var(--bccbeige);
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 10px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--bccgold);
+.answer-text {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    color: #2c3e50;
 }
 
 .answer-link {
-    margin-top: 15px;
-}
-
-.answer-link .btn {
-    padding: 8px 12px;
-    margin-left: 10px;
-    background-color: var(--bccblue);
-    color: white;
-    border-radius: 4px;
-    text-decoration: none;
     display: inline-block;
-    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
 }
 
-.answer-link .btn:hover {
-    background-color: var(--bccgold);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+.answer-link:hover {
+    background-color: #0056b3;
+    text-decoration: none;
 }
 
-.points-info {
-    margin-top: 15px;
-    color: var(--bccslate);
-    font-style: italic;
+.answer-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }

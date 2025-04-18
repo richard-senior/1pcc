@@ -517,6 +517,33 @@ class PageElement {
     }
 
     /**
+     * Gets the array of answers that have been submitted (if any) for
+     * this question
+     * @returns {array{answer}}
+     */
+    getAnswers() {
+        let cq = this.getCurrentQuestion();
+        if (!cq) {return null;}
+        let answers = cq.answers;
+        if (!answers) {return null;}
+        return answers;
+    }
+
+    /**
+     * Returns any answer the player has already submitted for this
+     * question
+     * @returns {answer} an answer if the player has submitted one
+     */
+    getPlayerAnswer() {
+        let ans = this.getAnswers();
+        if (!ans || ans.length === 0) {return null;}
+        let p = this.getCurrentPlayer();
+        if (!p) {return null;}
+        let a = ans.find(a => a.username === p.username);
+        return a;
+    }
+
+    /**
      * Generally the answer will be placed into this.selectedAnswer by some user
      * interaction such as a button click etc.
      * However when the GameAPI asks for the answer we may wish to add some global

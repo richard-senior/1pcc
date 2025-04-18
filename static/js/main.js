@@ -1105,13 +1105,33 @@ class PageElement {
      * @param {GameAPI} api
      * @returns {Document.Object}
      */
-    getAnswerContent(api) {
-        let cq = this.getCurrentQuestion();
-        const container = document.createElement('div');
-        container.textContent = 'Some Answer or other';
-        // populate div with cq.link if it exists
-        // and also cq.hostAnswer if it exists
-        return container
+    getAnswerContent() {
+        const { hostAnswer, link } = this.cq;
+        // If neither answer nor link exists, return standard content
+        if (!hostAnswer && !link) {return this.getContent();}
+
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'answer-content';
+
+        // Add host answer if it exists
+        if (hostAnswer) {
+            const answerElement = document.createElement('div');
+            answerElement.className = 'answer-text';
+            answerElement.innerHTML = hostAnswer; // Preserves HTML formatting
+            contentWrapper.appendChild(answerElement);
+        }
+
+        // Add link if it exists
+        if (link) {
+            const linkElement = document.createElement('a');
+            linkElement.href = link;
+            linkElement.target = '_blank';
+            linkElement.rel = 'noopener noreferrer'; // Security best practice
+            linkElement.className = 'answer-link';
+            linkElement.textContent = 'Learn More';
+            contentWrapper.appendChild(linkElement);
+        }
+        return contentWrapper;
     }
 
     /**
@@ -1230,6 +1250,33 @@ class PageElement {
         }
         this.answerSubmitted = false;
         return false;
+    }
+
+    /**
+     * Gets the array of answers that have been submitted (if any) for
+     * this question
+     * @returns {array{answer}}
+     */
+    getAnswers() {
+        let cq = this.getCurrentQuestion();
+        if (!cq) {return null;}
+        let answers = cq.answers;
+        if (!answers) {return null;}
+        return answers;
+    }
+
+    /**
+     * Returns any answer the player has already submitted for this
+     * question
+     * @returns {answer} an answer if the player has submitted one
+     */
+    getPlayerAnswer() {
+        let ans = this.getAnswers();
+        if (!ans || ans.length === 0) {return null;}
+        let p = this.getCurrentPlayer();
+        if (!p) {return null;}
+        let a = ans.find(a => a.username === p.username);
+        return a;
     }
 
     /**
@@ -1615,6 +1662,17 @@ class ClickMap extends PageElement {
         this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
         this.info(`SVG initialized with dimensions ${this.imageWidth} x ${this.imageHeight}`);
+
+        // draw marker for any answer the player has already submitted
+        let a = this.getPlayerAnswer()
+        if (a) {
+            let coords = this.parseCoordinates(a.answer);
+            let x = coords[0];
+            let y = coords[1];
+            if (x && y) {
+                this.drawMarker(x, y, "#FFFFFF", ClickMap.markerIdPrefix);
+            }
+        }
         return this.svg;
     }
 
@@ -1678,10 +1736,11 @@ class ClickMap extends PageElement {
         const y = coords[1];
         if (isNaN(x) && isNaN(y)) {return this.svg;}
         // draw the actual answer marker first
-        let pm = this.drawMarker(x, y, "#FFFFFF", null);
+        let pm = this.drawMarker(x, y, "#000000", null);
         // now add answer markers
         if (!Object.hasOwn(cq, "answers") || cq.answers.length < 1) {return this.svg;}
         // Add circles for each answer with different colors and 80% opacity
+        let p = this.getCurrentPlayer();
         cq.answers.forEach((answer, index) => {
             let coords = this.parseCoordinates(answer.answer);
             const x = coords[0];
@@ -1689,7 +1748,11 @@ class ClickMap extends PageElement {
             // Select a color based on the index, cycling through the colors array
             const colorIndex = index % ClickMap.colors.length;
             const color = ClickMap.colors[colorIndex];
-            let tm = this.drawMarker(x, y, color, answer.username);
+            // don't draw the answer for the current player
+            // it has already been drawn by getContent
+            if (answer.username !== p.username) {
+                let tm = this.drawMarker(x, y, color, answer.username);
+            }
         });
         return this.svg;
     }
@@ -1792,7 +1855,7 @@ class ClickMap extends PageElement {
 
         circle.setAttribute("r", zoomAdjustedRadius);
         circle.setAttribute("fill", colour);
-        circle.setAttribute("opacity", "0.6");
+        circle.setAttribute("opacity", "0.8");
         circle.setAttribute("stroke", "#FFFFFF");
         circle.setAttribute("stroke-width", "1");
 
@@ -1917,6 +1980,8 @@ class ClickMap extends PageElement {
                     this.isDragging = true;
                     container.style.cursor = 'grabbing';
                 } else {
+                    //only allow marker placing if the question is active
+                    if (!this.isQuestionActive()) return;
                     this.isDragging = false;
                     container.style.cursor = 'default';
                     //let x = this.parseCoordinate(dx)
