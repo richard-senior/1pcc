@@ -6,14 +6,15 @@ class Leaderboard extends PageElement {
         super('leaderboard-div',['*'])
     }
 
+    shouldShow() {return true;}
+
     getContent(gs) {
         let api = this.getApi();
-        api.fetchLeaderboard()
-        if (!api.leaderboard) {
-            this.warn('Leaderboard: No leaderboard data available');
-            return;
-        } else {
-            this.info('Leaderboard: Leaderboard data available');
+        try {
+            api.fetchLeaderboard();
+            console.log('After fetch:', api.leaderboard);
+        } catch (error) {
+            console.error('Fetch error:', error);
         }
         //console.log(api.leaderboard);
         // Create container div

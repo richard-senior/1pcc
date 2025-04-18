@@ -416,7 +416,11 @@ input[type=button], input[type=submit], input[type=reset] {
 .choices-container label:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
-/* Answer container styles */
+
+/* *************************************
+    Answer Content
+*************************************** */
+
 .answer-content {
     margin: 1rem 0;
     padding: 1rem;
@@ -429,6 +433,10 @@ input[type=button], input[type=submit], input[type=reset] {
     margin-bottom: 1rem;
     line-height: 1.5;
     color: #2c3e50;
+}
+
+.answer-text p {
+    margin: 0.5rem 0;
 }
 
 .answer-link {
@@ -444,9 +452,4 @@ input[type=button], input[type=submit], input[type=reset] {
 .answer-link:hover {
     background-color: #0056b3;
     text-decoration: none;
-}
-
-.answer-link:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }

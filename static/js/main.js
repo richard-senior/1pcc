@@ -14,7 +14,7 @@
 class GameAPI {
     // 0 = disable logging, 1 = log only 'logClassName' logs, 2 = log everything
     static loggingType = 1;
-    static logClassName = "ClickMap"
+    static logClassName = "Leaderboard"
     constructor() {
         if (GameAPI.instance) {return GameAPI.instance;}
         this.timeLeft = 0;
@@ -113,7 +113,7 @@ class GameAPI {
             if (!response.ok) {return null;}
             const leaderboardData = await response.json();
             if (!leaderboardData) {
-                this.info("failed to get leaderboard data");
+                this.warn("failed to get leaderboard data");
                 return null;
             }
             return this.leaderboard = leaderboardData;
@@ -1102,37 +1102,101 @@ class PageElement {
      * By default this method is implemented to show just some basic content from
      * the currentQuestion object such as 'hostAnswer' etc. but this method
      * can be overriden to show more detailed answers
+     *
+     *  how some pretty looking div which features:
+     *  cq.hostAnswer (string) if it exists. This contains HTML which should be honoured.
+     *  cq.link (string, url) if it exists, as a clickable button that opens an new tab with the content
+     *  mp (float32) rounded to zero decimal places, the total number of points that could have been won so far
+     *  cq.pointsAvailable (int) the number of points that were available for this question
      * @param {GameAPI} api
      * @returns {Document.Object}
      */
-    getAnswerContent() {
-        const { hostAnswer, link } = this.cq;
-        // If neither answer nor link exists, return standard content
-        if (!hostAnswer && !link) {return this.getContent();}
+    getAnswerContent(api) {
+        let cq = this.getCurrentQuestion();
+        if (!cq) return null;
 
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'answer-content';
+        // Create main container with answer-content class
+        const container = document.createElement('div');
+        container.className = 'answer-content';
 
-        // Add host answer if it exists
-        if (hostAnswer) {
-            const answerElement = document.createElement('div');
-            answerElement.className = 'answer-text';
-            answerElement.innerHTML = hostAnswer; // Preserves HTML formatting
-            contentWrapper.appendChild(answerElement);
+        // Add category if it exists
+        if (cq.category) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'answer-category';
+            categoryDiv.textContent = `Category: ${cq.category}`;
+            container.appendChild(categoryDiv);
         }
 
-        // Add link if it exists
-        if (link) {
-            const linkElement = document.createElement('a');
-            linkElement.href = link;
-            linkElement.target = '_blank';
-            linkElement.rel = 'noopener noreferrer'; // Security best practice
-            linkElement.className = 'answer-link';
-            linkElement.textContent = 'Learn More';
-            contentWrapper.appendChild(linkElement);
+        // Create and append host answer if it exists
+        if (cq.hostAnswer) {
+            const answerText = document.createElement('div');
+            answerText.className = 'answer-text';
+            answerText.innerHTML = cq.hostAnswer;
+            container.appendChild(answerText);
         }
-        return contentWrapper;
+
+        // Add correct answers section
+        if (cq.correctAnswers && cq.correctAnswers.length > 0) {
+            const correctAnswersDiv = document.createElement('div');
+            correctAnswersDiv.className = 'correct-answers';
+            correctAnswersDiv.innerHTML = `<strong>Correct Answer${cq.correctAnswers.length > 1 ? 's' : ''}</strong>: ${cq.correctAnswers.join(', ')}`;
+            container.appendChild(correctAnswersDiv);
+        }
+
+        // Add difficulty level
+        if (cq.percent) {
+            const difficultyDiv = document.createElement('div');
+            difficultyDiv.className = 'difficulty-level';
+            difficultyDiv.textContent = `Difficulty Level: ${cq.percent}%`;
+            container.appendChild(difficultyDiv);
+        }
+
+        // Create and append link if it exists
+        if (cq.link) {
+            const linkWrapper = document.createElement('div');
+            const link = document.createElement('a');
+            link.href = cq.link;
+            link.className = 'answer-link';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Learn More';
+            linkWrapper.appendChild(link);
+            container.appendChild(linkWrapper);
+        }
+
+        // Add statistics about answers if they exist
+        if (cq.answers && cq.answers.length > 0) {
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'answer-statistics';
+            const totalAnswers = cq.answers.length;
+            statsDiv.textContent = `Total Responses: ${totalAnswers}`;
+            container.appendChild(statsDiv);
+        }
+
+        // Create and append points information
+        const pointsInfo = document.createElement('div');
+        pointsInfo.className = 'answer-text';
+
+        // Format points available for this question
+        if (cq.pointsAvailable) {
+            const pointsAvailable = document.createElement('p');
+            pointsAvailable.textContent = `Points available: ${cq.pointsAvailable}`;
+            pointsInfo.appendChild(pointsAvailable);
+        }
+
+        let gs = this.getGameState();
+        // Format total points possible so far
+        if (gs.maxPoints && gs.totalPoints) {
+            const totalPoints = document.createElement('p');
+            totalPoints.textContent = `Total points possible so far: ${Math.round(gs.maxPoints)}`;
+            pointsInfo.appendChild(totalPoints);
+        }
+
+        container.appendChild(pointsInfo);
+
+        return container;
     }
+
 
     /**
      * Calls createStyles to create any css styles required
@@ -3112,12 +3176,14 @@ class Leaderboard extends PageElement {
         super('leaderboard-div',['*'])
     }
 
+    shouldShow() {return true;}
+
     getContent(gs) {
         let api = this.getApi();
         api.fetchLeaderboard()
         if (!api.leaderboard) {
             this.warn('Leaderboard: No leaderboard data available');
-            return;
+            return null;
         } else {
             this.info('Leaderboard: Leaderboard data available');
         }

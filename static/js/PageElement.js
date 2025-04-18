@@ -386,17 +386,101 @@ class PageElement {
      * By default this method is implemented to show just some basic content from
      * the currentQuestion object such as 'hostAnswer' etc. but this method
      * can be overriden to show more detailed answers
+     *
+     *  how some pretty looking div which features:
+     *  cq.hostAnswer (string) if it exists. This contains HTML which should be honoured.
+     *  cq.link (string, url) if it exists, as a clickable button that opens an new tab with the content
+     *  mp (float32) rounded to zero decimal places, the total number of points that could have been won so far
+     *  cq.pointsAvailable (int) the number of points that were available for this question
      * @param {GameAPI} api
      * @returns {Document.Object}
      */
     getAnswerContent(api) {
         let cq = this.getCurrentQuestion();
+        if (!cq) return null;
+
+        // Create main container with answer-content class
         const container = document.createElement('div');
-        container.textContent = 'Some Answer or other';
-        // populate div with cq.link if it exists
-        // and also cq.hostAnswer if it exists
-        return container
+        container.className = 'answer-content';
+
+        // Add category if it exists
+        if (cq.category) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'answer-category';
+            categoryDiv.textContent = `Category: ${cq.category}`;
+            container.appendChild(categoryDiv);
+        }
+
+        // Create and append host answer if it exists
+        if (cq.hostAnswer) {
+            const answerText = document.createElement('div');
+            answerText.className = 'answer-text';
+            answerText.innerHTML = cq.hostAnswer;
+            container.appendChild(answerText);
+        }
+
+        // Add correct answers section
+        if (cq.correctAnswers && cq.correctAnswers.length > 0) {
+            const correctAnswersDiv = document.createElement('div');
+            correctAnswersDiv.className = 'correct-answers';
+            correctAnswersDiv.innerHTML = `<strong>Correct Answer${cq.correctAnswers.length > 1 ? 's' : ''}</strong>: ${cq.correctAnswers.join(', ')}`;
+            container.appendChild(correctAnswersDiv);
+        }
+
+        // Add difficulty level
+        if (cq.percent) {
+            const difficultyDiv = document.createElement('div');
+            difficultyDiv.className = 'difficulty-level';
+            difficultyDiv.textContent = `Difficulty Level: ${cq.percent}%`;
+            container.appendChild(difficultyDiv);
+        }
+
+        // Create and append link if it exists
+        if (cq.link) {
+            const linkWrapper = document.createElement('div');
+            const link = document.createElement('a');
+            link.href = cq.link;
+            link.className = 'answer-link';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Learn More';
+            linkWrapper.appendChild(link);
+            container.appendChild(linkWrapper);
+        }
+
+        // Add statistics about answers if they exist
+        if (cq.answers && cq.answers.length > 0) {
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'answer-statistics';
+            const totalAnswers = cq.answers.length;
+            statsDiv.textContent = `Total Responses: ${totalAnswers}`;
+            container.appendChild(statsDiv);
+        }
+
+        // Create and append points information
+        const pointsInfo = document.createElement('div');
+        pointsInfo.className = 'answer-text';
+
+        // Format points available for this question
+        if (cq.pointsAvailable) {
+            const pointsAvailable = document.createElement('p');
+            pointsAvailable.textContent = `Points available: ${cq.pointsAvailable}`;
+            pointsInfo.appendChild(pointsAvailable);
+        }
+
+        let gs = this.getGameState();
+        // Format total points possible so far
+        if (gs.maxPoints && gs.totalPoints) {
+            const totalPoints = document.createElement('p');
+            totalPoints.textContent = `Total points possible so far: ${Math.round(gs.maxPoints)}`;
+            pointsInfo.appendChild(totalPoints);
+        }
+
+        container.appendChild(pointsInfo);
+
+        return container;
     }
+
 
     /**
      * Calls createStyles to create any css styles required

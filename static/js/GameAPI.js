@@ -9,7 +9,7 @@
 class GameAPI {
     // 0 = disable logging, 1 = log only 'logClassName' logs, 2 = log everything
     static loggingType = 1;
-    static logClassName = "ClickMap"
+    static logClassName = "Leaderboard"
     constructor() {
         if (GameAPI.instance) {return GameAPI.instance;}
         this.timeLeft = 0;
@@ -101,6 +101,7 @@ class GameAPI {
      */
     async fetchLeaderboard() {
         try {
+            console.log("in fetch leaderboard");
             const response = await fetch('/api/get-leaderboard', {
                 method: 'GET',
                 credentials: 'include' // Include cookies for session handling
@@ -108,7 +109,7 @@ class GameAPI {
             if (!response.ok) {return null;}
             const leaderboardData = await response.json();
             if (!leaderboardData) {
-                this.info("failed to get leaderboard data");
+                this.warn("failed to get leaderboard data");
                 return null;
             }
             return this.leaderboard = leaderboardData;

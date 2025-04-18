@@ -18,11 +18,13 @@ import (
 // GameState represents the complete game state and UI configuration
 type GameState struct {
 	// Game core data
-	Players         map[string]*Player `json:"players"`
-	AllQuestions    []Question         `json:"allQuestions"`
-	CurrentQuestion *Question          `json:"currentQuestion"`
-	TotalQuestions  int                `json:"totalQuestions"`
-	CurrentUser     *Player            `json:"currentUser"`
+	Players         map[string]*Player `json:"players"`                //Map of all players in the game
+	AllQuestions    []Question         `json:"allQuestions"`           //the array of all questions in the game
+	CurrentQuestion *Question          `json:"currentQuestion"`        //The current Question object
+	TotalQuestions  int                `json:"totalQuestions"`         // The total number of questions in the game
+	CurrentUser     *Player            `json:"currentUser"`            // the Player object that represents the current logged in user
+	TotalPoints     float32            `json:"totalPoints"`            // the total number of points available in the whole game
+	MaxPoints       float32            `json:"maxPoints"`              // the total number of points that have been available so far, up to and including the current question
 	IsShowAnswer    bool               `json:"isShowAnswer,omitempty"` // True if the current question element should be showing the answer
 }
 
@@ -114,6 +116,13 @@ func GetGame() *GameState {
 		}
 		instance.AllQuestions = questions
 		instance.TotalQuestions = len(instance.AllQuestions)
+
+		// Iterate through all questions and sum the points available
+		var totalPoints float32 = 0.0
+		for i := 1; i < instance.TotalQuestions; i++ {
+			totalPoints += float32(instance.AllQuestions[i-1].PointsAvailable)
+		}
+		instance.TotalPoints = totalPoints
 		logger.Info(fmt.Sprintf("%d questions loaded.. game state initiated", instance.TotalQuestions))
 	})
 	decorateGameState(instance)
@@ -148,6 +157,11 @@ func decorateGameState(gs *GameState) {
 		logger.Warn("there is no current question in decorate GameState")
 		return
 	}
+
+	// based on our current question determine how many points
+	// have been available for the players to win
+	mp := gs.getCurrentMaxPoints()
+	gs.MaxPoints = mp
 
 	// deals with player curation
 	curatePlayers(gs)
@@ -316,19 +330,21 @@ func (gs *GameState) HaveAllPlayersAnswered() bool {
 	return numRealPlayers > 0
 }
 
-func (gs *GameState) getCurrentMaxPoints() int {
+func (gs *GameState) getCurrentMaxPoints() float32 {
 	cq := gs.CurrentQuestion
 	if cq == nil {
 		return 0
 	}
+
 	// Iterate through all questions
-	totalPoints := 0
+	var totalPoints float32 = 0.0
+
 	// Sum points from first question up to current question number
 	for i := 1; i < cq.QuestionNumber; i++ {
-		totalPoints += gs.AllQuestions[i-1].PointsAvailable
+		totalPoints += float32(gs.AllQuestions[i-1].PointsAvailable)
 	}
 	// Add current question's points
-	totalPoints += cq.PointsAvailable
+	totalPoints += float32(cq.PointsAvailable)
 
 	return totalPoints
 }
