@@ -71,9 +71,26 @@ class QuestionView extends PageElement {
         `;
     }
 
-    handleGiveUp() {
-        this.getApi().surrender();
+    async handleGiveUp() {
+        const api = this.getApi();
+        const success = await api.surrender();
+
+        if (success) {
+            // Provide visual feedback that the surrender was successful
+            const cornerImage = document.querySelector('.corner-image');
+            if (cornerImage) {
+                // Visual indication that surrender was processed
+                cornerImage.style.opacity = 0.3;
+                cornerImage.style.cursor = 'default';
+                cornerImage.title = "You've given up on this question";
+
+                // Disable further clicks
+                cornerImage.onclick = null;
+                cornerImage.style.pointerEvents = 'none';
+            }
+        }
     }
+
 
     getContent(gs) {
         let cp = this.getCurrentPlayer();

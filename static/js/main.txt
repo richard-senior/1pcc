@@ -1,0 +1,45 @@
+/**
+ * Backup of a previous attempt at creating a module javascript file loading mechanism
+ * Loads all of the (other) individual javascript files from /static/js
+ */
+function loadScripts() {
+    const files = [
+        "GameApi",
+        "PageElement",
+
+        "AnimatedButton",
+        "AnswerButton",
+        "ClickMap",
+        "CurrentAnswers",
+        "FreeText",
+        "GridImage",
+        "Leaderboard",
+        "MultiChoice",
+        "NextQuestionButton",
+        "PauseQuestionButton",
+        "PlayerAdmin",
+        "PlayerMessage",
+        "PreviousQuestionButton",
+        "QuestionView",
+        "ShowAnswerButton",
+        "StartQuestionButton",
+        "StopQuestionButton",
+        "StreetView",
+        "Timer",
+    ];
+    for (const f of files) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = "/static/js/" + f + ".js";
+        head.appendChild(script);
+    }
+}
+// Essentially starts the clientside polling when the dom content is all loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Now load all the javascript files
+    loadScripts();
+    // start the game API singleton if it hasn't already been started
+    // This will also start polling the server for game state updates
+    const gameApi = GameAPI.getInstance();
+});

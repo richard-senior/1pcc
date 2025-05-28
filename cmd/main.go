@@ -110,8 +110,16 @@ func main() {
 	}
 
 	// Add static file server - this needs to come before other routes
-	fs := http.FileServer(http.Dir("static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	fileServer := http.FileServer(http.Dir("static"))
+	// Create a custom file server handler to set the correct MIME types
+	staticHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set the correct MIME type for JavaScript files
+		if strings.HasSuffix(r.URL.Path, ".js") {
+			w.Header().Set("Content-Type", "application/javascript")
+		}
+		fileServer.ServeHTTP(w, r)
+	})
+	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 	// allow users to join the game at any point
 	mux.HandleFunc("/", handlers.PlayHandler)
 	mux.HandleFunc("/join", handlers.JoinHandler)

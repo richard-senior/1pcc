@@ -472,7 +472,7 @@ class GameAPI {
 
     stopPolling() {
         if (this.pollInterval) {
-            clearInterval(this.pollInterval);g
+            clearInterval(this.pollInterval);
             this.pollInterval = null;
         }
     }
@@ -500,8 +500,30 @@ class GameAPI {
         try {
             let points = 0;
             let username = this.getCurrentPlayer()?.username ?? null;
-            GameAPI.sendHttpRequest(`/api/players?username=${username}&action=surrender&points=${points}`);
+            const response = GameAPI.sendHttpRequest(`/api/players?username=${username}&action=surrender&points=${points}`);
 
+            // Set answerSubmitted flag for the current question
+            const cq = this.getCurrentQuestion();
+            if (cq) {
+                // Force update of answer state in client-side cache
+                if (!cq.answers) {
+                    cq.answers = [];
+                }
+
+                // Add a local answer entry if it doesn't exist
+                const existingAnswer = cq.answers.find(a => a.username === username);
+                if (!existingAnswer) {
+                    cq.answers.push({
+                        questionNumber: cq.questionNumber,
+                        username: username,
+                        answer: "...",
+                        comment: "forfeit",
+                        points: 0
+                    });
+                }
+            }
+
+            // Dispatch event to notify UI components
             const event = new CustomEvent('answerSubmitted', {
                 bubbles: true,
                 detail: {
@@ -509,9 +531,12 @@ class GameAPI {
                 }
             });
             window.dispatchEvent(event);
+
+            // Force immediate update of UI
             this.update();
+            return true;
         } catch (error) {
-            console.warn('Failed to submit answer:', error);
+            console.warn('Failed to submit surrender:', error);
             return false;
         }
     }
@@ -555,7 +580,7 @@ class GameAPI {
         let answerComponent = this.getAnswerComponent();
 
         if (!answerComponent) {
-            console.warn("Could not find appropriate component for question type:", questionType);
+            console.warn("Could not find appropriate component for question type:", cq.QuestionType);
             return false;
         }
 

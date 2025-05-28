@@ -481,7 +481,6 @@ class PageElement {
         return container;
     }
 
-
     /**
      * Calls createStyles to create any css styles required
      * buy the dom object managed by this object.

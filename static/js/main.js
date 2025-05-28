@@ -106,6 +106,7 @@ class GameAPI {
      */
     async fetchLeaderboard() {
         try {
+            console.log("in fetch leaderboard");
             const response = await fetch('/api/get-leaderboard', {
                 method: 'GET',
                 credentials: 'include' // Include cookies for session handling
@@ -476,7 +477,7 @@ class GameAPI {
 
     stopPolling() {
         if (this.pollInterval) {
-            clearInterval(this.pollInterval);g
+            clearInterval(this.pollInterval);
             this.pollInterval = null;
         }
     }
@@ -504,8 +505,30 @@ class GameAPI {
         try {
             let points = 0;
             let username = this.getCurrentPlayer()?.username ?? null;
-            GameAPI.sendHttpRequest(`/api/players?username=${username}&action=surrender&points=${points}`);
+            const response = GameAPI.sendHttpRequest(`/api/players?username=${username}&action=surrender&points=${points}`);
 
+            // Set answerSubmitted flag for the current question
+            const cq = this.getCurrentQuestion();
+            if (cq) {
+                // Force update of answer state in client-side cache
+                if (!cq.answers) {
+                    cq.answers = [];
+                }
+
+                // Add a local answer entry if it doesn't exist
+                const existingAnswer = cq.answers.find(a => a.username === username);
+                if (!existingAnswer) {
+                    cq.answers.push({
+                        questionNumber: cq.questionNumber,
+                        username: username,
+                        answer: "...",
+                        comment: "forfeit",
+                        points: 0
+                    });
+                }
+            }
+
+            // Dispatch event to notify UI components
             const event = new CustomEvent('answerSubmitted', {
                 bubbles: true,
                 detail: {
@@ -513,9 +536,12 @@ class GameAPI {
                 }
             });
             window.dispatchEvent(event);
+
+            // Force immediate update of UI
             this.update();
+            return true;
         } catch (error) {
-            console.warn('Failed to submit answer:', error);
+            console.warn('Failed to submit surrender:', error);
             return false;
         }
     }
@@ -559,7 +585,7 @@ class GameAPI {
         let answerComponent = this.getAnswerComponent();
 
         if (!answerComponent) {
-            console.warn("Could not find appropriate component for question type:", questionType);
+            console.warn("Could not find appropriate component for question type:", cq.QuestionType);
             return false;
         }
 
@@ -1197,7 +1223,6 @@ class PageElement {
         return container;
     }
 
-
     /**
      * Calls createStyles to create any css styles required
      * buy the dom object managed by this object.
@@ -1547,6 +1572,8 @@ class AnimatedButton extends PageElement {
 class AnswerButton extends AnimatedButton {
     constructor() {
         super('answer-button', 5); // 5 second cooldown
+        this.lastQuestionActive = false;
+        this.lastAnsweredState = false;
     }
 
     buttonAction() {
@@ -1562,7 +1589,30 @@ class AnswerButton extends AnimatedButton {
         if (answered) {return false;}
         return true;
     }
+
+    /**
+     * Override shouldUpdate to check if the question active state or answered state has changed
+     * This ensures the button updates its visual state when these conditions change
+     * @returns {boolean} true if the button should update
+     */
+    shouldUpdate() {
+        const currentQuestionActive = this.isQuestionActive();
+        const currentAnsweredState = this.hasAnswered();
+
+        // Check if either state has changed
+        if (currentQuestionActive !== this.lastQuestionActive ||
+            currentAnsweredState !== this.lastAnsweredState) {
+
+            // Update the stored states
+            this.lastQuestionActive = currentQuestionActive;
+            this.lastAnsweredState = currentAnsweredState;
+            return true;
+        }
+
+        return false;
+    }
 }
+
 
 // *******************************************************
 // ***** PageElement.js 
@@ -3174,27 +3224,60 @@ class GridImage extends PageElement {
 class Leaderboard extends PageElement {
     constructor() {
         super('leaderboard-div',['*'])
+        this.lastFetchTime = 0;
+        this.fetchInterval = 5000; // 5 seconds between fetches
     }
 
     shouldShow() {return true;}
 
+    shouldUpdate() {
+        // Force update if we don't have leaderboard data yet
+        const api = this.getApi();
+        if (!api.leaderboard) {
+            return true;
+        }
+
+        // Check if it's time to refresh the leaderboard data
+        const now = Date.now();
+        if (now - this.lastFetchTime > this.fetchInterval) {
+            this.lastFetchTime = now;
+            return true;
+        }
+
+        return false;
+    }
+
+    // Remove the async keyword - we'll handle the async operation differently
     getContent(gs) {
         let api = this.getApi();
-        api.fetchLeaderboard()
-        if (!api.leaderboard) {
-            this.warn('Leaderboard: No leaderboard data available');
-            return null;
-        } else {
-            this.info('Leaderboard: Leaderboard data available');
-        }
-        //console.log(api.leaderboard);
+
         // Create container div
         const container = document.createElement('div');
+
         // Create and add title bar
         const titleBar = document.createElement('div');
         titleBar.className = 'table-title-bar';
         titleBar.textContent = 'Current Standings';
         container.appendChild(titleBar);
+
+        // If we don't have leaderboard data yet, trigger a fetch and show loading state
+        if (!api.leaderboard) {
+            // Trigger fetch but don't await it
+            api.fetchLeaderboard().then(() => {
+                // Force an update after fetch completes
+                this.flags.updateHasRun = false;
+                api.update();
+            }).catch(error => {
+                console.error('Fetch error:', error);
+            });
+
+            // Show loading state
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-indicator';
+            loadingDiv.textContent = 'Loading leaderboard...';
+            container.appendChild(loadingDiv);
+            return container;
+        }
 
         // Create table
         const t = document.createElement('table');
@@ -3212,10 +3295,6 @@ class Leaderboard extends PageElement {
 
         try {
             const players = api.leaderboard;
-            if (!players) {
-                this.warn('Leaderboard: No players data available');
-                return null;
-            }
 
             for (const [username, player] of Object.entries(players)) {
                 // Skip spectators and admin users
@@ -3241,10 +3320,15 @@ class Leaderboard extends PageElement {
             return container;
         } catch (error) {
             this.warn('Leaderboard: Error creating content:', error);
-            return null;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = 'Error loading leaderboard data';
+            container.appendChild(errorDiv);
+            return container;
         }
     }
 }
+
 
 // *******************************************************
 // ***** PageElement.js 
@@ -3886,9 +3970,26 @@ class QuestionView extends PageElement {
         `;
     }
 
-    handleGiveUp() {
-        this.getApi().surrender();
+    async handleGiveUp() {
+        const api = this.getApi();
+        const success = await api.surrender();
+
+        if (success) {
+            // Provide visual feedback that the surrender was successful
+            const cornerImage = document.querySelector('.corner-image');
+            if (cornerImage) {
+                // Visual indication that surrender was processed
+                cornerImage.style.opacity = 0.3;
+                cornerImage.style.cursor = 'default';
+                cornerImage.title = "You've given up on this question";
+
+                // Disable further clicks
+                cornerImage.onclick = null;
+                cornerImage.style.pointerEvents = 'none';
+            }
+        }
     }
+
 
     getContent(gs) {
         let cp = this.getCurrentPlayer();
@@ -4176,6 +4277,8 @@ class Timer extends PageElement {
 // *******************************************************
 // ***** PageElement.js 
 // *******************************************************
+// Essentially starts the clientside polling when the dom content is all loaded
+// Appended to the bottom of main.js when functions.sh#combineJsFiles() concatenates the js files
 document.addEventListener('DOMContentLoaded', () => {
     // start the game API singleton if it hasn't already been started
     // This will also start polling the server for game state updates
