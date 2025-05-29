@@ -1,5 +1,52 @@
 [
     {
+        "question": "Match each scientist to their discovery",
+        "type": "gridimage",
+        "category": "Scientific Discoveries",
+        "percent": 40,
+        "imageUrl": "/static/images/scientists.png",
+        "link": "https://en.wikipedia.org/wiki/History_of_science",
+        "grid": [3, 3],
+        "choices": [
+            {"choice": "Theory of Relativity", "imgUrl": "", "answer": "A"},
+            {"choice": "Evolution by Natural Selection", "imgUrl": "", "answer": "B"},
+            {"choice": "Laws of Motion", "imgUrl": "", "answer": "C"},
+            {"choice": "Radioactivity", "imgUrl": "", "answer": "D"},
+            {"choice": "Alternating Current", "imgUrl": "", "answer": "E"},
+            {"choice": "Quantum Electrodynamics", "imgUrl": "", "answer": "F"},
+            {"choice": "Black Hole Radiation", "imgUrl": "", "answer": "G"},
+            {"choice": "Heliocentric Model", "imgUrl": "", "answer": "H"},
+            {"choice": "Quantum Model of the Atom", "imgUrl": "", "answer": "I"}
+        ],
+        "correctAnswers": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        "hostAnswer": "Einstein - Theory of Relativity, Darwin - Evolution by Natural Selection, Newton - Laws of Motion, Curie - Radioactivity, Tesla - Alternating Current, Feynman - Quantum Electrodynamics, Hawking - Black Hole Radiation, Galileo - Heliocentric Model, Bohr - Quantum Model of the Atom",
+        "timeLimit": 120,
+        "pointsAvailable": 9
+    },
+
+
+    {
+        "question": "What is the name of the super massive black hole at the centre of our galaxy?",
+        "type": "multichoice",
+        "category": "Science",
+        "choices": [
+            {"choice": "QSO-1587", "answer": "A"},
+            {"choice": "Alpha Ophiuchi", "answer": "B"},
+            {"choice": "Sagittarius A*", "answer": "C"},
+            {"choice": "Barnard's Star", "answer": "D"},
+            {"choice": "Sirius", "answer": "E"},
+            {"choice": "Tau Orionis", "answer": "F"}
+        ],
+        "percent": 70,
+        "link": "https://en.wikipedia.org/wiki/Sagittarius_A*",
+        "correctAnswers": ["C"],
+        "hostAnswer": "Don't touch it, even if you have protective gloves, and a ten foot pole.",
+        "timeLimit": 40,
+        "pointsAvailable": 2
+    },
+
+
+    {
         "question": "Click where you think the CENTRE of the ball should be",
         "type": "kazakhstan",
         "category": "spot the ball",

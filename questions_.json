@@ -1,19 +1,4 @@
 {
-    "question": "Click where you think the CENTRE of the ball should be",
-    "type": "kazakhstan",
-    "category": "spot the ball",
-    "percent": 60,
-    "link": "",
-    "correctAnswers": ["33.4,79.5"],
-    "penalisationFactor": 25.0,
-    "hostAnswer": "Fairly easy I think",
-    "timeLimit": 60,
-    "clickImage": "/static/images/gruev_corner.svg",
-    "answerImage": "/static/images/gruev_corner_with_ball.svg",
-    "pointsAvailable": 3
-},
-
-{
     "question": "Please drag the names onto the correct famous Scotts!",
     "type": "gridimage",
     "category": "quickfire",
@@ -407,5 +392,101 @@
         "timeLimit": 30,
         "pointsAvailable": 2
     }
+
+
+{
+    "question": "Which scientist is credited with discovering penicillin?",
+    "type": "multichoice",
+    "category": "Scientific Discoveries",
+    "percent": 60,
+    "choices": [
+        {"choice": "Louis Pasteur", "imgUrl": "", "answer": "A"},
+        {"choice": "Alexander Fleming", "imgUrl": "", "answer": "B"},
+        {"choice": "Marie Curie", "imgUrl": "", "answer": "C"},
+        {"choice": "Joseph Lister", "imgUrl": "", "answer": "D"}
+    ],
+    "imageUrl": "",
+    "link": "https://en.wikipedia.org/wiki/Alexander_Fleming",
+    "correctAnswers": ["B"],
+    "hostAnswer": "Alexander Fleming discovered penicillin in 1928 when he noticed that a mould (Penicillium notatum) had contaminated one of his culture dishes and was inhibiting bacterial growth.",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "Match each scientist to their discovery:",
+    "type": "gridimage",
+    "category": "Scientific Discoveries",
+    "percent": 40,
+    "imageUrl": "/static/images/scientists.png",
+    "link": "https://en.wikipedia.org/wiki/History_of_science",
+    "grid": [4, 3],
+    "choices": [
+        {"choice": "Theory of Relativity", "imgUrl": "", "answer": "A"},
+        {"choice": "Evolution by Natural Selection", "imgUrl": "", "answer": "B"},
+        {"choice": "Structure of DNA", "imgUrl": "", "answer": "C"},
+        {"choice": "Laws of Motion", "imgUrl": "", "answer": "D"}
+    ],
+    "correctAnswers": ["A", "B", "C", "D"],
+    "hostAnswer": "Einstein - Theory of Relativity, Darwin - Evolution by Natural Selection, Watson & Crick (with Franklin) - Structure of DNA, Newton - Laws of Motion",
+    "timeLimit": 120,
+    "pointsAvailable": 4
+},
+{
+    "question": "Which element has the chemical symbol 'Hg'?",
+    "type": "freetext",
+    "category": "Scientific Discoveries",
+    "percent": 20,
+    "imageUrl": "",
+    "link": "https://en.wikipedia.org/wiki/Mercury_(element)",
+    "correctAnswers": ["Mercury", "mercury"],
+    "penalisationFactor": 1.0,
+    "hostAnswer": "Mercury - named after the Roman god Mercury, known for speed and mobility. The symbol Hg comes from its Latin name, hydrargyrum, meaning 'liquid silver'.",
+    "timeLimit": 30,
+    "pointsAvailable": 2
+},
+{
+    "question": "Click on the part of the brain responsible for vision:",
+    "type": "kazakhstan",
+    "category": "Scientific Discoveries",
+    "percent": 10,
+    "link": "https://en.wikipedia.org/wiki/Visual_cortex",
+    "correctAnswers": ["320.5,180.3"],
+    "penalisationFactor": 15.0,
+    "hostAnswer": "The occipital lobe at the back of the brain contains the visual cortex, which interprets visual information from the eyes.",
+    "timeLimit": 45,
+    "clickImage": "/static/images/brain.svg",
+    "answerImage": "/static/images/brain_marked.svg",
+    "pointsAvailable": 2
+},
+{
+    "question": "What astronomical object was first photographed in 2019?",
+    "type": "multichoice",
+    "category": "Scientific Discoveries",
+    "percent": 5,
+    "choices": [
+        {"choice": "Pluto's surface", "imgUrl": "", "answer": "A"},
+        {"choice": "A Black Hole", "imgUrl": "", "answer": "B"},
+        {"choice": "The far side of the Moon", "imgUrl": "", "answer": "C"},
+        {"choice": "A Neutron Star", "imgUrl": "", "answer": "D"}
+    ],
+    "imageUrl": "/static/images/m87_black_hole.jpg",
+    "link": "https://en.wikipedia.org/wiki/Event_Horizon_Telescope",
+    "correctAnswers": ["B"],
+    "hostAnswer": "The first image of a black hole (specifically M87*) was released in April 2019, captured by the Event Horizon Telescope collaboration.",
+    "timeLimit": 45,
+    "pointsAvailable": 2
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 ]
