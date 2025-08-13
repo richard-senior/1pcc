@@ -171,9 +171,8 @@ function build {
 }
 
 function run {
-    tree >> ./dir_structure.txt
+    # tree >> ./dir_structure.txt
     # go clean -cache
     go mod tidy
-    mv ./1pcc-silicon-macos ./1pcc
     ./1pcc --testing-mode --1pcc-port 8080
 }
