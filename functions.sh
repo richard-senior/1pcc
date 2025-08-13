@@ -157,6 +157,9 @@ function buildAndroid {
     deleteFileAndVerify "./1pcc-android-arm"
     go build -o 1pcc-android-arm -trimpath ./cmd/main.go
     if [ $? -ne 0 ]; then return 1; fi
+    echo "Built for Android"
+    cp ./1pcc-android-arm ./1pcc
+    chmod 777 ./1pcc
 }
 
 function build {
