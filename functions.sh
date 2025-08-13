@@ -155,22 +155,7 @@ function buildWindows {
 function buildAndroid {
     # if any compiled files exist from the previous build then silently delete them
     deleteFileAndVerify "./1pcc-android-arm"
-    export GOOS=android
-    export GOARCH=arm64
-    export GOARM=7
-    export CGO_ENABLED=0
-    go build -o 1pcc-android-arm64 -ldflags="-s -w" -trimpath ./cmd/main.go
-    # Build for 32-bit arm (older devices)
-    export GOOS=android
-    export GOARCH=arm
-    export GOARM=7
-    export CGO_ENABLED=0
-    go build -o 1pcc-android-arm -ldflags="-s -w" -trimpath ./cmd/main.go
-    # Build for x86_64 (emulators and some devices)
-    export GOOS=android
-    export GOARCH=amd64
-    export CGO_ENABLED=0
-    go build -o 1pcc-android-x86_64 -ldflags="-s -w" -trimpath ./cmd/main.go
+    go build -o 1pcc-android-arm -trimpath ./cmd/main.go
     if [ $? -ne 0 ]; then return 1; fi
 }
 
@@ -178,7 +163,8 @@ function build {
     # if any compiled files exist from the previous build then silently delete them
     deleteFileAndVerify "./1pcc"
     combineJsFiles
-    buildMac
+    # buildMac
+    buildAndroid
     if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
     #buildLinux
     #buildWindows
