@@ -1,5 +1,5 @@
 {
-    "SERVER_PORT": 8080,
+    "SERVER_PORT": 7849,
     "MAP_SCALE": 6.6,
     "TESTING_MODE": false,
     "KIOSK_MODE": {
