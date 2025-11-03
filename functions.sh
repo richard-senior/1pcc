@@ -180,11 +180,11 @@ function build {
     # if any compiled files exist from the previous build then silently delete them
     deleteFileAndVerify "./1pcc"
     combineJsFiles
-    
+
     # Detect OS and build accordingly
     OS=$(uname -s)
     ARCH=$(uname -m)
-    
+
     case "$OS" in
         Darwin)
             echo "Building for macOS..."
@@ -217,7 +217,7 @@ function build {
             return 1
             ;;
     esac
-    
+
     echo "Build complete: ./1pcc"
 }
 
@@ -225,5 +225,5 @@ function run {
     # tree >> ./dir_structure.txt
     # go clean -cache
     go mod tidy
-    ./1pcc --testing-mode --1pcc-port 8080
+    ./1pcc --testing-mode --1pcc-port 7849
 }
