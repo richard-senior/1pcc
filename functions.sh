@@ -60,6 +60,20 @@ function buildLinux {
     chmod 777 1pcc-amd-linux
 }
 
+function buildRaspberryPi {
+    # Raspberry Pi 4 - 64-bit ARM
+    deleteFileAndVerify "./1pcc-rpi4-arm64"
+    export GOOS=linux
+    export GOARCH=arm64
+    go build -o 1pcc-rpi4-arm64 -ldflags="-s -w" -trimpath ./cmd/main.go
+    if [ $? -ne 0 ]; then
+        echo "failed to build for Raspberry Pi"
+        return 1
+    fi
+    chmod 777 1pcc-rpi4-arm64
+    echo "Built for Raspberry Pi 4 (64-bit)"
+}
+
 function appendToMainFile {
     if [ -z "$1" ]; then
         echo "must pass js filename in first parameter"
@@ -166,12 +180,45 @@ function build {
     # if any compiled files exist from the previous build then silently delete them
     deleteFileAndVerify "./1pcc"
     combineJsFiles
-    buildMac
-    mv /Users/richard/1pcc/1pcc-silicon-macos /Users/richard/1pcc/1pcc
-    # buildAndroid
-    if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
-    # buildLinux
-    #buildWindows
+    
+    # Detect OS and build accordingly
+    OS=$(uname -s)
+    ARCH=$(uname -m)
+    
+    case "$OS" in
+        Darwin)
+            echo "Building for macOS..."
+            buildMac
+            if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
+            mv ./1pcc-silicon-macos ./1pcc
+            ;;
+        Linux)
+            # Check if running on Raspberry Pi
+            if [ "$ARCH" = "aarch64" ] && [ -f /proc/device-tree/model ] && grep -q "Raspberry Pi" /proc/device-tree/model; then
+                echo "Building for Raspberry Pi..."
+                buildRaspberryPi
+                if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
+                mv ./1pcc-rpi4-arm64 ./1pcc
+            else
+                echo "Building for Linux..."
+                buildLinux
+                if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
+                mv ./1pcc-amd-linux ./1pcc
+            fi
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            echo "Building for Windows..."
+            buildWindows
+            if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
+            mv ./1pcc.exe ./1pcc
+            ;;
+        *)
+            echo "Unsupported OS: $OS"
+            return 1
+            ;;
+    esac
+    
+    echo "Build complete: ./1pcc"
 }
 
 function run {
