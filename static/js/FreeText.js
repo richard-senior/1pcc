@@ -4,10 +4,18 @@ class FreeText extends PageElement {
         this.isPlayableComponent = true;
         this.textInput = null;
         this.container = null;
+        this.lastQuestionActive = false;
     }
 
     shouldUpdate() {
         if (!this.container) {return true;}
+        const currentQuestionActive = this.isQuestionActive();
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            if (this.textInput) {
+                this.textInput.disabled = !currentQuestionActive;
+            }
+        }
         return false;
     }
 
@@ -54,6 +62,7 @@ class FreeText extends PageElement {
         this.textInput.id = 'free-text-input';
         this.textInput.className = 'free-text-input';
         this.textInput.placeholder = 'Type your answer here...';
+        this.textInput.disabled = !this.isQuestionActive();
         inputContainer.appendChild(this.textInput);
         container.appendChild(inputContainer);
     }
@@ -109,6 +118,12 @@ class FreeText extends PageElement {
             .free-text-input:focus {
                 outline: none;
                 box-shadow: 0 0 0 2px rgba(var(--bccblue-rgb), 0.2);
+            }
+
+            .free-text-input:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                background: #f5f5f5;
             }
 
             .free-text-input::placeholder {

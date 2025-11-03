@@ -12,6 +12,35 @@ class GridImage extends PageElement {
         };
         this.selectedAnswers = new Map();
         this.draggedElement = null;
+        this.lastQuestionActive = false;
+    }
+
+    shouldUpdate() {
+        const currentQuestionActive = this.isQuestionActive();
+        
+        // Always update draggable states to keep them in sync
+        this.updateDraggableStates();
+        
+        // Return true if state changed to trigger full update
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            return true;
+        }
+        return false;
+    }
+
+    updateDraggableStates() {
+        const draggables = document.querySelectorAll('.draggable-answer:not(.dragging)');
+        const isActive = this.isQuestionActive();
+        draggables.forEach(draggable => {
+            if (isActive) {
+                draggable.style.opacity = '1';
+                draggable.style.cursor = 'move';
+            } else {
+                draggable.style.opacity = '0.5';
+                draggable.style.cursor = 'not-allowed';
+            }
+        });
     }
 
     initialise(api) {
@@ -223,6 +252,12 @@ class GridImage extends PageElement {
         draggable.appendChild(contentContainer);
 
         draggable.addEventListener('dragstart', (e) => {
+            // Don't allow dragging if question is not active
+            if (!this.isQuestionActive()) {
+                e.preventDefault();
+                return;
+            }
+            
             this.draggedElement = draggable;
             draggable.classList.add('dragging');
             e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -242,6 +277,12 @@ class GridImage extends PageElement {
 
     handleDrop(e, cell) {
         e.preventDefault();
+        
+        // Don't allow drops if question is not active
+        if (!this.isQuestionActive()) {
+            return;
+        }
+        
         const data = JSON.parse(e.dataTransfer.getData('text/plain'));
         const cellIndex = cell.dataset.cellIndex;
 
@@ -334,6 +375,10 @@ class GridImage extends PageElement {
         this.container = document.createElement('div');
         this.createImageDiv(this.container);
         this.createAnswerPool(this.container);
+        
+        // Set initial draggable states after a brief delay to ensure DOM is ready
+        setTimeout(() => this.updateDraggableStates(), 0);
+        
         return this.container;
     }
 

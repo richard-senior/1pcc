@@ -12,6 +12,7 @@ import (
 
 	"slices"
 
+	"github.com/richard-senior/1pcc/internal/config"
 	"github.com/richard-senior/1pcc/internal/logger"
 )
 
@@ -26,6 +27,8 @@ type GameState struct {
 	TotalPoints     float32            `json:"totalPoints"`            // the total number of points available in the whole game
 	MaxPoints       float32            `json:"maxPoints"`              // the total number of points that have been available so far, up to and including the current question
 	IsShowAnswer    bool               `json:"isShowAnswer,omitempty"` // True if the current question element should be showing the answer
+	IsQuestionEnded bool               `json:"isQuestionEnded"`        // True when question has ended (for kiosk mode)
+	IsUserReading   bool               `json:"isUserReading"`          // True when users are reading the question (for kiosk mode)
 }
 
 type Player struct {
@@ -60,6 +63,7 @@ type Question struct {
 	PenalisationFactor float32   `json:"penalisationFactor,omitempty"` // for geoguessing, how harsh to be. The higher the number the harsher
 	HostAnswer         string    `json:"hostAnswer,omitempty"`         // Only included for admin
 	PointsAvailable    int       `json:"pointsAvailable,omitempty"`    // how many points are available for this question
+	ReadTime			int  `json:"readTime,omitempty"`    // How long the players get to read the question before it auto-starts in kiosk mode
 	TimeLimit          int       `json:"timeLimit,omitempty"`          // how long do the users have to answer?
 	TimeLeft           int       `json:"timeLeft"`                     // how long has the user left to answer this question
 	TimeStarted        time.Time `json:"timeStarted"`                  // when did this question start
@@ -195,12 +199,31 @@ func decorateGameState(gs *GameState) {
 			//logger.Info(fmt.Sprintf("countdown : %d", cq.TimeLeft))
 		}
 	}
+	if !config.GetKioskMode().Enabled {
+		return
+	}
+	if len(gs.Players) < config.GetKioskMode().MinPlayers {
+		return  // Keep waiting
+	}
+	if cq.TimeStarted.IsZero() && !gs.IsUserReading {
+		logger.Info("Kiosk")
+		gs.IsUserReading = true
+		go gs.ShowReadTime()  // Starts read time then question
+	}
 }
 
 func onQuestionEnded(gs *GameState) {
 	// Ensure all current players have answers to all current questions
 	// ie if a new player has joined, given them zeros for answers that have already been given.
 	logger.Info("Question timed out.. doQuestionTimeout")
+
+	// Set kiosk mode flags
+	kioskConfig := config.GetKioskMode()
+	if kioskConfig.Enabled {
+		gs.IsQuestionEnded = false
+		gs.IsUserReading = true
+		go gs.ShowReadTime()  // Next question
+	}
 }
 
 // In game.go, change the function to be a method on GameState
@@ -522,6 +545,28 @@ func ResetPlayerAnswer(username string) {
 	}
 }
 
+// ShowReadTime displays the question for reading time before starting in kiosk mode
+func (gs *GameState) ShowReadTime() {
+	kioskConfig := config.GetKioskMode()
+	if !kioskConfig.Enabled {
+		return
+	}
+
+	gs.NextQuestion()
+	cq := gs.GetCurrentQuestion()
+	if cq == nil {
+		return
+	}
+
+	readTime := cq.ReadTime
+	if readTime == 0 {
+		readTime = 15
+	}
+
+	time.Sleep(time.Duration(readTime) * time.Second)
+	gs.StartQuestion()
+}
+
 // StartGame initializes and starts the game
 func (gs *GameState) StartQuestion() {
 	mu.Lock()
@@ -615,4 +660,34 @@ func NewGameState() *GameState {
 	}
 
 	return gs
+}
+
+// Reset resets the game state for a new game while keeping players
+func (gs *GameState) Reset() {
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Reset all player scores
+	for _, player := range gs.Players {
+		player.Score = 0
+		player.Percent = 0
+		player.Message = ""
+		player.MessageTime = 0
+	}
+
+	// Reset game state
+	gs.MaxPoints = 0
+	gs.TotalPoints = 0
+	gs.IsShowAnswer = false
+
+	// Reset to first question
+	if len(gs.AllQuestions) > 0 {
+		gs.CurrentQuestion = &gs.AllQuestions[0]
+		gs.CurrentQuestion.Answers = nil
+		gs.CurrentQuestion.IsTimedOut = false
+		gs.CurrentQuestion.TimeLeft = 0
+		gs.CurrentQuestion.TimeStarted = time.Time{}
+	}
+
+	logger.Info("Game state reset for new round")
 }

@@ -278,8 +278,10 @@ class GameAPI {
      * @returns {boolean} true if the current question is active
      */
     isQuestionActive() {
+        let cq = this.getCurrentQuestion();
+        if (!cq) {return false;}
         let t = this.getTimeLeft();
-        if (t > 0) {return true;}
+        if (t > 0 && cq.timeLeft > 0) {return true;}
         return false;
     }
     /**
@@ -2314,51 +2316,6 @@ class ClickMap extends PageElement {
         }, {
             passive: true   // This one can be passive as it never calls preventDefault
         });
-
-        // Prevent pinch zoom at document level EXCEPT for click-container
-        document.addEventListener('touchmove', function(e) {
-            // Allow the event if it's from the click-container
-            if (e.target.closest('.click-container')) {
-                return;
-            }
-            // Prevent pinch zoom everywhere else
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        }, {
-            passive: false,  // Must be non-passive since we use preventDefault
-            capture: true
-        });
-
-        // Prevent keyboard zoom shortcuts EXCEPT when click-container is focused
-        document.addEventListener('keydown', function(e) {
-            // Allow if the click-container or its children are focused
-            if (e.target.closest('.click-container')) {
-                return;
-            }
-            // Prevent Ctrl/Cmd + Plus/Minus/Zero
-            if (e.ctrlKey || e.metaKey) {
-                switch (e.key) {
-                    case '+':
-                    case '-':
-                    case '=':
-                    case '0':
-                        e.preventDefault();
-                        break;
-                }
-            }
-        });
-        // Prevent zooming with more than one finger
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) {
-                e.preventDefault(); // Prevent zoom
-            }
-        }, { passive: false });
-
-        // Prevent pinch zooming with gestures
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault(); // Prevent zoom gesture
-        }, { passive: false });
     }
 
     zoom(scaleFactor, centerX, centerY) {
@@ -2521,10 +2478,18 @@ class FreeText extends PageElement {
         this.isPlayableComponent = true;
         this.textInput = null;
         this.container = null;
+        this.lastQuestionActive = false;
     }
 
     shouldUpdate() {
         if (!this.container) {return true;}
+        const currentQuestionActive = this.isQuestionActive();
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            if (this.textInput) {
+                this.textInput.disabled = !currentQuestionActive;
+            }
+        }
         return false;
     }
 
@@ -2571,6 +2536,7 @@ class FreeText extends PageElement {
         this.textInput.id = 'free-text-input';
         this.textInput.className = 'free-text-input';
         this.textInput.placeholder = 'Type your answer here...';
+        this.textInput.disabled = !this.isQuestionActive();
         inputContainer.appendChild(this.textInput);
         container.appendChild(inputContainer);
     }
@@ -2626,6 +2592,12 @@ class FreeText extends PageElement {
             .free-text-input:focus {
                 outline: none;
                 box-shadow: 0 0 0 2px rgba(var(--bccblue-rgb), 0.2);
+            }
+
+            .free-text-input:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                background: #f5f5f5;
             }
 
             .free-text-input::placeholder {
@@ -2777,6 +2749,35 @@ class GridImage extends PageElement {
         };
         this.selectedAnswers = new Map();
         this.draggedElement = null;
+        this.lastQuestionActive = false;
+    }
+
+    shouldUpdate() {
+        const currentQuestionActive = this.isQuestionActive();
+        
+        // Always update draggable states to keep them in sync
+        this.updateDraggableStates();
+        
+        // Return true if state changed to trigger full update
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            return true;
+        }
+        return false;
+    }
+
+    updateDraggableStates() {
+        const draggables = document.querySelectorAll('.draggable-answer:not(.dragging)');
+        const isActive = this.isQuestionActive();
+        draggables.forEach(draggable => {
+            if (isActive) {
+                draggable.style.opacity = '1';
+                draggable.style.cursor = 'move';
+            } else {
+                draggable.style.opacity = '0.5';
+                draggable.style.cursor = 'not-allowed';
+            }
+        });
     }
 
     initialise(api) {
@@ -2988,6 +2989,12 @@ class GridImage extends PageElement {
         draggable.appendChild(contentContainer);
 
         draggable.addEventListener('dragstart', (e) => {
+            // Don't allow dragging if question is not active
+            if (!this.isQuestionActive()) {
+                e.preventDefault();
+                return;
+            }
+            
             this.draggedElement = draggable;
             draggable.classList.add('dragging');
             e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -3007,6 +3014,12 @@ class GridImage extends PageElement {
 
     handleDrop(e, cell) {
         e.preventDefault();
+        
+        // Don't allow drops if question is not active
+        if (!this.isQuestionActive()) {
+            return;
+        }
+        
         const data = JSON.parse(e.dataTransfer.getData('text/plain'));
         const cellIndex = cell.dataset.cellIndex;
 
@@ -3099,6 +3112,10 @@ class GridImage extends PageElement {
         this.container = document.createElement('div');
         this.createImageDiv(this.container);
         this.createAnswerPool(this.container);
+        
+        // Set initial draggable states after a brief delay to ensure DOM is ready
+        setTimeout(() => this.updateDraggableStates(), 0);
+        
         return this.container;
     }
 
@@ -3339,6 +3356,37 @@ class MultiChoice extends PageElement {
         this.isPlayableComponent = true;
         this.choices = null;
         this.selectedChoice = null;
+        this.lastQuestionActive = false;
+    }
+
+    shouldUpdate() {
+        const currentQuestionActive = this.isQuestionActive();
+        
+        // Always update button states to keep them in sync
+        this.updateButtonStates();
+        
+        // Return true if state changed to trigger full update
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            return true;
+        }
+        return false;
+    }
+
+    updateButtonStates() {
+        const buttons = document.querySelectorAll('.multi-choice-button:not(.answered):not(.selected)');
+        const isActive = this.isQuestionActive();
+        buttons.forEach(button => {
+            if (isActive) {
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+                button.style.pointerEvents = 'auto';
+            } else {
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+                button.style.pointerEvents = 'none';
+            }
+        });
     }
 
     /**
@@ -3427,6 +3475,11 @@ class MultiChoice extends PageElement {
             } else {
                 // Add click handler
                 button.addEventListener('click', (e) => {
+                    // Don't allow selection if question is not active
+                    if (!this.isQuestionActive()) {
+                        return;
+                    }
+
                     // Remove selected class from all buttons
                     container.querySelectorAll('.multi-choice-button').forEach(btn => {
                         btn.classList.remove('selected');
@@ -3465,6 +3518,10 @@ class MultiChoice extends PageElement {
         // populate the container
         this.createImageDiv(container);
         this.createButtons(container);
+        
+        // Set initial button states after a brief delay to ensure DOM is ready
+        setTimeout(() => this.updateButtonStates(), 0);
+        
         return container;
     }
 
@@ -4022,7 +4079,8 @@ class QuestionView extends PageElement {
         const usernameRow = document.createElement('tr');
         const usernameCell = document.createElement('td');
         usernameCell.className = 'username-row';
-        usernameCell.textContent = cp.username;
+
+        usernameCell.textContent = `${cp.username} (${cp.percent}%)`;
         usernameRow.appendChild(usernameCell);
 
         // Create percent row
@@ -4205,11 +4263,52 @@ class StreetView extends PageElement {
 class Timer extends PageElement {
     constructor() {
         super('timer',['*']);
+        this.labelText = null;  // Will be set dynamically based on game state
+        this.color = '#ff0000'; // Will be set dynamically based on game state
     }
 
     shouldShow() {
-        let a = this.isQuestionActive();
-        return a;
+        // Show timer during read time or when question is active
+        let gs = this.getGameState();
+        if (!gs || !gs.currentQuestion) {return false;}
+        return gs.isUserReading || this.isQuestionActive();
+    }
+
+    getContent(gs) {
+        if (!gs || !gs.currentQuestion) {return null;}
+
+        // Determine color and label based on game state
+        if (gs.isUserReading) {
+            // Read mode - amber/yellow
+            this.color = '#ffaa00';
+            this.labelText = 'GET READY';
+        } else if (this.isQuestionActive()) {
+            // Active mode - red
+            this.color = '#ff0000';
+            this.labelText = 'COUNTDOWN';
+        } else {
+            // Future: green mode can be added here
+            return null;
+        }
+
+        const container = document.createElement('div');
+        container.style.color = this.color; // Apply color dynamically
+
+        // Add optional label if specified
+        if (this.labelText) {
+            const label = document.createElement('div');
+            label.className = 'timer-label';
+            label.textContent = this.labelText.substring(0, 10); // Max 10 chars
+            container.appendChild(label);
+        }
+
+        // Add countdown number
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'timer-number';
+        timeDiv.textContent = this.getTimeLeft();
+        container.appendChild(timeDiv);
+
+        return container;
     }
 
     createStyles() {
@@ -4217,6 +4316,7 @@ class Timer extends PageElement {
             #timer {
                 position: fixed;    /* glue to window */
                 display: flex;
+                flex-direction: column;
                 top: 10px;          /* Match top-qr positioning */
                 left: 5vw;          /* Mirror the right positioning of top-qr */
                 width: 10vw;        /* Match top-qr width */
@@ -4228,11 +4328,8 @@ class Timer extends PageElement {
                 font-size: 2vw;
                 z-index: 1000;      /* Keep it above other elements */
                 text-align: center;
-                font-family: 'Seg', 'Share Tech Mono', monospace;
                 background-color: #000;
-                color: #ff0000;     /* Classic red LED color */
                 border: 1px solid #333;
-                letter-spacing: 2px;
                 box-shadow:
                     inset 0 0 8px rgba(255, 0, 0, 0.2),
                     0 0 4px rgba(255, 0, 0, 0.2);
@@ -4257,20 +4354,26 @@ class Timer extends PageElement {
                 border-radius: 2px;
                 pointer-events: none;
             }
+
+            #timer .timer-label {
+                font-size: 0.5em;
+                font-family: Arial, sans-serif;
+                margin-bottom: 0.5em;
+                letter-spacing: 1px;
+            }
+
+            #timer .timer-number {
+                font-size: 1em;
+                font-family: 'Seg', 'Share Tech Mono', monospace;
+                letter-spacing: 2px;
+            }
         `;
         return css;
     }
 
     shouldUpdate() {
-        // Always update the timer when the question is active
-        return this.isQuestionActive();
-    }
-
-    getContent(gs) {
-        if (!this.isQuestionActive()) {return null;}
-        let timeLeft = this.getTimeLeft();
-        let ret = document.createTextNode(timeLeft);
-        return ret;
+        // Always update the timer to check state changes
+        return true;
     }
 }
 

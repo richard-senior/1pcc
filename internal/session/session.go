@@ -288,7 +288,7 @@ func AddPlayer(w http.ResponseWriter, r *http.Request, username string, ip strin
 	// lock to avoid race condition
 	manager.mu.Lock()
 	i := game.GetGame()
-	if i.Players == nil || len(i.Players) < 1 {
+	if (i.Players == nil || len(i.Players) < 1) && !config.GetKioskMode().Enabled {
 		isHost = true
 	}
 	manager.mu.Unlock()

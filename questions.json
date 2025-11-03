@@ -6,59 +6,129 @@
         "percent": 40,
         "imageUrl": "/static/images/scientists.png",
         "link": "https://en.wikipedia.org/wiki/History_of_science",
-        "grid": [3, 3],
-        "choices": [
-            {"choice": "Theory of Relativity", "imgUrl": "", "answer": "A"},
-            {"choice": "Evolution by Natural Selection", "imgUrl": "", "answer": "B"},
-            {"choice": "Laws of Motion", "imgUrl": "", "answer": "C"},
-            {"choice": "Radioactivity", "imgUrl": "", "answer": "D"},
-            {"choice": "Alternating Current", "imgUrl": "", "answer": "E"},
-            {"choice": "Quantum Electrodynamics", "imgUrl": "", "answer": "F"},
-            {"choice": "Black Hole Radiation", "imgUrl": "", "answer": "G"},
-            {"choice": "Heliocentric Model", "imgUrl": "", "answer": "H"},
-            {"choice": "Quantum Model of the Atom", "imgUrl": "", "answer": "I"}
+        "grid": [
+            3,
+            3
         ],
-        "correctAnswers": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        "choices": [
+            {
+                "choice": "Theory of Relativity",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "Evolution by Natural Selection",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "Laws of Motion",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "Radioactivity",
+                "imgUrl": "",
+                "answer": "D"
+            },
+            {
+                "choice": "Alternating Current",
+                "imgUrl": "",
+                "answer": "E"
+            },
+            {
+                "choice": "Quantum Electrodynamics",
+                "imgUrl": "",
+                "answer": "F"
+            },
+            {
+                "choice": "Black Hole Radiation",
+                "imgUrl": "",
+                "answer": "G"
+            },
+            {
+                "choice": "Heliocentric Model",
+                "imgUrl": "",
+                "answer": "H"
+            },
+            {
+                "choice": "Quantum Model of the Atom",
+                "imgUrl": "",
+                "answer": "I"
+            }
+        ],
+        "correctAnswers": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I"
+        ],
         "hostAnswer": "Einstein - Theory of Relativity, Darwin - Evolution by Natural Selection, Newton - Laws of Motion, Curie - Radioactivity, Tesla - Alternating Current, Feynman - Quantum Electrodynamics, Hawking - Black Hole Radiation, Galileo - Heliocentric Model, Bohr - Quantum Model of the Atom",
         "timeLimit": 120,
-        "pointsAvailable": 9
+        "pointsAvailable": 9,
+        "readTime": 5
     },
-
-
     {
         "question": "What is the name of the super massive black hole at the centre of our galaxy?",
         "type": "multichoice",
         "category": "Science",
         "choices": [
-            {"choice": "QSO-1587", "answer": "A"},
-            {"choice": "Alpha Ophiuchi", "answer": "B"},
-            {"choice": "Sagittarius A*", "answer": "C"},
-            {"choice": "Barnard's Star", "answer": "D"},
-            {"choice": "Sirius", "answer": "E"},
-            {"choice": "Tau Orionis", "answer": "F"}
+            {
+                "choice": "QSO-1587",
+                "answer": "A"
+            },
+            {
+                "choice": "Alpha Ophiuchi",
+                "answer": "B"
+            },
+            {
+                "choice": "Sagittarius A*",
+                "answer": "C"
+            },
+            {
+                "choice": "Barnard's Star",
+                "answer": "D"
+            },
+            {
+                "choice": "Sirius",
+                "answer": "E"
+            },
+            {
+                "choice": "Tau Orionis",
+                "answer": "F"
+            }
         ],
         "percent": 70,
         "link": "https://en.wikipedia.org/wiki/Sagittarius_A*",
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "hostAnswer": "Don't touch it, even if you have protective gloves, and a ten foot pole.",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
-
-
     {
         "question": "Click where you think the CENTRE of the ball should be",
         "type": "kazakhstan",
         "category": "spot the ball",
         "percent": 60,
         "link": "https://en.wikipedia.org/wiki/Spot_the_ball",
-        "correctAnswers": ["33.4,79.5"],
+        "correctAnswers": [
+            "33.4,79.5"
+        ],
         "penalisationFactor": 25.0,
         "hostAnswer": "Fairly easy I think",
         "timeLimit": 60,
         "clickImage": "/static/images/gruev_corner.svg",
         "answerImage": "/static/images/gruev_corner_with_ball.svg",
-        "pointsAvailable": 3
+        "pointsAvailable": 3,
+        "readTime": 5
     },
     {
         "question": "Where is this?",
@@ -68,15 +138,34 @@
         "imageUrl": "/static/images/newyork.jpg",
         "link": "https://en.wikipedia.org/wiki/New_York_City",
         "choices": [
-            {"choice": "Chicago", "imgUrl": "", "answer": "A"},
-            {"choice": "London", "imgUrl": "", "answer": "B"},
-            {"choice": "New York", "imgUrl": "", "answer": "C"},
-            {"choice": "Abu Dhabi", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "Chicago",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "London",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "New York",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "Abu Dhabi",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "hostAnswer": "I think we all knew that..",
         "timeLimit": 60,
-        "pointsAvailable": 1
+        "pointsAvailable": 1,
+        "readTime": 5
     },
     {
         "question": "What year was the 'Battle Of Hastings'?",
@@ -84,16 +173,35 @@
         "category": "warm up",
         "percent": 90,
         "choices": [
-            {"choice": "480 BC", "imgUrl": "", "answer": "A"},
-            {"choice": "871 AD", "imgUrl": "", "answer": "B"},
-            {"choice": "1066 AD", "imgUrl": "", "answer": "C"},
-            {"choice": "1346 AD", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "480 BC",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "871 AD",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "1066 AD",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "1346 AD",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "hostAnswer": "<br/>480BC:&nbsp;&nbsp;Thermopyle (Leonidas)<br/>871AD:&nbsp;&nbsp;Ashdown (Alfred)<br/>1066AD:&nbsp;Hastings (Harold)<br/>1346AD:&nbsp;Crecy (Edward)",
         "link": "https://en.wikipedia.org/wiki/Battle_of_Hastings",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Click the world map where you think the streetview is. You can zoom and move everything.",
@@ -102,13 +210,16 @@
         "percent": 80,
         "choices": [],
         "link": "https://maps.app.goo.gl/4omejTyVKvbNpUyH7",
-        "correctAnswers": ["2454.3,432.4"],
+        "correctAnswers": [
+            "2454.3,432.4"
+        ],
         "penalisationFactor": 13.0,
         "hostAnswer": "As Fatboy Slim once said, right here.. right now",
         "timeLimit": 120,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740148426050!6m8!1m7!1sSCZMOYq6gMSMpmfw5rpPHg!2m2!1d53.73390369732704!2d-1.650426251785178!3f224.88700496811032!4f-21.408158978267522!5f0.7820865974627469",
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Please drag the names onto the football kickists",
@@ -116,28 +227,108 @@
         "category": "warm up",
         "percent": 70,
         "imageUrl": "/static/images/fussballers.png",
-        "grid": [5, 3],
-        "choices": [
-            {"choice": "Mario Balotelli", "imgUrl": "", "answer": "A"},
-            {"choice": "Eric Cantona", "imgUrl": "", "answer": "B"},
-            {"choice": "Thierry Henry", "imgUrl": "", "answer": "C"},
-            {"choice": "Paul Gascoigne", "imgUrl": "", "answer": "D"},
-            {"choice": "Dennis Bergkamp", "imgUrl": "", "answer": "E"},
-            {"choice": "Lucas Radebe", "imgUrl": "", "answer": "F"},
-            {"choice": "Faustino Asprilla", "imgUrl": "", "answer": "G"},
-            {"choice": "Ole Gunnar Solskjær", "imgUrl": "", "answer": "H"},
-            {"choice": "Kenny Dalglish", "imgUrl": "", "answer": "I"},
-            {"choice": "Didier Drogba", "imgUrl": "", "answer": "J"},
-            {"choice": "George Best", "imgUrl": "", "answer": "K"},
-            {"choice": "Alan Shearer", "imgUrl": "", "answer": "L"},
-            {"choice": "Petr Čech", "imgUrl": "", "answer": "M"},
-            {"choice": "Erling Haaland", "imgUrl": "", "answer": "N"},
-            {"choice": "Neville Southall", "imgUrl": "", "answer": "O"}
+        "grid": [
+            5,
+            3
         ],
-        "correctAnswers": ["B","D","G","F","C","H","J","I","E","N","M","L","O","K","A"],
+        "choices": [
+            {
+                "choice": "Mario Balotelli",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "Eric Cantona",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "Thierry Henry",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "Paul Gascoigne",
+                "imgUrl": "",
+                "answer": "D"
+            },
+            {
+                "choice": "Dennis Bergkamp",
+                "imgUrl": "",
+                "answer": "E"
+            },
+            {
+                "choice": "Lucas Radebe",
+                "imgUrl": "",
+                "answer": "F"
+            },
+            {
+                "choice": "Faustino Asprilla",
+                "imgUrl": "",
+                "answer": "G"
+            },
+            {
+                "choice": "Ole Gunnar Solskj\u00e6r",
+                "imgUrl": "",
+                "answer": "H"
+            },
+            {
+                "choice": "Kenny Dalglish",
+                "imgUrl": "",
+                "answer": "I"
+            },
+            {
+                "choice": "Didier Drogba",
+                "imgUrl": "",
+                "answer": "J"
+            },
+            {
+                "choice": "George Best",
+                "imgUrl": "",
+                "answer": "K"
+            },
+            {
+                "choice": "Alan Shearer",
+                "imgUrl": "",
+                "answer": "L"
+            },
+            {
+                "choice": "Petr \u010cech",
+                "imgUrl": "",
+                "answer": "M"
+            },
+            {
+                "choice": "Erling Haaland",
+                "imgUrl": "",
+                "answer": "N"
+            },
+            {
+                "choice": "Neville Southall",
+                "imgUrl": "",
+                "answer": "O"
+            }
+        ],
+        "correctAnswers": [
+            "B",
+            "D",
+            "G",
+            "F",
+            "C",
+            "H",
+            "J",
+            "I",
+            "E",
+            "N",
+            "M",
+            "L",
+            "O",
+            "K",
+            "A"
+        ],
         "hostAnswer": "Maaaan, I love me some so-cher",
         "timeLimit": 300,
-        "pointsAvailable": 15
+        "pointsAvailable": 15,
+        "readTime": 5
     },
     {
         "question": "Click on the Howard Donald's nose",
@@ -145,13 +336,16 @@
         "category": "warm up",
         "percent": 60,
         "link": "https://en.wikipedia.org/wiki/Howard_Donald",
-        "correctAnswers": ["76.3,16.5"],
+        "correctAnswers": [
+            "76.3,16.5"
+        ],
         "penalisationFactor": 18.0,
         "hostAnswer": "Robbie Williams, Mark Owen, Gary Barlow, Jason Orange, Howard Donald",
         "timeLimit": 60,
         "clickImage": "/static/images/takethat.svg",
         "answerImage": "/static/images/gruev_corner_with_ball.svg",
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Ignoring spaces between words, what five-letter food appears somewhere in the following sentence:<br/>&nbsp;<br/>After Jacob read Paul Hollywood's book, he was inspired to take up baking.",
@@ -161,10 +355,13 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Freetext_search",
         "penalisationFactor": 1.0,
-        "correctAnswers": ["bread"],
+        "correctAnswers": [
+            "bread"
+        ],
         "hostAnswer": "I'm coming off the pill Freddy Bozwell!",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Which hand is this dude using to touch his neck?<br/><smaller>It's a mirror by the way.</smaller>",
@@ -174,14 +371,25 @@
         "imageUrl": "/static/images/mirror.jpg",
         "link": "https://en.wikipedia.org/wiki/Mirror_image",
         "choices": [
-            {"choice": "right", "imgUrl": "", "answer": "A"},
-            {"choice": "left", "imgUrl": "", "answer": "B"}
+            {
+                "choice": "right",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "left",
+                "imgUrl": "",
+                "answer": "B"
+            }
         ],
-        "correctAnswers": ["A"],
+        "correctAnswers": [
+            "A"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "I think this question reflects badly on me.",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "'If you would like to opt-out of the unsubscribing process, don't click yes'<br/><small>Which button do you click to unsubscribe?</small>",
@@ -191,13 +399,24 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Double_negative",
         "choices": [
-            {"choice": "yes", "imgUrl": "", "answer": "A"},
-            {"choice": "no", "imgUrl": "", "answer": "B"}
+            {
+                "choice": "yes",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "no",
+                "imgUrl": "",
+                "answer": "B"
+            }
         ],
-        "correctAnswers": ["A"],
+        "correctAnswers": [
+            "A"
+        ],
         "hostAnswer": "The key here being 'opt-out'",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Logically, which one of these is the odd one out?",
@@ -207,15 +426,34 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Alphabetical_order",
         "choices": [
-            {"choice": "Bryan Cranston definitely earns fans", "imgUrl": "", "answer": "A"},
-            {"choice": "Glorious Hugh Jackman is joyous", "imgUrl": "", "answer": "B"},
-            {"choice": "Lionel Messi nutmegs other players", "imgUrl": "", "answer": "C"},
-            {"choice": "Ringo Starr totally unleashes vocally", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "Bryan Cranston definitely earns fans",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "Glorious Hugh Jackman is joyous",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "Lionel Messi nutmegs other players",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "Ringo Starr totally unleashes vocally",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "hostAnswer": "Alphabetical order init",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "I'm not very good at wordle.. can you finish it for me? Look really hard at it.",
@@ -225,10 +463,15 @@
         "imageUrl": "/static/images/wordle.svg",
         "link": "https://en.wikipedia.org/wiki/Wordle",
         "penalisationFactor": 1.0,
-        "correctAnswers": ["stair", "STAIR", "Stair"],
+        "correctAnswers": [
+            "stair",
+            "STAIR",
+            "Stair"
+        ],
         "hostAnswer": "Stair at it! My clues are awsome.",
         "timeLimit": 240,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Fold the cross into a box, which is the only correct vision of how the cube would look?",
@@ -238,22 +481,35 @@
         "imageUrl": "/static/images/cross.svg",
         "link": "https://en.wikipedia.org/wiki/Net_(polyhedron)",
         "choices": [
-            {"choice": "", "imgUrl": "/static/images/cross_a.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/cross_b.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/cross_c.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/cross_d.svg", "answer": "D"}
+            {
+                "choice": "",
+                "imgUrl": "/static/images/cross_a.svg",
+                "answer": "A"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/cross_b.svg",
+                "answer": "B"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/cross_c.svg",
+                "answer": "C"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/cross_d.svg",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["D"],
+        "correctAnswers": [
+            "D"
+        ],
         "hostAnswer": "Mindbending.. as Bernard Cracknell used to say",
         "timeLimit": 240,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
-
-
-
-
-
-
     {
         "question": "What comes next?<br/>&nbsp;<br/>Brown, Pink, Blue, ?",
         "type": "multichoice",
@@ -262,15 +518,34 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Snooker",
         "choices": [
-            {"choice": "orange", "imgUrl": "", "answer": "A"},
-            {"choice": "black", "imgUrl": "", "answer": "B"},
-            {"choice": "indigo", "imgUrl": "", "answer": "C"},
-            {"choice": "violet", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "orange",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "black",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "indigo",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "violet",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "hostAnswer": "Erm.. insert snooker joke here",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "What score is this?",
@@ -280,33 +555,71 @@
         "imageUrl": "/static/images/dartboard.svg",
         "link": "https://en.wikipedia.org/wiki/Darts",
         "choices": [
-            {"choice": "74", "imgUrl": "", "answer": "A"},
-            {"choice": "68", "imgUrl": "", "answer": "B"},
-            {"choice": "89", "imgUrl": "", "answer": "C"},
-            {"choice": "79", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "74",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "68",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "89",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "79",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["D"],
+        "correctAnswers": [
+            "D"
+        ],
         "hostAnswer": "That'd be one of my best scores",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
-        "question": "What comes next?<br/>&nbsp;<br/>α, β, γ, δ, ?",
+        "question": "What comes next?<br/>&nbsp;<br/>\u03b1, \u03b2, \u03b3, \u03b4, ?",
         "type": "multichoice",
         "category": "quickfire",
         "percent": 70,
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Greek_alphabet",
         "choices": [
-            {"choice": "θ", "imgUrl": "", "answer": "A"},
-            {"choice": "λ", "imgUrl": "", "answer": "B"},
-            {"choice": "ε", "imgUrl": "", "answer": "C"},
-            {"choice": "ω", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "\u03b8",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "\u03bb",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "\u03b5",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "\u03c9",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "hostAnswer": "theta, lambda, epsilon, omega",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "What comes next?<br/>&nbsp;<br/>Anne Boleyn, Jane Seymour, Ann of Cleeves, ?",
@@ -316,14 +629,29 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Wives_of_Henry_VIII",
         "choices": [
-            {"choice": "Catherine of Aragon", "imgUrl": "", "answer": "A"},
-            {"choice": "Catherine Howard", "imgUrl": "", "answer": "B"},
-            {"choice": "Catherine Parr", "imgUrl": "", "answer": "C"}
+            {
+                "choice": "Catherine of Aragon",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "Catherine Howard",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "Catherine Parr",
+                "imgUrl": "",
+                "answer": "C"
+            }
         ],
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "hostAnswer": "Divorced beheaded died, divorced BEHEADED survived",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Which of these goes bang?<br/>A <img src='static/images/plugl.svg' height='11%' title='A'/><br/>B <img src='static/images/plugw.svg' height='11%' title='B'/><br/>C <img src='static/images/plugr.svg' height='11%' title='C'/>",
@@ -333,14 +661,29 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/AC_power_plugs_and_sockets",
         "choices": [
-            {"choice": "A", "imgUrl": "", "answer": "A"},
-            {"choice": "B", "imgUrl": "", "answer": "B"},
-            {"choice": "C", "imgUrl": "", "answer": "C"}
+            {
+                "choice": "A",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "B",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "C",
+                "imgUrl": "",
+                "answer": "C"
+            }
         ],
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "hostAnswer": "The green one isn't important. If you can't find anywhere for it to go just coil it up and leave it at the back somewhere. Be reyt.",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Please drag the correct names onto these comedians",
@@ -349,42 +692,118 @@
         "percent": 40,
         "imageUrl": "/static/images/comedians.png",
         "link": "https://en.wikipedia.org/wiki/List_of_British_comedians",
-        "grid": [5, 4],
+        "grid": [
+            5,
+            4
+        ],
         "choices": [
-            {"choice": "Kenneth Williams", "imgUrl": "", "answer": "A"},
-            {"choice": "Diane Morgan", "imgUrl": "", "answer": "B"},
-            {"choice": "Terry-Thomas", "imgUrl": "", "answer": "C"},
-            {"choice": "Peter Kaye", "imgUrl": "", "answer": "D"},
-            {"choice": "Les Dawson", "imgUrl": "", "answer": "E"},
-            {"choice": "Bill Hicks", "imgUrl": "", "answer": "F"},
-            {"choice": "Al Murray", "imgUrl": "", "answer": "G"},
-            {"choice": "Kevin Bridges", "imgUrl": "", "answer": "H"},
-            {"choice": "Richard Pryor", "imgUrl": "", "answer": "I"},
-            {"choice": "Billy Connolly", "imgUrl": "", "answer": "J"},
-            {"choice": "Eric Morecambe", "imgUrl": "", "answer": "K"},
-            {"choice": "Sarah Millican", "imgUrl": "", "answer": "L"},
-            {"choice": "Bill Bailey", "imgUrl": "", "answer": "M"},
-            {"choice": "Victoria Wood", "imgUrl": "", "answer": "N"},
-            {"choice": "Dylan Moran", "imgUrl": "", "answer": "O"},
-            {"choice": "Sean Lock", "imgUrl": "", "answer": "P"},
-            {"choice": "Richard Ayoade", "imgUrl": "", "answer": "Q"},
-            {"choice": "Noel Fielding", "imgUrl": "", "answer": "R"},
-            {"choice": "Lee Evans", "imgUrl": "", "answer": "S"},
-            {"choice": "Caroline Aherne", "imgUrl": "", "answer": "T"}
+            {
+                "choice": "Kenneth Williams",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "Diane Morgan",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "Terry-Thomas",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "Peter Kaye",
+                "imgUrl": "",
+                "answer": "D"
+            },
+            {
+                "choice": "Les Dawson",
+                "imgUrl": "",
+                "answer": "E"
+            },
+            {
+                "choice": "Bill Hicks",
+                "imgUrl": "",
+                "answer": "F"
+            },
+            {
+                "choice": "Al Murray",
+                "imgUrl": "",
+                "answer": "G"
+            },
+            {
+                "choice": "Kevin Bridges",
+                "imgUrl": "",
+                "answer": "H"
+            },
+            {
+                "choice": "Richard Pryor",
+                "imgUrl": "",
+                "answer": "I"
+            },
+            {
+                "choice": "Billy Connolly",
+                "imgUrl": "",
+                "answer": "J"
+            },
+            {
+                "choice": "Eric Morecambe",
+                "imgUrl": "",
+                "answer": "K"
+            },
+            {
+                "choice": "Sarah Millican",
+                "imgUrl": "",
+                "answer": "L"
+            },
+            {
+                "choice": "Bill Bailey",
+                "imgUrl": "",
+                "answer": "M"
+            },
+            {
+                "choice": "Victoria Wood",
+                "imgUrl": "",
+                "answer": "N"
+            },
+            {
+                "choice": "Dylan Moran",
+                "imgUrl": "",
+                "answer": "O"
+            },
+            {
+                "choice": "Sean Lock",
+                "imgUrl": "",
+                "answer": "P"
+            },
+            {
+                "choice": "Richard Ayoade",
+                "imgUrl": "",
+                "answer": "Q"
+            },
+            {
+                "choice": "Noel Fielding",
+                "imgUrl": "",
+                "answer": "R"
+            },
+            {
+                "choice": "Lee Evans",
+                "imgUrl": "",
+                "answer": "S"
+            },
+            {
+                "choice": "Caroline Aherne",
+                "imgUrl": "",
+                "answer": "T"
+            }
         ],
         "correctAnswers": [],
         "hostAnswer": "This tiger walks into a laundrette..",
         "timeLimit": 300,
-        "pointsAvailable": 20
+        "pointsAvailable": 20,
+        "readTime": 5
     },
-
-
-
-
-
-
-
-
     {
         "question": "Which is the flag of Scotland?",
         "type": "multichoice",
@@ -392,15 +811,34 @@
         "percent": 99,
         "imageUrl": "",
         "choices": [
-            {"choice": "", "imgUrl": "/static/images/flags/jm.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/flags/sco.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/flags/spc.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/flags/ker.svg", "answer": "D"}
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/jm.svg",
+                "answer": "A"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/sco.svg",
+                "answer": "B"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/spc.svg",
+                "answer": "C"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ker.svg",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "hostAnswer": "Och aye the noo... Jamaica, Scotland, St Patrick's cross, Cornwall",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Which country's flag is this?",
@@ -408,11 +846,16 @@
         "category": "countries and flags",
         "percent": 90,
         "imageUrl": "/static/images/flags/ch.svg",
-        "correctAnswers": ["Switzerland", "Swiss", "Switserland"],
+        "correctAnswers": [
+            "Switzerland",
+            "Swiss",
+            "Switserland"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "Switzerland have a lovely flag, which is a big plus.",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "How many stars appear on the flag of the USA?",
@@ -420,11 +863,14 @@
         "category": "countries and flags",
         "percent": 80,
         "imageUrl": "",
-        "correctAnswers": ["50"],
+        "correctAnswers": [
+            "50"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "Greenland would bigly make a star",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Name a country who's name starts and ends with the same VOWEL?<br/><small>I'm awarding bonus points for the less common answers</small>",
@@ -432,11 +878,26 @@
         "category": "countries and flags",
         "percent": 70,
         "imageUrl": "",
-        "correctAnswers": ["Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria"],
+        "correctAnswers": [
+            "Albania",
+            "Algeria",
+            "American Samoa",
+            "Andorra",
+            "Angola",
+            "Anguilla",
+            "Antarctica",
+            "Antigua and Barbuda",
+            "Argentina",
+            "Armenia",
+            "Aruba",
+            "Australia",
+            "Austria"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "You went with Austria or Australia didn't you? :)",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "How many stars appear on the flag of Australia!?",
@@ -444,11 +905,14 @@
         "category": "countries and flags",
         "percent": 60,
         "imageUrl": "",
-        "correctAnswers": ["6"],
+        "correctAnswers": [
+            "6"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "The sourthern cross and the 'Commonwealth' star",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Travelling due east from Leeds, What flag comes at the end of this sequence: <br/><img src='static/images/flags/gb.svg' width='8%' title='UK'/>&nbsp;<img src='static/images/flags/nl.svg' width='8%' title='Netherlands'/>&nbsp;<img src='static/images/flags/de.svg' width='8%' title='Germany'/>&nbsp;<img src='static/images/flags/pl.svg' width='8%' title='Poland'/>&nbsp;<img src='static/images/flags/by.svg' width='8%' title='Belarus'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/kz.svg' width='8%' title='Kazakhstan'/>&nbsp;<img src='static/images/flags/ru.svg' width='8%' title='Russia'/>&nbsp;<img src='static/images/flags/us.svg' width='8%' title='USA'/>&nbsp; ??",
@@ -457,15 +921,34 @@
         "percent": 50,
         "imageUrl": "",
         "choices": [
-            {"choice": "", "imgUrl": "/static/images/flags/ie.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/flags/ca.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/flags/dk.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "D"}
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ie.svg",
+                "answer": "A"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ca.svg",
+                "answer": "B"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/dk.svg",
+                "answer": "C"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/gb.svg",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "hostAnswer": "The US flag here is Alaska, and no part of Alaska is above or below Canada",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Drag the flags onto the cars (the countries that manufacture them)",
@@ -474,25 +957,90 @@
         "percent": 40,
         "imageUrl": "/static/images/cars.png",
         "link": "https://en.wikipedia.org/wiki/Automotive_industry",
-        "grid": [4, 3],
-        "choices": [
-            {"choice": "", "imgUrl": "/static/images/flags/jp.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/flags/esg.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/flags/fr.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/flags/es.svg", "answer": "D"},
-            {"choice": "", "imgUrl": "/static/images/flags/de.svg", "answer": "E"},
-            {"choice": "", "imgUrl": "/static/images/flags/ru.svg", "answer": "F"},
-            {"choice": "", "imgUrl": "/static/images/flags/us.svg", "answer": "G"},
-            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "H"},
-            {"choice": "", "imgUrl": "/static/images/flags/se.svg", "answer": "I"},
-            {"choice": "", "imgUrl": "/static/images/flags/cn.svg", "answer": "J"},
-            {"choice": "", "imgUrl": "/static/images/flags/kr.svg", "answer": "K"},
-            {"choice": "", "imgUrl": "/static/images/flags/it.svg", "answer": "L"}
+        "grid": [
+            4,
+            3
         ],
-        "correctAnswers": ["C","L","B","H","E","G","I","F","J","A","K","D"],
+        "choices": [
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/jp.svg",
+                "answer": "A"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/esg.svg",
+                "answer": "B"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/fr.svg",
+                "answer": "C"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/es.svg",
+                "answer": "D"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/de.svg",
+                "answer": "E"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ru.svg",
+                "answer": "F"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/us.svg",
+                "answer": "G"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/gb.svg",
+                "answer": "H"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/se.svg",
+                "answer": "I"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/cn.svg",
+                "answer": "J"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/kr.svg",
+                "answer": "K"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/it.svg",
+                "answer": "L"
+            }
+        ],
+        "correctAnswers": [
+            "C",
+            "L",
+            "B",
+            "H",
+            "E",
+            "G",
+            "I",
+            "F",
+            "J",
+            "A",
+            "K",
+            "D"
+        ],
         "hostAnswer": "Citroen (France), Fiat (Italy), Trabant (Old East Germany), Mini (UK), VW (Germany hmmm), Model T (US), Volvo (Sweden), Lada (USSR/Russia), BYD (China), Subaru (Japan), Kia (South Korea), Seat (Spain)",
         "timeLimit": 300,
-        "pointsAvailable": 12
+        "pointsAvailable": 12,
+        "readTime": 5
     },
     {
         "question": "Which flag is missing:<br/><img src='static/images/flags/at.svg' title='Austria' width='6%'/>&nbsp;<img src='static/images/flags/be.svg' title='Belgium' width='6%'/>&nbsp;<img src='static/images/flags/bg.svg' title='Bulgaria' width='6%'/>&nbsp;<img src='static/images/flags/hr.svg' title='Croatia' width='6%'/>&nbsp;<img src='static/images/flags/cy.svg' title='Cyprus' width='6%'/>&nbsp;<img src='static/images/flags/cz.svg' title='Czech Republic' width='6%'/>&nbsp;<img src='static/images/flags/dk.svg' title='Denmark' width='6%'/>&nbsp;<img src='static/images/flags/ee.svg' title='Estonia' width='6%'/>&nbsp;<img src='static/images/flags/fi.svg' title='Finland' width='6%'/>&nbsp;<img src='static/images/flags/fr.svg' title='France' width='6%'/>&nbsp;<img src='static/images/flags/de.svg' title='Germany' width='6%'/>&nbsp;<img src='static/images/flags/gr.svg' title='Greece' width='6%'/>&nbsp;<img src='static/images/flags/hu.svg' title='Hungary' width='6%'/>&nbsp;<img src='static/images/flags/it.svg' title='Italy' width='6%'/>&nbsp;<img src='static/images/flags/lv.svg' title='Latvia' width='6%'/>&nbsp;<img src='static/images/flags/lt.svg' title='Lithuania' width='6%'/>&nbsp;<img src='static/images/flags/lu.svg' title='Luxembourg' width='6%'/>&nbsp;<img src='static/images/flags/mt.svg' title='Malta' width='6%'/>&nbsp;<img src='static/images/flags/nl.svg' title='Netherlands' width='6%'/>&nbsp;<img src='static/images/flags/pl.svg' title='Poland' width='6%'/>&nbsp;<img src='static/images/flags/pt.svg' title='Portugal' width='6%'/>&nbsp;<img src='static/images/flags/ro.svg' title='Romania' width='6%'/>&nbsp;<img src='static/images/flags/sk.svg' title='Slovakia' width='6%'/>&nbsp;<img src='static/images/flags/sl.svg' title='Slovenia' width='6%'/>&nbsp;<img src='static/images/flags/es.svg' title='Spain' width='6%'/>&nbsp;<img src='static/images/flags/se.svg' title='Sweden' width='6%'/>&nbsp;",
@@ -502,15 +1050,34 @@
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/European_Union",
         "choices": [
-            {"choice": "", "imgUrl": "/static/images/flags/ie.svg", "answer": "A"},
-            {"choice": "", "imgUrl": "/static/images/flags/ru.svg", "answer": "B"},
-            {"choice": "", "imgUrl": "/static/images/flags/gb.svg", "answer": "C"},
-            {"choice": "", "imgUrl": "/static/images/flags/no.svg", "answer": "D"}
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ie.svg",
+                "answer": "A"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/ru.svg",
+                "answer": "B"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/gb.svg",
+                "answer": "C"
+            },
+            {
+                "choice": "",
+                "imgUrl": "/static/images/flags/no.svg",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["A"],
+        "correctAnswers": [
+            "A"
+        ],
         "hostAnswer": "A bit of politics there... :)",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Click on Bangladesh",
@@ -518,13 +1085,16 @@
         "category": "countries and flags",
         "percent": 20,
         "link": "https://en.wikipedia.org/wiki/Bangladesh",
-        "correctAnswers": ["3815.52,973.34"],
+        "correctAnswers": [
+            "3815.52,973.34"
+        ],
         "penalisationFactor": 18.0,
         "hostAnswer": "I mean it's easy if you know it's just east of Bengal :)",
         "timeLimit": 60,
         "clickImage": "/static/images/worldmap.svg",
         "answerImage": "/static/images/gruev_corner_with_ball.svg",
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Name a country who's name starts and ends with the same CONSONANT?<br/><small>No countries begin with the word 'The'!</small>",
@@ -533,11 +1103,22 @@
         "percent": 10,
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
-        "correctAnswers": ["Central African Republic", "CAR", "St Kitts", "Saint Kitts and Nevis", "Saint Vincent and the Grenadines", "Seychelles", "Sayshells", "Solomon Islands", "South Georgia and the South Sandwich Islands" ],
+        "correctAnswers": [
+            "Central African Republic",
+            "CAR",
+            "St Kitts",
+            "Saint Kitts and Nevis",
+            "Saint Vincent and the Grenadines",
+            "Seychelles",
+            "Sayshells",
+            "Solomon Islands",
+            "South Georgia and the South Sandwich Islands"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "Central African Republic, St Kitts, Saint Kitts and Nevis, Saint Vincent and the Grenadines, Seychelles, Solomon Islands, South Georgia and the South Sandwich Islands",
         "timeLimit": 180,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Which country's flag is this?",
@@ -546,66 +1127,103 @@
         "percent": 1,
         "imageUrl": "/static/images/flags/lols_nice_try.svg",
         "link": "https://en.wikipedia.org/wiki/Kiribati",
-        "correctAnswers": ["Kiribati"],
+        "correctAnswers": [
+            "Kiribati"
+        ],
         "penalisationFactor": 1.0,
-        "hostAnswer": "Capital: South Tarawa · Population: 121,300 · Area: 811 sq km",
+        "hostAnswer": "Capital: South Tarawa \u00b7 Population: 121,300 \u00b7 Area: 811 sq km",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
-
-
-
-
-
-
-
     {
         "question": "What's 9 plus 10?",
         "type": "multichoice",
         "category": "numbers and letters",
         "percent": 99,
         "choices": [
-            {"choice": "21", "imgUrl": "", "answer": "A"},
-            {"choice": "21", "imgUrl": "", "answer": "B"},
-            {"choice": "19", "imgUrl": "", "answer": "C"},
-            {"choice": "21", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "21",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "21",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "19",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "21",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
         "imageUrl": "",
         "link": "https://en.wikipedia.org/wiki/Internet_meme",
-        "correctAnswers": ["C"],
+        "correctAnswers": [
+            "C"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "There's a meme in here somewhere",
         "timeLimit": 20,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
-        "question": "2 + 3 × 10 = ??",
+        "question": "2 + 3 \u00d7 10 = ??",
         "type": "multichoice",
         "category": "numbers and letters",
         "percent": 90,
         "choices": [
-            {"choice": "53", "imgUrl": "", "answer": "A"},
-            {"choice": "50", "imgUrl": "", "answer": "B"},
-            {"choice": "35", "imgUrl": "", "answer": "C"},
-            {"choice": "32", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "53",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "50",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "35",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "32",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
         "imageUrl": "",
-        "correctAnswers": ["D"],
+        "correctAnswers": [
+            "D"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "BODMAS! Brackets -> division -> multiplication -> Addition -> Subtraction. No if's no buts.",
         "timeLimit": 25,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "<p style='font-size: smaller;'>A digital clock uses a maxiumum of seven lines (segments) per digit to display any digit from 0 to 9, eg:</p><p style=\"font-family: Seg; color: #882222; background-color: #000000;\">88:88</p><p style='font-size: smaller;'> How many segments are lit at 10:05am?</p>",
         "type": "freetext",
         "category": "numbers and letters",
         "percent": 80,
-        "correctAnswers": ["19"],
+        "correctAnswers": [
+            "19"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "Ner ner ner 19! or as Neneh Cherry and Youssou N'Dour once said: It's not a segment, or seven segment display.",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Click on the 'Umlaut'",
@@ -613,13 +1231,16 @@
         "category": "numbers and letters",
         "percent": 70,
         "link": "https://en.wikipedia.org/wiki/Umlaut_(diacritic)",
-        "correctAnswers": ["90.7,43.8"],
+        "correctAnswers": [
+            "90.7,43.8"
+        ],
         "penalisationFactor": 100.0,
-        "hostAnswer": "Jä!",
+        "hostAnswer": "J\u00e4!",
         "timeLimit": 30,
         "clickImage": "/static/images/umlaut.svg",
         "answerImage": "/static/images/gruev_corner_with_ball.svg",
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Which sequence of punctuation marks is in alphabetical order?",
@@ -627,17 +1248,36 @@
         "category": "numbers and letters",
         "percent": 60,
         "choices": [
-            {"choice": "? : , ! .", "imgUrl": "", "answer": "A"},
-            {"choice": ": , ! . ?", "imgUrl": "", "answer": "B"},
-            {"choice": ", ! . ? ,", "imgUrl": "", "answer": "C"},
-            {"choice": "! . ? , :", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "? : , ! .",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": ": , ! . ?",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": ", ! . ? ,",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "! . ? , :",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
         "imageUrl": "",
-        "correctAnswers": ["B"],
+        "correctAnswers": [
+            "B"
+        ],
         "penalisationFactor": 0,
         "hostAnswer": "CoLon, CoMma, Exclamation mark, Full stop (or Period), Question mark",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "What is 4 across in this crossword of local towns?",
@@ -645,11 +1285,14 @@
         "category": "numbers and letters",
         "percent": 50,
         "imageUrl": "/static/images/crossword_towns.svg",
-        "correctAnswers": ["Dewsbury"],
+        "correctAnswers": [
+            "Dewsbury"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "Dewsbobz",
         "timeLimit": 60,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "<p style='font-size: smaller;'> Jeremy is on the run in his car, which has this number plate: 'EDIO LZC'. To try to fool the police, he decides to add black tape to his number plate. Which of these could his number plate become?</p>",
@@ -657,15 +1300,34 @@
         "category": "numbers and letters",
         "percent": 40,
         "choices": [
-            {"choice": "EG40 LZC", "imgUrl": "", "answer": "A"},
-            {"choice": "EDIO EZO", "imgUrl": "", "answer": "B"},
-            {"choice": "FDIO LZB", "imgUrl": "", "answer": "C"},
-            {"choice": "EDIO UZD", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "EG40 LZC",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "EDIO EZO",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "FDIO LZB",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "EDIO UZD",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
-        "correctAnswers": ["B"],
-        "hostAnswer": "L-E, C-O" ,
+        "correctAnswers": [
+            "B"
+        ],
+        "hostAnswer": "L-E, C-O",
         "timeLimit": 40,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "What is the only letter that doesn't appear in any U.S. state name?",
@@ -673,11 +1335,14 @@
         "category": "numbers and letters",
         "percent": 30,
         "imageUrl": "",
-        "correctAnswers": ["Q"],
+        "correctAnswers": [
+            "Q"
+        ],
         "penalisationFactor": 0.0,
         "hostAnswer": "Qualabama, ought to be a state.",
         "timeLimit": 45,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "<p style='font-size: smaller;'>Last month was not June or August. Next month is not February, April or December. Neither last month NOR next month is January, May or September. <br/>What month is it?</p><p style='font-size: smaller;'>Use the boxes below to eliminate months if it helps..</p><br/>&nbsp;<br/><p style='font-size: 0.5em;'>Jan<input type='checkbox'/>Feb<input type='checkbox'/>Mar<input type='checkbox'/>Apr<input type='checkbox'/>May<input type='checkbox'/>Jun<input type='checkbox'/>Jul<input type='checkbox'/>Aug<input type='checkbox'/>Sep<input type='checkbox'/>Oct<input type='checkbox'/>Nov<input type='checkbox'/>Dec<input type='checkbox'/></p>",
@@ -685,10 +1350,14 @@
         "category": "numbers and letters",
         "percent": 20,
         "penalisationFactor": 0.0,
-        "correctAnswers": ["May", "may"],
+        "correctAnswers": [
+            "May",
+            "may"
+        ],
         "hostAnswer": "Logic puzzles suck don't they.",
         "timeLimit": 300,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "What is the only number between 1 and 100 that, when written out in English, has all its letters in alphabetical order?",
@@ -696,10 +1365,13 @@
         "category": "numbers and letters",
         "percent": 10,
         "penalisationFactor": 0.0,
-        "correctAnswers": ["Forty"],
+        "correctAnswers": [
+            "Forty"
+        ],
         "hostAnswer": "That one was pretty tough I think.",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "Name an english word that contains all 5 vowels exactly once and in alphabetical order..<br/><small>ie. 'Education' contains all vowels once but they're not in order..</small>",
@@ -707,17 +1379,40 @@
         "category": "numbers and letters",
         "percent": 1,
         "penalisationFactor": 1.0,
-        "correctAnswers": ["abstemious", "abstemiously", "abstenious", "abstentious", "acedious", "acerbitous", "acheilous", "acheirous", "adecticous", "aerious", "affectious", "anemious", "annelidous", "anteriour", "anteriourly", "arsenious", "avenious", "caesious", "facetious", "facetiously", "fracedinous", "larcenious", "materious", "placentious", "tragedious", "transtendinous", "travertinous"],
+        "correctAnswers": [
+            "abstemious",
+            "abstemiously",
+            "abstenious",
+            "abstentious",
+            "acedious",
+            "acerbitous",
+            "acheilous",
+            "acheirous",
+            "adecticous",
+            "aerious",
+            "affectious",
+            "anemious",
+            "annelidous",
+            "anteriour",
+            "anteriourly",
+            "arsenious",
+            "avenious",
+            "caesious",
+            "facetious",
+            "facetiously",
+            "fracedinous",
+            "larcenious",
+            "materious",
+            "placentious",
+            "tragedious",
+            "transtendinous",
+            "travertinous"
+        ],
         "hostAnswer": "I knew you'd all get that.. or am I being facetious?",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
-
-
-
-
-
-
     {
         "percent": 60,
         "question": "Which meal is literally the quickest",
@@ -725,33 +1420,75 @@
         "category": "cryptic",
         "link": "https://en.wikipedia.org/wiki/Etymology",
         "choices": [
-            {"choice": "breakfast", "imgUrl": "", "answer": "A"},
-            {"choice": "elevenses", "imgUrl": "", "answer": "B"},
-            {"choice": "dinner", "imgUrl": "", "answer": "C"},
-            {"choice": "tea", "imgUrl": "", "answer": "D"},
-            {"choice": "supper", "imgUrl": "", "answer": "E"}
+            {
+                "choice": "breakfast",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "elevenses",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "dinner",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "tea",
+                "imgUrl": "",
+                "answer": "D"
+            },
+            {
+                "choice": "supper",
+                "imgUrl": "",
+                "answer": "E"
+            }
         ],
-        "correctAnswers": ["A"],
+        "correctAnswers": [
+            "A"
+        ],
         "hostAnswer": "Break Fast! init.",
         "timeLimit": 30,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "This might take you days!<br/>What letter logically comes next: <br/> SUMOTUWETHFRS_",
         "type": "multichoice",
         "category": "cryptic",
         "choices": [
-            {"choice": "G", "imgUrl": "", "answer": "A"},
-            {"choice": "S", "imgUrl": "", "answer": "B"},
-            {"choice": "A", "imgUrl": "", "answer": "C"},
-            {"choice": "T", "imgUrl": "", "answer": "D"}
+            {
+                "choice": "G",
+                "imgUrl": "",
+                "answer": "A"
+            },
+            {
+                "choice": "S",
+                "imgUrl": "",
+                "answer": "B"
+            },
+            {
+                "choice": "A",
+                "imgUrl": "",
+                "answer": "C"
+            },
+            {
+                "choice": "T",
+                "imgUrl": "",
+                "answer": "D"
+            }
         ],
         "percent": 30,
         "link": "https://en.wikipedia.org/wiki/Names_of_the_days_of_the_week",
-        "correctAnswers": ["C"],
-        "hostAnswer": "Days of the week init." ,
+        "correctAnswers": [
+            "C"
+        ],
+        "hostAnswer": "Days of the week init.",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
     {
         "question": "1) Across : Being there... have a ball a couple of hours before midnight!",
@@ -760,17 +1497,15 @@
         "percent": 10,
         "imageUrl": "/static/images/cryptic.png",
         "link": "https://en.wikipedia.org/wiki/Cryptic_crossword",
-        "correctAnswers": ["Attendance"],
+        "correctAnswers": [
+            "Attendance"
+        ],
         "penalisationFactor": 1.0,
         "hostAnswer": "At Ten (12 - 2) have a ball (dance)",
         "timeLimit": 120,
-        "pointsAvailable": 2
+        "pointsAvailable": 2,
+        "readTime": 5
     },
-
-
-
-
-
     {
         "question": "GeoGuessing (80%): If you get within 50 miles you've done ok",
         "type": "geolocation",
@@ -778,13 +1513,16 @@
         "percent": 80,
         "choices": [],
         "link": "https://maps.app.goo.gl/j6yqqeJHS67TCAep8",
-        "correctAnswers": [""],
+        "correctAnswers": [
+            ""
+        ],
         "penalisationFactor": 12.0,
         "hostAnswer": "Anmatjere, Northern Territories, Australia",
         "timeLimit": 80,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740563789076!6m8!1m7!1s6H2Wzv0DNNZw9C2uOdBoYw!2m2!1d-22.49597551798225!2d133.3337703048019!3f194.5087426179503!4f-15.258253467282842!5f0.7820865974627469",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     },
     {
         "question": "GeoGuessing (60%): Careful now!",
@@ -793,13 +1531,16 @@
         "percent": 60,
         "choices": [],
         "link": "https://maps.app.goo.gl/ga4cwmii8kDdnPn78",
-        "correctAnswers": ["4502.620, 753.469"],
+        "correctAnswers": [
+            "4502.620, 753.469"
+        ],
         "hostAnswer": "Edogawa, Tokyo",
         "penalisationFactor": 15.0,
         "timeLimit": 100,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740001304287!6m8!1m7!1sibHbRNzalRzBWBMDigiQEQ!2m2!1d35.64735242911003!2d139.8446293562197!3f123.86414917643255!4f2.143555669002822!5f0.7820865974627469",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     },
     {
         "question": "GeoGuessing (40%): Looks easy right?",
@@ -808,13 +1549,16 @@
         "percent": 40,
         "choices": [],
         "link": "https://maps.app.goo.gl/NwaJCAech3jKoHav9",
-        "correctAnswers": ["2403.579, 296.888"],
+        "correctAnswers": [
+            "2403.579, 296.888"
+        ],
         "penalisationFactor": 18.0,
         "hostAnswer": "Lervik, Faroe Islands",
         "timeLimit": 140,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1739998284781!6m8!1m7!1sDO4WxBOd74z8JedVeaYQQw!2m2!1d62.21119902945588!2d-6.703198590317673!3f301.7973005793527!4f-8.492473666230936!5f0.7820865974627469",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     },
     {
         "question": "GeoGuessing (20%): Tricky",
@@ -823,13 +1567,16 @@
         "percent": 20,
         "choices": [],
         "link": "https://maps.app.goo.gl/8W7sE3KeA2Hj6nuz5",
-        "correctAnswers": [""],
+        "correctAnswers": [
+            ""
+        ],
         "penalisationFactor": 15.0,
         "hostAnswer": "Novy Zivot, Slovakia",
         "timeLimit": 140,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1739998284781!6m8!1m7!1sDO4WxBOd74z8JedVeaYQQw!2m2!1d62.21119902945588!2d-6.703198590317673!3f301.7973005793527!4f-8.492473666230936!5f0.7820865974627469",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     },
     {
         "question": "GeoGuessing (1%): Good luck!",
@@ -838,13 +1585,16 @@
         "percent": 1,
         "choices": [],
         "link": "https://maps.app.goo.gl/szsHQWGmnks39rVi8",
-        "correctAnswers": [""],
+        "correctAnswers": [
+            ""
+        ],
         "penalisationFactor": 13.0,
         "hostAnswer": "Chubut Province, Argentina",
         "timeLimit": 160,
         "clickImage": "/static/images/worldmap.svg",
         "streetview": "!4v1740565430239!6m8!1m7!1sNiWl_OSDrsLt5bsJzo1LNw!2m2!1d-43.66293731935104!2d-70.08697737188758!3f150.7486451806517!4f-0.29697066225918434!5f0.7820865974627469",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     },
     {
         "question": "Click on the location of the world's highest waterfall",
@@ -852,12 +1602,15 @@
         "category": "Where is kazakhstan",
         "percent": 50,
         "choices": [],
-        "correctAnswers": ["3089.4,521.2"],
+        "correctAnswers": [
+            "3089.4,521.2"
+        ],
         "penalisationFactor": 15.0,
         "hostAnswer": "Angel Falls in Venezuela - dropping 979 meters (3,212 feet)!",
         "timeLimit": 60,
         "clickImage": "/static/images/worldmap.svg",
         "answerImage": "/static/images/gruev_corner_with_ball.svg",
-        "pointsAvailable": 8
+        "pointsAvailable": 8,
+        "readTime": 5
     }
 ]

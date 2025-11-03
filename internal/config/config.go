@@ -11,10 +11,18 @@ import (
 	"github.com/richard-senior/1pcc/internal/logger"
 )
 
+type KioskMode struct {
+	Enabled              bool `json:"enabled"`
+	MinPlayers           int  `json:"minPlayers"`
+	QuestionDuration     int  `json:"questionDuration"`
+	BetweenQuestionDelay int  `json:"betweenQuestionDelay"`
+}
+
 type Config struct {
-	ServerPort  int     `json:"SERVER_PORT" env:"1pcc_port" flag:"1pcc-port"`
-	MapScale    float32 `json:"MAP_SCALE" env:"" flag:"map-scale"`
-	TestingMode bool    `json:"TESTING_MODE" env:"" flag:"testing-mode"`
+	ServerPort  int        `json:"SERVER_PORT" env:"1pcc_port" flag:"1pcc-port"`
+	MapScale    float32    `json:"MAP_SCALE" env:"" flag:"map-scale"`
+	TestingMode bool       `json:"TESTING_MODE" env:"" flag:"testing-mode"`
+	KioskMode   KioskMode  `json:"KIOSK_MODE"`
 }
 
 var configuration *Config
@@ -118,4 +126,8 @@ func GetTestingMode() bool {
 
 func GetMapScale() float32 {
 	return Get().MapScale
+}
+
+func GetKioskMode() KioskMode {
+	return Get().KioskMode
 }

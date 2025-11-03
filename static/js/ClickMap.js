@@ -695,51 +695,6 @@ class ClickMap extends PageElement {
         }, {
             passive: true   // This one can be passive as it never calls preventDefault
         });
-
-        // Prevent pinch zoom at document level EXCEPT for click-container
-        document.addEventListener('touchmove', function(e) {
-            // Allow the event if it's from the click-container
-            if (e.target.closest('.click-container')) {
-                return;
-            }
-            // Prevent pinch zoom everywhere else
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        }, {
-            passive: false,  // Must be non-passive since we use preventDefault
-            capture: true
-        });
-
-        // Prevent keyboard zoom shortcuts EXCEPT when click-container is focused
-        document.addEventListener('keydown', function(e) {
-            // Allow if the click-container or its children are focused
-            if (e.target.closest('.click-container')) {
-                return;
-            }
-            // Prevent Ctrl/Cmd + Plus/Minus/Zero
-            if (e.ctrlKey || e.metaKey) {
-                switch (e.key) {
-                    case '+':
-                    case '-':
-                    case '=':
-                    case '0':
-                        e.preventDefault();
-                        break;
-                }
-            }
-        });
-        // Prevent zooming with more than one finger
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) {
-                e.preventDefault(); // Prevent zoom
-            }
-        }, { passive: false });
-
-        // Prevent pinch zooming with gestures
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault(); // Prevent zoom gesture
-        }, { passive: false });
     }
 
     zoom(scaleFactor, centerX, centerY) {

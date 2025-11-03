@@ -273,8 +273,10 @@ class GameAPI {
      * @returns {boolean} true if the current question is active
      */
     isQuestionActive() {
+        let cq = this.getCurrentQuestion();
+        if (!cq) {return false;}
         let t = this.getTimeLeft();
-        if (t > 0) {return true;}
+        if (t > 0 && cq.timeLeft > 0) {return true;}
         return false;
     }
     /**

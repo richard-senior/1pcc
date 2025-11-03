@@ -4,6 +4,37 @@ class MultiChoice extends PageElement {
         this.isPlayableComponent = true;
         this.choices = null;
         this.selectedChoice = null;
+        this.lastQuestionActive = false;
+    }
+
+    shouldUpdate() {
+        const currentQuestionActive = this.isQuestionActive();
+        
+        // Always update button states to keep them in sync
+        this.updateButtonStates();
+        
+        // Return true if state changed to trigger full update
+        if (currentQuestionActive !== this.lastQuestionActive) {
+            this.lastQuestionActive = currentQuestionActive;
+            return true;
+        }
+        return false;
+    }
+
+    updateButtonStates() {
+        const buttons = document.querySelectorAll('.multi-choice-button:not(.answered):not(.selected)');
+        const isActive = this.isQuestionActive();
+        buttons.forEach(button => {
+            if (isActive) {
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+                button.style.pointerEvents = 'auto';
+            } else {
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+                button.style.pointerEvents = 'none';
+            }
+        });
     }
 
     /**
@@ -92,6 +123,11 @@ class MultiChoice extends PageElement {
             } else {
                 // Add click handler
                 button.addEventListener('click', (e) => {
+                    // Don't allow selection if question is not active
+                    if (!this.isQuestionActive()) {
+                        return;
+                    }
+
                     // Remove selected class from all buttons
                     container.querySelectorAll('.multi-choice-button').forEach(btn => {
                         btn.classList.remove('selected');
@@ -130,6 +166,10 @@ class MultiChoice extends PageElement {
         // populate the container
         this.createImageDiv(container);
         this.createButtons(container);
+        
+        // Set initial button states after a brief delay to ensure DOM is ready
+        setTimeout(() => this.updateButtonStates(), 0);
+        
         return container;
     }
 

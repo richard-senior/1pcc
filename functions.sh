@@ -166,10 +166,11 @@ function build {
     # if any compiled files exist from the previous build then silently delete them
     deleteFileAndVerify "./1pcc"
     combineJsFiles
-    # buildMac
-    buildAndroid
+    buildMac
+    mv /Users/richard/1pcc/1pcc-silicon-macos /Users/richard/1pcc/1pcc
+    # buildAndroid
     if [ $? -ne 0 ]; then echo "build failed"; return 1; fi
-    #buildLinux
+    # buildLinux
     #buildWindows
 }
 

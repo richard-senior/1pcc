@@ -123,7 +123,8 @@ class QuestionView extends PageElement {
         const usernameRow = document.createElement('tr');
         const usernameCell = document.createElement('td');
         usernameCell.className = 'username-row';
-        usernameCell.textContent = cp.username;
+
+        usernameCell.textContent = `${cp.username} (${cp.percent}%)`;
         usernameRow.appendChild(usernameCell);
 
         // Create percent row
