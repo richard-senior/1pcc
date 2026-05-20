@@ -141,6 +141,14 @@ class GameAPI {
             this.failureCount = 0;
             const newState = await response.json();
             if (!newState) {throw new Error("Failed to parse game state");}
+            // Decode base64-encoded answers on current question (non-admin only)
+            const cq = newState.currentQuestion;
+            if (cq && !cq.isTimedOut && cq.correctAnswers && !newState.currentUser?.isAdmin) {
+                cq.correctAnswers = cq.correctAnswers.map(a => this.decodeB64(a));
+                if (cq.hostAnswer) {
+                    cq.hostAnswer = this.decodeB64(cq.hostAnswer);
+                }
+            }
             return newState;
         } catch (error) {
             this.failureCount++;
@@ -149,6 +157,20 @@ class GameAPI {
             }
         }
         return null;
+    }
+
+    /**
+     * Decodes a URL-safe base64 string
+     * @param {string} s - base64url encoded string
+     * @returns {string} decoded UTF-8 string
+     */
+    decodeB64(s) {
+        if (!s) return s;
+        // Convert URL-safe base64 to standard base64
+        let b64 = s.replace(/-/g, '+').replace(/_/g, '/');
+        return decodeURIComponent(atob(b64).split('').map(c =>
+            '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''));
     }
 
     /**

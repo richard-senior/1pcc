@@ -1,0 +1,228 @@
+name: 1PCC Quiz Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - deploy
+          - cleanup
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY: 1pcc
+  APP_RUNNER_SERVICE: 1pcc-quiz
+  DOMAIN_NAME: quiz.richardsenior.net
+  HOSTED_ZONE_ID: Z02800869VAAI5BJ6KMW
+  ACM_CERT_ARN: arn:aws:acm:eu-west-2:981765414849:certificate/6d6b78e1-1302-4992-b2fe-a0aa48db4326
+
+jobs:
+  build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build binary
+        run: |
+          source ./functions.sh
+          combineJsFiles
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o 1pcc ./cmd/main.go
+
+      - name: Build Docker image
+        run: docker build -t 1pcc:${{ github.sha }} .
+
+      - name: Save Docker image as artifact
+        run: docker save 1pcc:${{ github.sha }} | gzip > 1pcc-image.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1pcc-docker-image
+          path: 1pcc-image.tar.gz
+          retention-days: 7
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build JS and binary
+        run: |
+          source ./functions.sh
+          combineJsFiles
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create ECR repository if not exists
+        run: |
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} 2>/dev/null || \
+          aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY }}
+
+      - name: Build and push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Create App Runner access role if not exists
+        id: app-runner-role
+        run: |
+          ROLE_ARN=$(aws iam get-role --role-name AppRunnerECRAccessRole --query 'Role.Arn' --output text 2>/dev/null || true)
+          if [ -z "$ROLE_ARN" ] || [ "$ROLE_ARN" = "None" ]; then
+            ROLE_ARN=$(aws iam create-role \
+              --role-name AppRunnerECRAccessRole \
+              --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"build.apprunner.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+              --query 'Role.Arn' --output text)
+            aws iam attach-role-policy \
+              --role-name AppRunnerECRAccessRole \
+              --policy-arn arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+            sleep 10
+          fi
+          echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
+
+      - name: Create App Runner service
+        id: create-service
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          SERVICE_ARN=$(aws apprunner create-service \
+            --service-name ${{ env.APP_RUNNER_SERVICE }} \
+            --source-configuration '{
+              "AuthenticationConfiguration": {
+                "AccessRoleArn": "${{ steps.app-runner-role.outputs.role_arn }}"
+              },
+              "AutoDeploymentsEnabled": false,
+              "ImageRepository": {
+                "ImageIdentifier": "'$ECR_REGISTRY'/${{ env.ECR_REPOSITORY }}:latest",
+                "ImageRepositoryType": "ECR",
+                "ImageConfiguration": {
+                  "Port": "7849"
+                }
+              }
+            }' \
+            --instance-configuration '{"Cpu":"0.25 vCPU","Memory":"0.5 GB"}' \
+            --query 'Service.ServiceArn' --output text)
+          echo "service_arn=$SERVICE_ARN" >> $GITHUB_OUTPUT
+
+          echo "Waiting for App Runner service to be running..."
+          aws apprunner wait service-running --service-arn $SERVICE_ARN 2>/dev/null || \
+            sleep 120
+
+          SERVICE_URL=$(aws apprunner describe-service \
+            --service-arn $SERVICE_ARN \
+            --query 'Service.ServiceUrl' --output text)
+          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "Service URL: https://$SERVICE_URL"
+
+      - name: Associate custom domain
+        run: |
+          aws apprunner associate-custom-domain \
+            --service-arn ${{ steps.create-service.outputs.service_arn }} \
+            --domain-name ${{ env.DOMAIN_NAME }} \
+            --enable-www-subdomain-association false || true
+
+      - name: Create Route53 CNAME record
+        run: |
+          aws route53 change-resource-record-sets \
+            --hosted-zone-id ${{ env.HOSTED_ZONE_ID }} \
+            --change-batch '{
+              "Changes": [{
+                "Action": "UPSERT",
+                "ResourceRecordSet": {
+                  "Name": "${{ env.DOMAIN_NAME }}",
+                  "Type": "CNAME",
+                  "TTL": 60,
+                  "ResourceRecords": [{"Value": "${{ steps.create-service.outputs.service_url }}"}]
+                }
+              }]
+            }'
+
+      - name: Output service URL
+        run: |
+          echo "🎮 Quiz is live at: https://${{ env.DOMAIN_NAME }}"
+          echo "🎮 Also available at: https://${{ steps.create-service.outputs.service_url }}"
+
+  cleanup:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'cleanup'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete App Runner service
+        run: |
+          SERVICE_ARN=$(aws apprunner list-services \
+            --query "ServiceSummaryList[?ServiceName=='${{ env.APP_RUNNER_SERVICE }}'].ServiceArn" \
+            --output text)
+          if [ -n "$SERVICE_ARN" ] && [ "$SERVICE_ARN" != "None" ]; then
+            echo "Deleting App Runner service: $SERVICE_ARN"
+            aws apprunner delete-service --service-arn $SERVICE_ARN
+            echo "Waiting for service deletion..."
+            sleep 60
+          else
+            echo "No App Runner service found"
+          fi
+
+      - name: Remove Route53 record
+        run: |
+          aws route53 change-resource-record-sets \
+            --hosted-zone-id ${{ env.HOSTED_ZONE_ID }} \
+            --change-batch '{
+              "Changes": [{
+                "Action": "DELETE",
+                "ResourceRecordSet": {
+                  "Name": "${{ env.DOMAIN_NAME }}",
+                  "Type": "CNAME",
+                  "TTL": 60,
+                  "ResourceRecords": [{"Value": "placeholder.awsapprunner.com"}]
+                }
+              }]
+            }' 2>/dev/null || echo "Route53 record already removed or not found"
+
+      - name: Delete ECR images
+        run: |
+          IMAGES=$(aws ecr list-images --repository-name ${{ env.ECR_REPOSITORY }} --query 'imageIds[*]' --output json 2>/dev/null)
+          if [ "$IMAGES" != "[]" ] && [ -n "$IMAGES" ]; then
+            aws ecr batch-delete-image \
+              --repository-name ${{ env.ECR_REPOSITORY }} \
+              --image-ids "$IMAGES"
+          fi
+
+      - name: Delete ECR repository
+        run: |
+          aws ecr delete-repository --repository-name ${{ env.ECR_REPOSITORY }} --force 2>/dev/null || \
+            echo "ECR repository already deleted or not found"
+
+      - name: Summary
+        run: echo "🧹 All resources cleaned up"

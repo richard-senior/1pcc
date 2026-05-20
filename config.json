@@ -3,7 +3,7 @@
     "MAP_SCALE": 6.6,
     "TESTING_MODE": false,
     "KIOSK_MODE": {
-        "enabled": true,
+        "enabled": false,
         "minPlayers": 1,
         "questionDuration": 30,
         "betweenQuestionDelay": 5

@@ -7,6 +7,7 @@ to hydrate pages with game and user details.
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -91,12 +92,69 @@ func handleGameState(w http.ResponseWriter, r *http.Request) {
 	p := session.GetMe(r)
 	state.CurrentUser = p
 
-	// Encode the state as JSON and send it back
-	err := json.NewEncoder(w).Encode(state)
-	if err != nil {
-		http.Error(w, "Failed to encode game state", http.StatusInternalServerError)
+	// Admin users get the full unfiltered state
+	if p != nil && p.IsAdmin {
+		json.NewEncoder(w).Encode(state)
 		return
 	}
+
+	// For non-admin users, build a response with encoded/stripped answers
+	// We must not mutate the original state, so we copy the relevant parts
+	type responseState struct {
+		Players         map[string]*game.Player `json:"players"`
+		AllQuestions     []game.Question         `json:"allQuestions"`
+		CurrentQuestion *game.Question          `json:"currentQuestion"`
+		TotalQuestions   int                     `json:"totalQuestions"`
+		CurrentUser     *game.Player            `json:"currentUser"`
+		TotalPoints     float32                 `json:"totalPoints"`
+		MaxPoints       float32                 `json:"maxPoints"`
+		IsShowAnswer    bool                    `json:"isShowAnswer,omitempty"`
+		IsQuestionEnded bool                    `json:"isQuestionEnded"`
+		IsUserReading   bool                    `json:"isUserReading"`
+	}
+
+	resp := responseState{
+		Players:         state.Players,
+		TotalQuestions:  state.TotalQuestions,
+		CurrentUser:    state.CurrentUser,
+		TotalPoints:    state.TotalPoints,
+		MaxPoints:      state.MaxPoints,
+		IsShowAnswer:   state.IsShowAnswer,
+		IsQuestionEnded: state.IsQuestionEnded,
+		IsUserReading:  state.IsUserReading,
+	}
+
+	// Current question: base64-encode answers if still active
+	if state.CurrentQuestion != nil {
+		cqCopy := *state.CurrentQuestion
+		if !cqCopy.IsTimedOut && !state.IsShowAnswer {
+			encoded := make([]string, len(cqCopy.CorrectAnswers))
+			for i, a := range cqCopy.CorrectAnswers {
+				encoded[i] = base64.URLEncoding.EncodeToString([]byte(a))
+			}
+			cqCopy.CorrectAnswers = encoded
+			if cqCopy.HostAnswer != "" {
+				cqCopy.HostAnswer = base64.URLEncoding.EncodeToString([]byte(cqCopy.HostAnswer))
+			}
+		}
+		resp.CurrentQuestion = &cqCopy
+	}
+
+	// AllQuestions: strip answers from non-current, encode current
+	currentQN := 0
+	if state.CurrentQuestion != nil {
+		currentQN = state.CurrentQuestion.QuestionNumber
+	}
+	resp.AllQuestions = make([]game.Question, len(state.AllQuestions))
+	for i, q := range state.AllQuestions {
+		resp.AllQuestions[i] = q
+		if q.QuestionNumber != currentQN {
+			resp.AllQuestions[i].CorrectAnswers = nil
+			resp.AllQuestions[i].HostAnswer = ""
+		}
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 func handleGetLeaderboard(w http.ResponseWriter, r *http.Request) {
