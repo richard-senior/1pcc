@@ -29,5 +29,4 @@ go.work.sum
 **/example.html
 .kiro/sessions/
 .playwright-mcp/
-vendor/
 logs/
